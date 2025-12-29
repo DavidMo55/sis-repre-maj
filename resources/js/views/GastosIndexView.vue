@@ -186,14 +186,15 @@ const fetchGastos = async () => {
     loading.value = true;
     error.value = null;
     try {
+        const params = {
+            fecha_desde: filters.value.fecha_desde,
+            fecha_hasta: filters.value.fecha_hasta,
+        };
         const response = await axios.get('/gastos', { params }); 
-        
-        const rawData = response.data.data || response.data;
-        gastos.value = Array.isArray(rawData) ? rawData : []; 
-
+        gastos.value = response.data.data; 
     } catch (err) {
-        error.value = 'Error de conexión con el servidor.';
-        gastos.value = []; 
+        error.value = 'No se pudo obtener la lista de gastos.';
+        console.error(err);
     } finally {
         loading.value = false;
     }
