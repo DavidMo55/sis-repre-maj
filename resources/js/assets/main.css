@@ -1,0 +1,134 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+
+/* --- LAYOUT GENERAL --- */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: white;
+}
+
+.content-wrapper {
+    flex-grow: 1; 
+    padding: 20px;
+    transition: margin-left 0.3s ease;
+}
+
+.sidenav {
+    width: 260px; 
+    background-color: hsl(357, 54%, 43%, 10%);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    color: #a93339;
+    transition: width 0.3s ease;
+    flex-shrink: 0; 
+}
+
+.sidenav-header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #334155;
+}
+
+.sidenav-logo {
+    width: 80%;
+    max-width: 150px;
+    height: auto;
+}
+
+.sidenav-menu {
+    flex-grow: 1;
+    list-style: none;
+    padding: 10px 0;
+    margin: 0;
+}
+
+.nav-item {
+    margin: 5px 0;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    color: #a93339;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+    border-radius: 6px;
+    margin: 0 10px;
+}
+
+.nav-link:hover {
+    background-color: hsl(357, 54%, 43%, 25%);
+    color: #a93339;
+}
+
+.nav-link.active {
+    background-color: hsl(357, 54%, 43%, 55%);
+    color: #a93339;
+    font-weight: 700;
+    box-shadow: 0 4px 8px rgba(169, 51, 57, 0.4);
+}
+
+.nav-icon {
+    margin-right: 12px;
+    font-size: 1.2rem;
+}
+
+.logaut-button{
+    margin-top: auto;
+    margin-bottom: 50px;
+    background-color: #a93339;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.logaut-button:hover {
+    background-color: #ff232e;
+}
+
+/* --- FOOTER --- */
+.main-footer {
+    padding: 15px 20px;
+    text-align: center;
+    color: #ffffff; /* Slate-500 */
+    font-size: 0.85rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+
+.app-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.content-area {
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+}
+
+
+.content-area > :not(.main-footer) {
+    flex-grow: 1; 
+    padding: 20px; 
+}
