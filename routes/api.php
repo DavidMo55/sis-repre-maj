@@ -8,7 +8,7 @@ use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\GastoController;
 use App\Http\Controllers\VisitaController;
-
+use App\Http\Controllers\DashboardController;
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/request-ticket', [TicketController::class, 'storeRecoveryTicket']);
@@ -18,6 +18,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
     
     Route::get('/pedidos', [PedidoController::class, 'index']); 
     Route::post('/pedidos', [PedidoController::class, 'store']);
