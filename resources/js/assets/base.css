@@ -928,3 +928,143 @@ background-color: #bb9bca;
     font-weight: 700; 
     color: var(--red-700);
 }
+
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (Media Queries)
+   ========================================================================== */
+
+/* --- TABLETS (Menos de 1024px) --- */
+@media (max-width: 1024px) {
+    .detail-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas en lugar de 3 */
+    }
+    
+    .col-span-full {
+        grid-column: span 2;
+    }
+}
+
+/* --- MÓVILES GRANDES (Menos de 768px) --- */
+@media (max-width: 768px) {
+    /* Layout Base */
+    .content-wrapper {
+        padding: 15px;
+    }
+
+    /* Dashboard & KPI Grid */
+    .kpi-grid {
+        grid-template-columns: 1fr; /* Una sola columna para las tarjetas */
+        gap: 15px;
+    }
+
+    .dashboard-header h2 {
+        font-size: 1.5rem;
+    }
+
+    /* Quick Links (Acciones Rápidas) */
+    .quick-links {
+        flex-direction: column; /* Botones uno debajo del otro */
+        gap: 10px;
+    }
+
+    .quick-link-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    /* Formularios */
+    .grid-form-cols-2, 
+    .grid-book-add-form {
+        grid-template-columns: 1fr !important; /* Forzar una columna en inputs */
+    }
+
+    .detail-header-flex {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    /* Tablas Responsivas */
+    .table-responsive {
+        border: 0;
+    }
+
+    /* Estilo de tabla "Card mode" para móviles */
+    .min-width-full thead {
+        display: none; /* Escondemos cabeceras de tabla en móvil */
+    }
+
+    .min-width-full tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid var(--gray-border);
+        border-radius: 8px;
+        background: white;
+    }
+
+    .table-cell {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        border-bottom: 1px solid var(--primary5);
+        white-space: normal;
+        text-align: right;
+    }
+
+    .table-cell::before {
+        content: attr(data-label); /* Necesitas agregar data-label="Título" en tus <td> */
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        color: var(--gray-medium);
+        float: left;
+        margin-right: 10px;
+    }
+
+    .table-cell:last-child {
+        border-bottom: 0;
+    }
+
+    /* Modales */
+    .modal-card {
+        padding: 25px;
+        margin: 10px;
+        max-width: 95%;
+    }
+}
+
+/* --- MÓVILES PEQUEÑOS (Menos de 480px) --- */
+@media (max-width: 480px) {
+    .login-form {
+        padding: 25px 20px;
+    }
+
+    .form-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .module-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .btn-row-final {
+        flex-direction: column;
+    }
+
+    .btn-primary, .btn-secondary {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* --- OPTIMIZACIÓN DE TABLAS (Extra) --- */
+/* Para que las tablas no rompan el layout si decides no usar el modo "Card" */
+.table-container-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+}
