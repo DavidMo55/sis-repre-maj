@@ -466,7 +466,15 @@ input:-webkit-autofill:focus {
 }
 .warning-btn { background-color: #f7a81b; color: #1e293b; }
 
-
+.cl1{
+    background-color: #7eb894;
+}
+.cl2{
+background-color: #d8a3a3;
+}
+.cl3{
+background-color: #bb9bca;
+}
 
 
 

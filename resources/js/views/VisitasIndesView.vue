@@ -57,9 +57,9 @@
                             <td class="table-cell text-red-600 font-semibold">
                                 {{ formatDate(visita.proxima_visita_estimada) || 'No agendada' }}
                             </td>
-                            <td class="table-cell-action text-right">
-                                <button @click="viewDetails(visita)" class="text-red-link">Detalles</button>
-                            </td>
+                            <button @click="viewDetails(visita)" class="text-red-link font-bold ml-4">
+                                    <i class="fas fa-eye"></i> Ver Detalle
+                                </button>
                         </tr>
                     </tbody>
                 </table>
@@ -71,6 +71,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from '../axios';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const visitas = ref([]);
 const loading = ref(true);
@@ -83,7 +86,7 @@ const fetchVisitas = async () => {
         visitas.value = Array.isArray(dataReceived) ? dataReceived : [];
     } catch (err) {
         console.error("Error al cargar visitas", err);
-        visitas.value = []; // Importante: vaciar para evitar errores de iteración
+        visitas.value = [];
     } finally {
         loading.value = false;
     }
@@ -95,7 +98,7 @@ const formatDate = (dateString) => {
 };
 
 const viewDetails = (visita) => {
-    alert(`Detalle de visita en ${visita.cliente.name}\nComentarios: ${visita.comentarios || 'Sin comentarios'}`);
+    router.push({ name: 'VisitaDetalle', params: { id: visita.id } });
 };
 
 onMounted(fetchVisitas);

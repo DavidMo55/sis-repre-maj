@@ -10,7 +10,7 @@ import GastosIndexView from '@/views/GastosIndexView.vue';
 import GastosDeailView from '@/views/GastosDeailView.vue';
 import VisistasIndexView from '@/views/VisitasIndesView.vue';
 import PrimerasVisitasView from '@/views/PrimeraVisitaView.vue';
-
+import DetallesPrimerVisita from '@/views/PrimeraVisitaDetailView.vue'
 const authGuard = (to, from, next) => {
     const token = localStorage.getItem('auth_token');
 
@@ -74,7 +74,13 @@ const routes = [
                 path: 'primeras-visitas',
                 name: 'PrimerasVisitas',
                 component: PrimerasVisitasView
+            },
+            {
+                path: 'visita-detalle/:id',
+                name: 'VisitaDetalle',
+                component: DetallesPrimerVisita
             }
+
         ]
     },
     { path: '/:pathMatch(.*)*', redirect: '/dashboard' } // Captura cualquier ruta inexistente

@@ -88,7 +88,7 @@
         <div class="module-page mt-8">
             <h3 class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Acciones Rápidas</h3>
             <div class="quick-links grid grid-cols-1 md:grid-cols-3 gap-4">
-                <router-link to="/primeras-visitas" class="quick-link-btn">
+                <router-link to="/primeras-visitas" class="quick-link-btn cl3">
                     <div class="flex items-center gap-4 p-4 rounded-lg bg-red-50 hover:bg-red-100 transition-colors border border-red-100">
                         <i class="fas fa-plus-circle text-red-600 text-2xl"></i>
                         <div>
@@ -97,7 +97,7 @@
                     </div>
                 </router-link>
 
-                <router-link to="/GenerarPedido" class="quick-link-btn">
+                <router-link to="/GenerarPedido" class="quick-link-btn cl2">
                     <div class="flex items-center gap-4 p-4 rounded-lg bg-green-50 hover:bg-green-100 transition-colors border border-green-100">
                         <i class="fas fa-cart-plus text-green-600 text-2xl"></i>
                         <div>
@@ -106,7 +106,7 @@
                     </div>
                 </router-link>
 
-                <router-link to="/gastos" class="quick-link-btn">
+                <router-link to="/gastos" class="quick-link-btn cl1">
                     <div class="flex items-center gap-4 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors border border-blue-100">
                         <i class="fas fa-receipt text-blue-600 text-2xl"></i>
                         <div>
