@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use App\Models\Gasto;
 use App\Models\Comprobante;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
-use Spatie\Dropbox\Client as DropboxClient; 
+use Spatie\Dropbox\Client as DropboxClient;
 
 class GastoController extends Controller
 {
@@ -40,7 +40,7 @@ class GastoController extends Controller
             return response()->json(['message' => 'Error al listar gastos.'], 500);
         }
     }
-    
+
     /**
      * Muestra el detalle de un gasto específico.
      */
@@ -54,11 +54,10 @@ class GastoController extends Controller
             }
             
             if ($gasto->user_id !== Auth::id()) {
-                return response()->json(['message' => 'Acceso denegado. Este registro no te pertenece.'], 403);
+                return response()->json(['message' => 'Acceso denegado.'], 403);
             }
 
             return response()->json($gasto);
-
         } catch (\Exception $e) {
             Log::error('Error en GastoController@show:', ['msg' => $e->getMessage()]);
             return response()->json(['message' => 'Error interno al cargar el detalle.'], 500);
@@ -66,7 +65,7 @@ class GastoController extends Controller
     }
 
     /**
-     * Sube comprobantes a Dropbox y los registra.
+     * Sube comprobantes a Dropbox usando Refresh Token y los registra.
      */
     public function storeComprobante(Request $request)
     {
@@ -82,52 +81,75 @@ class GastoController extends Controller
             return response()->json(['message' => 'No autorizado.'], 403);
         }
 
-        $token = config('filesystems.disks.dropbox.accessToken');
-
         try {
+            // 1. OBTENER ACCESS TOKEN FRESCO (OAuth2 Refresh Flow)
+            $response = Http::asForm()->post('https://api.dropbox.com/oauth2/token', [
+                'grant_type'    => 'refresh_token',
+                'refresh_token' => env('DROPBOX_REFRESH_TOKEN'),
+                'client_id'     => env('DROPBOX_APP_KEY'),
+                'client_secret' => env('DROPBOX_APP_SECRET'),
+            ]);
+
+            if (!$response->successful()) {
+                Log::error('Error al refrescar token de Dropbox:', ['response' => $response->body()]);
+                return response()->json(['message' => 'Error de autenticación con el servicio de archivos.'], 500);
+            }
+
+            $accessToken = $response->json()['access_token'];
+            $dropboxClient = new DropboxClient($accessToken);
+
             DB::beginTransaction();
-            $dropboxClient = new DropboxClient($token);
+            $comprobantesGuardados = [];
 
             foreach ($request->file('files') as $file) {
                 $timestamp = Carbon::now()->format('ymd-His'); 
                 $extension = $file->getClientOriginalExtension();
-                $fileName = "{$timestamp}_" . Auth::id() . "-{$gasto->id}.{$extension}";
-                
+                $fileName = "{$timestamp}_U" . Auth::id() . "-G{$gasto->id}.{$extension}";
                 $path = "/comprobantes/{$gasto->id}/{$fileName}";
                 
-                Storage::disk('dropbox')->put($path, file_get_contents($file));
+                // 2. SUBIR ARCHIVO DIRECTO A DROPBOX
+                $dropboxClient->upload($path, file_get_contents($file->getRealPath()), 'add');
 
+                // 3. GENERAR O LISTAR LINK COMPARTIDO
                 $publicUrl = null;
                 try {
-                    $response = $dropboxClient->createSharedLinkWithSettings($path, ["requested_visibility" => "public"]);
-                    $publicUrl = $response['url'];
+                    $sharedResponse = $dropboxClient->createSharedLinkWithSettings($path, [
+                        "requested_visibility" => "public"
+                    ]);
+                    $publicUrl = $sharedResponse['url'];
                 } catch (\Exception $e) {
+                    // Si el link ya existe, lo recuperamos
                     $links = $dropboxClient->listSharedLinks($path);
                     $publicUrl = !empty($links) ? $links[0]['url'] : null;
                 }
 
+                // Ajustar URL para visualización directa (dl=1)
                 if ($publicUrl) {
                     $publicUrl = str_replace('dl=0', 'dl=1', $publicUrl);
                 }
 
+                // 4. GUARDAR EN BASE DE DATOS
                 $comprobante = Comprobante::create([
-                    'gasto_id' => $gasto->id,
-                    'name' => $fileName,
-                    'size' => round($file->getSize() / 1024),
+                    'gasto_id'  => $gasto->id,
+                    'name'      => $fileName,
+                    'size'      => round($file->getSize() / 1024),
                     'extension' => $extension,
-                    'public_url' => $publicUrl,
+                    'public_url'=> $publicUrl,
                 ]);
 
                 $comprobantesGuardados[] = $comprobante;
             }
 
             DB::commit();
-            return response()->json(['message' => 'Archivos subidos exitosamente.', 'comprobantes' => $comprobantesGuardados], 201);
+            return response()->json([
+                'message' => 'Archivos subidos exitosamente.', 
+                'comprobantes' => $comprobantesGuardados
+            ], 201);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error Dropbox:', ['msg' => $e->getMessage()]);
-            return response()->json(['message' => 'Error al subir a Dropbox.'], 500);
+            Log::error('Error Crítico en Subida:', ['msg' => $e->getMessage()]);
+            return response()->json(['message' => 'Error al procesar la subida: ' . $e->getMessage()], 500);
         }
     }
 }

@@ -137,7 +137,7 @@
                                 </div>
                                 <div class="md:col-span-2">
                                     <button type="button" @click="addBookToList" class="btn-primary w-full" :disabled="!currentBook.id">
-                                        <i class="fas fa-plus"></i>
+                                        <i class="fas fa-plus"></i>Agregar
                                     </button>
                                 </div>
                             </div>
@@ -158,7 +158,7 @@
                                             <td class="px-4 py-2 text-sm text-gray-500 italic">{{ item.comentario || 'Sin comentario' }}</td>
                                             <td class="px-4 py-2 text-right">
                                                 <button type="button" @click="removeBook(index)" class="text-red-500 hover:text-red-700">
-                                                    <i class="fas fa-trash"></i>
+                                                    <i class="fas fa-trash"></i>Borrar
                                                 </button>
                                             </td>
                                         </tr>
