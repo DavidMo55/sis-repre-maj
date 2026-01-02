@@ -11,6 +11,8 @@ import GastosDeailView from '@/views/GastosDeailView.vue';
 import VisistasIndexView from '@/views/VisitasIndesView.vue';
 import PrimerasVisitasView from '@/views/PrimeraVisitaView.vue';
 import DetallesPrimerVisita from '@/views/PrimeraVisitaDetailView.vue'
+import SeguimientoVisita from '../views/SeguimientoVisitaView.vue';
+
 const authGuard = (to, from, next) => {
     const token = localStorage.getItem('auth_token');
 
@@ -79,6 +81,11 @@ const routes = [
                 path: 'visita-detalle/:id',
                 name: 'VisitaDetalle',
                 component: DetallesPrimerVisita
+            },
+            {
+                path: 'visita/seguimiento',
+                name: 'VisitaSeguimiento',
+                component: SeguimientoVisita
             }
 
         ]

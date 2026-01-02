@@ -122,4 +122,63 @@ class VisitaController extends Controller
             return response()->json(['message' => 'Error al guardar: ' . $e->getMessage()], 500);
         }
     }
+
+
+   public function storeSeguimiento(Request $request)
+    {
+        $request->validate([
+            'cliente_id' => 'required|exists:clientes,id',
+            'fecha' => 'required|date',
+            'persona_entrevistada' => 'required|string',
+            'cargo' => 'required|string',
+            'decision_final' => 'required|in:seguimiento,compra,rechazo'
+        ]);
+
+        try {
+            return DB::transaction(function () use ($request) {
+                // 1. Crear el registro de la visita
+                // Asegúrate de que el nombre del campo coincida con tu migración (resultado_visita)
+                $visita = Visita::create([
+                    'user_id' => Auth::id(),
+                    'cliente_id' => $request->cliente_id,
+                    'fecha' => $request->fecha,
+                    'persona_entrevistada' => $request->persona_entrevistada,
+                    'cargo' => $request->cargo,
+                    'libros_interes' => $request->libros_interes,
+                    'material_entregado' => $request->material_entregado,
+                    'comentarios' => $request->comentarios,
+                    'proxima_visita_estimada' => $request->proxima_visita,
+                    'es_primera_visita' => false,
+                    'resultado_visita' => $request->decision_final 
+                ]);
+
+                $cliente = Cliente::findOrFail($request->cliente_id);
+                
+                if ($request->decision_final === 'compra') {
+                    $cliente->update([
+                        'tipo' => 'CLIENTE',
+                        'status' => 'activo'
+                    ]);
+                } elseif ($request->decision_final === 'rechazo') {
+                    $cliente->update([
+                        'status' => 'inactivo'
+                    ]);
+                } else {
+                    $cliente->update([
+                        'status' => 'activo'
+                    ]);
+                }
+
+                return response()->json([
+                    'message' => 'Seguimiento registrado y estatus actualizado.',
+                    'visita' => $visita,
+                    'cliente_tipo' => $cliente->tipo,
+                    'cliente_status' => $cliente->status
+                ], 201);
+            });
+        } catch (\Exception $e) {
+            Log::error("Error en storeSeguimiento: " . $e->getMessage());
+            return response()->json(['message' => 'Error al procesar: ' . $e->getMessage()], 500);
+        }
+    }
 }

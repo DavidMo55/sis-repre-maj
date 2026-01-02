@@ -19,7 +19,8 @@ class Visita extends Model
         'material_entregado',
         'comentarios',
         'proxima_visita_estimada',
-        'es_primera_visita'
+        'es_primera_visita',
+        'resultado_visita'
     ];
 
     protected $casts = [

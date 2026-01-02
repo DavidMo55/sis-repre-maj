@@ -8,22 +8,31 @@ use App\Models\Libro;
 
 class SearchController extends Controller
 {
+
+
+    
     /**
      * Busca clientes (planteles) por nombre que sean CLIENTE o DISTRIBUIDOR.
      */
     public function searchClientes(Request $request)
     {
         $query = $request->input('query');
+        $includeProspectos = $request->boolean('include_prospectos', false);
 
         if (empty($query)) {
             return response()->json([]);
         }
 
-        $clientes = Cliente::select('id', 'name', 'tipo', 'direccion')
-            ->where('name', 'like', '%' . $query . '%')
-            ->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR']) // Solo clientes válidos para pedido
-            ->limit(10) // Limitar resultados para autocompletado
-            ->get();
+        $search = Cliente::select('id', 'name', 'tipo', 'direccion', 'contacto')
+            ->where('name', 'like', '%' . $query . '%');
+
+        if ($includeProspectos) {
+            $search->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR', 'PROSPECTO']);
+        } else {
+            $search->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR']);
+        }
+
+        $clientes = $search->limit(10)->get();
 
         return response()->json($clientes);
     }
