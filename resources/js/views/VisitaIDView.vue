@@ -60,7 +60,7 @@
                     <p class="mb-2">
                         <span class="font-semibold text-gray-500 text-xs uppercase block">Tipo de Pedido:</span>
                         <span class="font-bold" :class="pedido.tipo_pedido === 'promocion' ? 'text-purple-600' : 'text-gray-800'">
-                            {{ pedido.tipo_pedido === 'promocion' ? 'PROMOCIÓN / REGALO' : 'VENTA NORMAL' }}
+                            {{ pedido.tipo_pedido === 'promocion' ? '🎁 PROMOCIÓN / REGALO' : '📦 VENTA NORMAL' }}
                         </span>
                     </p>
 

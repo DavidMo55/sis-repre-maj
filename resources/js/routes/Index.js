@@ -83,7 +83,7 @@ const routes = [
                 component: DetallesPrimerVisita
             },
             {
-                path: 'visita/seguimiento',
+                path: 'visita-seguimiento',
                 name: 'VisitaSeguimiento',
                 component: SeguimientoVisita
             }

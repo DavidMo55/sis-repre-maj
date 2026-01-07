@@ -14,9 +14,9 @@ class RepresentativeUserSeeder extends Seeder
     public function run(): void
     {
         
-        $username_test = 'representante.prueba'; 
-        $password_test = 'password123';        
-        $email_test    = 'representante_prueba@sistema.com';
+        $username_test = 'majrepre'; 
+        $password_test = 'majrepre1255';        
+        $email_test    = 'representante_prueba12@sistema.com';
 
 
         if (!User::where('name', $username_test)->exists()) {

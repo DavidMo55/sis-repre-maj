@@ -57,6 +57,41 @@ class SearchController extends Controller
         return response()->json($libros);
     }
 
+    /**
+     * Busca específicamente en la tabla de visitas para identificar prospectos.
+     */
+    public function searchProspectos(Request $request)
+    {
+        $query = $request->input('query');
+
+        if (empty($query) || strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        // Buscamos en la tabla de visitas
+        // Nota: Si quieres que un representante vea prospectos de otros, quita el filtro de user_id
+        $prospectos = \App\Models\Visita::where('nombre_plantel', 'like', '%' . $query . '%')
+            ->where('user_id', \Illuminate\Support\Facades\Auth::id()) 
+            ->select([
+                'id', 
+                'nombre_plantel', 
+                'direccion_plantel', 
+                'director_plantel', 
+                'cliente_id', 
+                'es_primera_visita', 
+                'fecha', 
+                'persona_entrevistada',
+                'cargo'
+            ])
+            ->orderBy('fecha', 'desc')
+            ->get()
+            // Agrupamos por nombre para no mostrar la misma escuela 20 veces si tiene mucho historial
+            ->unique('nombre_plantel')
+            ->values();
+
+        return response()->json($prospectos);
+    }
+
 /**
  * Obtiene la lista de estados ordenados alfabéticamente.
  */

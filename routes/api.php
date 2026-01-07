@@ -37,5 +37,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/visitas/primera', [VisitaController::class, 'storePrimeraVisita']);
     Route::get('/visitas/{id}', [VisitaController::class, 'show']);
     Route::post('/visitas/seguimiento', [VisitaController::class, 'storeSeguimiento']); 
+    Route::get('/search/prospectos', [SearchController::class, 'searchProspectos']);
 
 });

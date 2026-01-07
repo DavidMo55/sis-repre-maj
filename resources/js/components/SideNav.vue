@@ -128,7 +128,7 @@ onUnmounted(() => window.removeEventListener('resize', updateWidth))
   border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
-.sidenav-logo { max-width: 140px; height: auto; }
+.sidenav-logo { max-width: 140px; height: auto;  margin-top: 30%;}
 
 .collapse-btn {
   position: absolute;

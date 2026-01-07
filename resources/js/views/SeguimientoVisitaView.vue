@@ -3,10 +3,12 @@
         <div class="module-page">
             <div class="module-header detail-header-flex">
                 <div>
-                    <h1>Visita de Seguimiento (Subsecuente)</h1>
-                    <p>Registra el avance en la negociación con planteles existentes.</p>
+                    <h1 v-if="loadingOriginal">Cargando datos...</h1>
+                    <h1 v-else-if="selectedCliente">Seguimiento: {{ selectedCliente.name }}</h1>
+                    <h1 v-else>Registro de Visita Subsecuente</h1>
+                    <p>Registra el avance en la negociación buscando planteles en tu bitácora de visitas.</p>
                 </div>
-                <button @click="$router.push('/visitas')" class="btn-secondary" :disabled="loading">
+                <button @click="router.push('/visitas')" class="btn-secondary flex-row-centered gap-2" :disabled="loading">
                     <i class="fas fa-arrow-left"></i> Volver al Historial
                 </button>
             </div>
@@ -15,70 +17,77 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     
                     <!-- BLOQUE 1: SELECCIÓN Y ESTADO DEL PLANTEL -->
-                    <div class="form-section">
+                    <div class="form-section" style="overflow: visible !important;">
                         <div class="section-title">
-                            <i class="fas fa-search"></i> 1. Identificar Plantel
+                            <i class="fas fa-search"></i> 1. Identificar Plantel (Bitácora)
                         </div>
                         
-                        <div class="form-group mb-4 relative">
-                            <label>Buscar por Nombre</label>
+                        <div v-if="!route.params.id" class="form-group mb-4 relative">
+                            <label>Buscar en Historial de Visitas</label>
                             <div class="relative">
                                 <input 
                                     v-model="searchQuery" 
                                     type="text" 
                                     class="form-input pl-10" 
-                                    placeholder="Escriba el nombre del plantel o prospecto..."
-                                    @input="searchClientes"
+                                    placeholder="Escriba el nombre del plantel..."
+                                    @input="searchProspectos"
                                     :disabled="loading"
+                                    autocomplete="off"
                                 >
-                                <i class="fas fa-school absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                <i class="fas fa-history absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                                 
                                 <div v-if="searchingClients" class="absolute right-3 top-1/2 -translate-y-1/2">
-                                    <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                                    <i class="fas fa-spinner fa-spin text-red-600"></i>
                                 </div>
                                 
                                 <ul v-if="clientesSuggestions.length" class="autocomplete-list">
-                                    <li v-for="c in clientesSuggestions" :key="c.id" @click="selectCliente(c)">
+                                    <li v-for="v in clientesSuggestions" :key="v.id" @click="selectProspecto(v)">
                                         <div class="flex flex-col">
-                                            <span class="font-bold text-gray-800">{{ c.name }}</span>
+                                            <span class="font-bold text-gray-800">{{ v.nombre_plantel }}</span>
                                             <div class="flex gap-2 items-center">
-                                                <small v-if="c.status === 'inactivo'" class="status-pill bg-red-100 text-red-700">RECHAZADO</small>
-                                                <small v-else-if="c.tipo === 'CLIENTE'" class="status-pill bg-green-100 text-green-700">CLIENTE ACTIVO</small>
-                                                <small v-else class="status-pill bg-orange-100 text-orange-700">PROSPECTO</small>
-                                                <small class="text-gray-500 truncate">{{ c.direccion }}</small>
+                                                <small class="status-pill bg-blue-100 text-blue-700">
+                                                    {{ v.es_primera_visita ? 'PRIMERA VISITA' : 'SEGUIMIENTO PREVIO' }}
+                                                </small>
+                                                <small class="text-gray-500 truncate">{{ v.direccion_plantel }}</small>
                                             </div>
                                         </div>
                                     </li>
                                 </ul>
+
+                                <!-- MENSAJE SI NO HAY RESULTADOS -->
+                                <div v-else-if="searchQuery.length >= 3 && !searchingClients && hasAttemptedSearch" class="autocomplete-list p-4 text-center text-xs text-gray-400">
+                                    <i class="fas fa-search-minus mb-1 block text-lg"></i>
+                                    No se encontraron registros previos para "{{ searchQuery }}".
+                                </div>
                             </div>
                         </div>
 
                         <!-- Card de info del plantel seleccionado -->
                         <div v-if="selectedCliente" class="selected-client-card animate-fade-in">
-                            <div class="p-4 rounded-xl border border-blue-200 bg-blue-50 shadow-sm">
+                            <div class="p-5 rounded-xl border-2 border-red-100 bg-red-50 shadow-sm">
                                 <div class="flex justify-between items-start">
-                                    <div>
-                                        <h4 class="font-bold text-blue-900 leading-tight">{{ selectedCliente.name }}</h4>
-                                        <p class="text-xs text-blue-700 mt-2"><i class="fas fa-map-marker-alt mr-1"></i> {{ selectedCliente.direccion }}</p>
-                                        <p class="text-xs text-blue-700 mt-1"><i class="fas fa-user-tie mr-1"></i> {{ selectedCliente.contacto }}</p>
+                                    <div class="flex-1">
+                                        <h4 class="font-black text-red-900 leading-tight text-lg">{{ selectedCliente.name }}</h4>
+                                        <p class="text-xs text-red-700 mt-2 font-bold"><i class="fas fa-map-marker-alt mr-1"></i> {{ selectedCliente.direccion }}</p>
+                                        <p class="text-xs text-gray-500 mt-1"><i class="fas fa-user-tie mr-1"></i> Director: {{ selectedCliente.contacto }}</p>
                                     </div>
                                     <div class="text-right">
-                                        <div v-if="selectedCliente.status === 'inactivo'" class="badge-custom badge-red">INACTIVO</div>
-                                        <div v-else-if="selectedCliente.tipo === 'CLIENTE'" class="badge-custom badge-green">CLIENTE</div>
-                                        <div v-else class="badge-custom badge-orange">PROSPECTO</div>
+                                        <div class="badge-custom" :class="selectedCliente.visita_id ? 'badge-orange' : 'badge-green'">
+                                            {{ selectedCliente.visita_id ? 'PROSPECTO' : 'CLIENTE' }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div v-else class="p-10 text-center border-2 border-dashed border-gray-200 rounded-xl text-gray-400 italic">
-                            Selecciona un plantel para habilitar el registro.
+                            Escribe el nombre de la escuela para cargar sus datos previos.
                         </div>
                     </div>
 
                     <!-- BLOQUE 2: DETALLES DE LA ENTREVISTA -->
-                    <div class="form-section">
+                    <div class="form-section" :class="{'opacity-50 pointer-events-none': !selectedCliente}">
                         <div class="section-title">
-                            <i class="fas fa-calendar-check"></i> 2. Datos de la Visita
+                            <i class="fas fa-calendar-check"></i> 2. Datos de la Visita Actual
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 mb-4">
@@ -94,52 +103,48 @@
 
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div class="form-group">
-                                <label>Atendido por:</label>
-                                <input v-model="form.persona_entrevistada" type="text" class="form-input" placeholder="Nombre completo" required :disabled="loading">
+                                <label>Persona Entrevistada</label>
+                                <input v-model="form.persona_entrevistada" type="text" class="form-input" placeholder="¿Quién atendió hoy?" required :disabled="loading">
                             </div>
                             <div class="form-group">
-                                <label>Cargo:</label>
-                                <input v-model="form.cargo" type="text" class="form-input" placeholder="Ej: Director, Docente" required :disabled="loading">
+                                <label>Cargo</label>
+                                <input v-model="form.cargo" type="text" class="form-input" placeholder="Ej: Director" required :disabled="loading">
                             </div>
                         </div>
 
                         <!-- LIBROS DE INTERÉS -->
-                        <div class="form-section-inner mb-6">
-                            <label class="font-bold text-gray-700 block mb-2 text-sm">Libros de Interés</label>
+                        <div class="form-section-inner mb-6 bg-white p-4 rounded-xl border border-gray-100" style="overflow: visible !important;">
+                            <label class="font-bold text-gray-700 block mb-2 text-xs uppercase tracking-widest">Libros de Interés</label>
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
-                                <div class="md:col-span-6 relative">
-                                    <input v-model="bookInput.titulo" type="text" class="form-input text-sm" placeholder="Buscar título..." @input="searchBooks" @keydown.enter.prevent="addBookToList" :disabled="loading">
+                                <div class="md:col-span-10 relative">
+                                    <input 
+                                        v-model="bookInput.titulo" 
+                                        type="text" 
+                                        class="form-input text-sm" 
+                                        placeholder="Buscar título..." 
+                                        @input="searchBooks"
+                                        @keydown.enter.prevent="addBookToList"
+                                        :disabled="loading"
+                                        autocomplete="off"
+                                    >
                                     <ul v-if="bookSuggestions.length" class="autocomplete-list">
                                         <li v-for="b in bookSuggestions" :key="b.id" @click="selectBook(b)">{{ b.titulo }}</li>
                                     </ul>
                                 </div>
-                                <div class="md:col-span-4">
-                                    <input v-model="bookInput.comentario" type="text" class="form-input text-sm" placeholder="Nota corta" @keydown.enter.prevent="addBookToList" :disabled="loading">
-                                </div>
                                 <div class="md:col-span-2">
-                                    <button type="button" @click="addBookToList" class="btn-primary w-full py-2" :disabled="!bookInput.id || loading"><i class="fas fa-plus"></i></button>
+                                    <button type="button" @click="addBookToList" class="btn-primary w-full py-3" :disabled="!bookInput.id || loading">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
                                 </div>
                             </div>
 
-                            <div v-if="selectedBooks.length" class="mt-4 border rounded-lg bg-white overflow-hidden shadow-sm">
-                                <table class="min-width-full divide-y divide-gray-100">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-3 py-2 text-left text-[10px] font-black text-gray-400 uppercase">Título</th>
-                                            <th class="px-3 py-2 text-left text-[10px] font-black text-gray-400 uppercase">Nota</th>
-                                            <th class="px-3 py-2"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-50">
-                                        <tr v-for="(item, idx) in selectedBooks" :key="idx">
-                                            <td class="px-3 py-2 text-xs font-bold">{{ item.titulo }}</td>
-                                            <td class="px-3 py-2 text-xs italic text-gray-500">{{ item.comentario || '-' }}</td>
-                                            <td class="px-3 py-2 text-right">
-                                                <button type="button" @click="removeBook(idx)" class="text-red-400 hover:text-red-600" :disabled="loading"><i class="fas fa-trash-alt"></i></button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div v-if="selectedBooks.length" class="mt-3 space-y-2">
+                                <div v-for="(item, idx) in selectedBooks" :key="idx" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-xs">
+                                    <span class="font-bold text-gray-700">{{ item.titulo }}</span>
+                                    <button type="button" @click="removeBook(idx)" class="text-red-500 hover:text-red-700" :disabled="loading">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -150,59 +155,54 @@
                             </label>
                         </div>
 
+                        <Transition name="fade">
+                            <div v-if="form.material_entregado" class="form-group mb-4 p-4 bg-red-50 rounded-xl border border-red-100 animate-fade-in">
+                                <label class="text-red-800 font-bold">Cantidad de libros entregados</label>
+                                <input v-model.number="form.material_cantidad" type="number" min="1" class="form-input mt-1 border-red-200" placeholder="Ej: 5" required :disabled="loading">
+                            </div>
+                        </Transition>
+
                         <div class="form-group mb-4">
-                            <label>Comentarios y Acuerdos</label>
-                            <textarea v-model="form.comentarios" class="form-input" rows="3" placeholder="Describe los puntos clave de la reunión..." :disabled="loading"></textarea>
+                            <label>Comentarios y Acuerdos de esta sesión</label>
+                            <textarea v-model="form.comentarios" class="form-input" rows="3" placeholder="Describe los puntos clave..." :disabled="loading"></textarea>
                         </div>
 
-                        <!-- RESULTADO Y CAMBIO DE ESTADO -->
+                        <!-- RESULTADO DE LA VISITA -->
                         <div class="form-group bg-gray-50 p-4 rounded-xl border-2 border-red-100">
                             <label class="font-black text-red-800 text-xs uppercase tracking-widest mb-2 block">Resolución de la Visita</label>
-                            <select v-model="form.decision_final" class="form-input font-bold" required :disabled="loading">
-                                <option value="seguimiento">CONTINUAR SEGUIMIENTO (Mantener como Prospecto)</option>
-                                <option value="compra"> DECISIÓN DE COMPRA (Convertir a Cliente)</option>
-                                <option value="rechazo"> NO INTERESADO (Inactivar registro)</option>
+                            <select v-model="form.resultado_visita" class="form-input font-bold" required :disabled="loading">
+                                <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
+                                <option value="compra">DECISIÓN DE COMPRA (Convertir a Cliente)</option>
+                                <option value="rechazo">NO INTERESADO / INACTIVAR</option>
                             </select>
-                            <div class="mt-2 text-[11px] text-gray-500 italic">
-                                <p v-if="form.decision_final === 'compra'" class="text-green-600 font-bold">
-                                    <i class="fas fa-info-circle"></i> El plantel pasará automáticamente a tu lista oficial de Clientes.
-                                </p>
-                                <p v-if="form.decision_final === 'rechazo'" class="text-red-600 font-bold">
-                                    <i class="fas fa-exclamation-triangle"></i> El plantel se marcará como inactivo y se suspenderá el seguimiento comercial.
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-8 flex justify-end gap-4 border-t pt-6">
-                    <button type="submit" class="btn-primary px-16 shadow-lg" :disabled="loading || !form.cliente_id">
+                    <button type="submit" class="btn-primary px-20 shadow-lg" :disabled="loading || !selectedCliente">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save'"></i> 
-                        {{ loading ? 'Guardando...' : 'Finalizar Seguimiento' }}
+                        {{ loading ? 'Procesando...' : 'Finalizar Seguimiento' }}
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- MODAL DE ÉXITO ESTÉTICO -->
+        <!-- MODAL DE ÉXITO -->
         <Transition name="modal-fade">
             <div v-if="showSuccessModal" class="modal-overlay-custom">
                 <div class="modal-content-success">
                     <div class="success-icon-wrapper">
                         <i class="fas fa-check"></i>
                     </div>
-                    <h2 class="modal-title-success">¡Registro Exitoso!</h2>
+                    <h2 class="modal-title-success">¡Seguimiento Guardado!</h2>
                     <p class="modal-text-success">
-                        La visita de seguimiento se ha guardado correctamente en la bitácora.
-                        <span v-if="form.decision_final === 'compra'" class="block mt-2 font-bold text-green-600">
-                            El plantel ha sido convertido a CLIENTE.
+                        La bitácora se ha actualizado correctamente.
+                        <span v-if="form.resultado_visita === 'compra'" class="block mt-2 font-bold text-green-600">
+                            <i class="fas fa-star"></i> El plantel ahora es CLIENTE oficial.
                         </span>
                     </p>
-                    <div class="modal-actions-success">
-                        <button @click="goToHistory" class="btn-modal-success">
-                            Entendido, volver al listado
-                        </button>
-                    </div>
+                    <button @click="goToHistory" class="btn-modal-success">Entendido, volver</button>
                 </div>
             </div>
         </Transition>
@@ -210,15 +210,19 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, reactive, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import axios from '../axios';
 
 const router = useRouter();
-const loading = ref(false);
-const showSuccessModal = ref(false);
+const route = useRoute();
 
-// Clientes
+const loading = ref(false);
+const loadingOriginal = ref(false);
+const showSuccessModal = ref(false);
+const hasAttemptedSearch = ref(false);
+
+// Prospectos (Visitas previas)
 const searchQuery = ref('');
 const clientesSuggestions = ref([]);
 const selectedCliente = ref(null);
@@ -226,54 +230,101 @@ const searchingClients = ref(false);
 let clientSearchTimeout = null;
 
 // Libros
-const bookInput = reactive({ id: null, titulo: '', comentario: '' });
+const bookInput = reactive({ id: null, titulo: '' });
 const bookSuggestions = ref([]);
 const selectedBooks = ref([]);
 let bookSearchTimeout = null;
 
 const form = reactive({
+    original_visita_id: null,
     cliente_id: null,
     fecha: new Date().toISOString().split('T')[0],
     persona_entrevistada: '',
     cargo: '',
     libros_interes: '',
     material_entregado: false,
+    material_cantidad: null,
     comentarios: '',
     proxima_visita: '',
-    decision_final: 'seguimiento'
+    resultado_visita: 'seguimiento',
+    proxima_accion: 'visita'
 });
 
-const searchClientes = async () => {
+const initView = async () => {
+    const id = route.params.id;
+    if (id) {
+        loadingOriginal.value = true;
+        try {
+            const res = await axios.get(`/visitas/${id}`);
+            const data = res.data;
+            form.original_visita_id = data.id;
+            selectProspecto(data);
+            form.persona_entrevistada = data.persona_entrevistada;
+            form.cargo = data.cargo;
+        } catch (e) {
+            console.error("Error cargando origen:", e);
+        } finally {
+            loadingOriginal.value = false;
+        }
+    }
+};
+
+/**
+ * BUSCADOR DE PROSPECTOS: Consulta la tabla 'visitas'
+ */
+const searchProspectos = async () => {
     if (selectedCliente.value && searchQuery.value !== selectedCliente.value.name) {
         selectedCliente.value = null;
         form.cliente_id = null;
     }
-    if (searchQuery.value.length < 3) {
+    
+    if (searchQuery.value.trim().length < 3) {
         clientesSuggestions.value = [];
+        hasAttemptedSearch.value = false;
         return;
     }
+
     clearTimeout(clientSearchTimeout);
     clientSearchTimeout = setTimeout(async () => {
         searchingClients.value = true;
+        hasAttemptedSearch.value = true;
         try {
-            const res = await axios.get('/search/clientes', { 
-                params: { query: searchQuery.value, include_prospectos: true } 
+            // Llamada al nuevo endpoint del SearchController
+            const res = await axios.get('/search/prospectos', { 
+                params: { query: searchQuery.value } 
             });
-            clientesSuggestions.value = res.data;
-        } catch (e) { console.error(e); } 
+            
+            // LOG DE DEPURACIÓN: Revisa esto en la consola F12
+            console.log("Resultados de búsqueda prospectos:", res.data);
+            
+            const results = res.data.data || res.data;
+            clientesSuggestions.value = Array.isArray(results) ? results : [];
+        } catch (e) { 
+            console.error("Error en búsqueda:", e);
+            clientesSuggestions.value = [];
+        } 
         finally { searchingClients.value = false; }
-    }, 300);
+    }, 400);
 };
 
-const selectCliente = (c) => {
-    selectedCliente.value = c;
-    form.cliente_id = c.id;
-    searchQuery.value = c.name;
+const selectProspecto = (v) => {
+    selectedCliente.value = {
+        id: v.cliente_id || null, 
+        visita_id: v.id,
+        name: v.nombre_plantel,
+        direccion: v.direccion_plantel,
+        contacto: v.director_plantel,
+    };
+    
+    form.cliente_id = v.cliente_id || null;
+    form.original_visita_id = v.id;
+    searchQuery.value = v.nombre_plantel;
     clientesSuggestions.value = [];
+    hasAttemptedSearch.value = false;
 };
 
 const searchBooks = async () => {
-    if (bookInput.titulo.length < 3) {
+    if (bookInput.titulo.trim().length < 3) {
         bookSuggestions.value = [];
         return;
     }
@@ -281,9 +332,12 @@ const searchBooks = async () => {
     bookSearchTimeout = setTimeout(async () => {
         try {
             const res = await axios.get('/search/libros', { params: { query: bookInput.titulo } });
-            bookSuggestions.value = res.data;
-        } catch (e) { console.error(e); }
-    }, 300);
+            const results = res.data.data || res.data;
+            bookSuggestions.value = Array.isArray(results) ? results : [];
+        } catch (e) { 
+            bookSuggestions.value = [];
+        }
+    }, 400);
 };
 
 const selectBook = (b) => {
@@ -294,26 +348,23 @@ const selectBook = (b) => {
 
 const addBookToList = () => {
     if (!bookInput.id) return;
-    selectedBooks.value.push({ ...bookInput });
-    bookInput.id = null; bookInput.titulo = ''; bookInput.comentario = '';
+    if (!selectedBooks.value.find(b => b.id === bookInput.id)) {
+        selectedBooks.value.push({ ...bookInput });
+    }
+    bookInput.id = null; bookInput.titulo = '';
 };
 
 const removeBook = (idx) => selectedBooks.value.splice(idx, 1);
 
 const handleSubmit = async () => {
-    if (!form.cliente_id) return;
     loading.value = true;
-    
-    form.libros_interes = selectedBooks.value
-        .map(b => `${b.titulo}${b.comentario ? ' (' + b.comentario + ')' : ''}`)
-        .join('; ');
+    form.libros_interes = selectedBooks.value.map(b => b.titulo).join(', ');
 
     try {
         await axios.post('/visitas/seguimiento', form);
-        // MOSTRAR MODAL EN LUGAR DE ALERT
         showSuccessModal.value = true;
     } catch (e) {
-        alert(e.response?.data?.message || "Error al procesar la solicitud.");
+        alert(e.response?.data?.message || "Error al procesar el seguimiento.");
     } finally {
         loading.value = false;
     }
@@ -323,6 +374,13 @@ const goToHistory = () => {
     showSuccessModal.value = false;
     router.push('/visitas');
 };
+
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+};
+
+onMounted(initView);
 </script>
 
 <style scoped>
@@ -331,99 +389,23 @@ const goToHistory = () => {
 .section-title { color: var(--brand-red-dark); font-weight: 900; font-size: 1.1rem; border-bottom: 2px solid #fee2e2; padding-bottom: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
 
 .autocomplete-list { 
-    position: absolute; width: 100%; background: white; border: 1px solid #e2e8f0; z-index: 1100; 
+    position: absolute; width: 100%; background: white; border: 1px solid #e2e8f0; z-index: 9999; 
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 250px; overflow-y: auto; 
-    list-style: none; padding: 0; margin: 0; border-radius: 8px; margin-top: 4px;
+    list-style: none; padding: 0; margin: 4px 0 0; border-radius: 8px;
 }
 .autocomplete-list li { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.2s; }
 .autocomplete-list li:hover { background: #f8fafc; }
 
-.status-pill { padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; }
+.status-pill { padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 900; text-transform: uppercase; margin-right: 5px; }
 .badge-custom { padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; border: 1px solid transparent; }
-.badge-orange { background: #fff7ed; color: #c2410c; border-color: #ffedd5; }
-.badge-green { background: #f0fdf4; color: #15803d; border-color: #dcfce7; }
-.badge-red { background: #fef2f2; color: #b91c1c; border-color: #fee2e2; }
+.badge-orange { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+.badge-green { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
 
-/* MODAL DE ÉXITO CUSTOM */
-.modal-overlay-custom {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
-
-.modal-content-success {
-    background: white;
-    padding: 40px;
-    border-radius: 24px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-.success-icon-wrapper {
-    width: 70px;
-    height: 70px;
-    background: #dcfce7;
-    color: #166534;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    margin: 0 auto 20px;
-    animation: scale-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.modal-title-success {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: #0f172a;
-    margin-bottom: 10px;
-}
-
-.modal-text-success {
-    color: #64748b;
-    font-size: 1rem;
-    line-height: 1.5;
-    margin-bottom: 30px;
-}
-
-.btn-modal-success {
-    width: 100%;
-    background: #0f172a;
-    color: white;
-    padding: 14px;
-    border-radius: 12px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-modal-success:hover {
-    background: #1e293b;
-    transform: translateY(-2px);
-}
-
-/* ANIMACIONES */
-@keyframes scale-up {
-    from { transform: scale(0); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-
-.modal-fade-enter-active, .modal-fade-leave-active {
-    transition: opacity 0.3s ease;
-}
-
-.modal-fade-enter-from, .modal-fade-leave-to {
-    opacity: 0;
-}
+/* MODAL DE ÉXITO */
+.modal-overlay-custom { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+.modal-content-success { background: white; padding: 40px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; }
+.success-icon-wrapper { width: 70px; height: 70px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 20px; }
+.btn-modal-success { width: 100%; background: #0f172a; color: white; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; }
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }

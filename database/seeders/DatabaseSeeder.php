@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
     {
        
 
-        $this->call(GastoSeeder::class); 
+        $this->call(RepresentativeUserSeeder::class); 
 
        
     }
