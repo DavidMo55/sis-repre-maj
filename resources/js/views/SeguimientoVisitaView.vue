@@ -2,210 +2,175 @@
     <div class="content-wrapper">
         <div class="module-page">
             <div class="module-header detail-header-flex">
-                <div>
-                    <h1 v-if="loadingOriginal">Cargando datos...</h1>
-                    <h1 v-else-if="selectedCliente">Seguimiento: {{ selectedCliente.name }}</h1>
+                <div class="header-info overflow-hidden">
+                    <h1 v-if="loadingPrecarga">Cargando datos del prospecto...</h1>
+                    <h1 v-else-if="selectedCliente" class="text-break line-clamp-2" :title="selectedCliente.name">
+                        Seguimiento: {{ selectedCliente.name }}
+                    </h1>
                     <h1 v-else>Registro de Visita Subsecuente</h1>
-                    <p>Registra el avance en la negociación buscando planteles en tu bitácora de visitas.</p>
+                    <p class="text-truncate">Actualiza el avance de negociación basándote en registros previos.</p>
                 </div>
-                <button @click="router.push('/visitas')" class="btn-secondary flex-row-centered gap-2" :disabled="loading">
-                    <i class="fas fa-arrow-left"></i> Volver al Historial
+                <button @click="router.push('/visitas')" class="btn-secondary flex-shrink-0" :disabled="loading">
+                    <i class="fas fa-arrow-left mr-2"></i> Volver
                 </button>
             </div>
 
             <form @submit.prevent="handleSubmit" class="mt-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
-                    <!-- BLOQUE 1: SELECCIÓN Y ESTADO DEL PLANTEL -->
-                    <div class="form-section" style="overflow: visible !important;">
-                        <div class="section-title">
-                            <i class="fas fa-search"></i> 1. Identificar Plantel (Bitácora)
-                        </div>
-                        
-                        <div v-if="!route.params.id" class="form-group mb-4 relative">
-                            <label>Buscar en Historial de Visitas</label>
-                            <div class="relative">
-                                <input 
-                                    v-model="searchQuery" 
-                                    type="text" 
-                                    class="form-input pl-10" 
-                                    placeholder="Escriba el nombre del plantel..."
-                                    @input="searchProspectos"
-                                    :disabled="loading"
-                                    autocomplete="off"
-                                >
-                                <i class="fas fa-history absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                
-                                <div v-if="searchingClients" class="absolute right-3 top-1/2 -translate-y-1/2">
-                                    <i class="fas fa-spinner fa-spin text-red-600"></i>
-                                </div>
-                                
-                                <ul v-if="clientesSuggestions.length" class="autocomplete-list">
-                                    <li v-for="v in clientesSuggestions" :key="v.id" @click="selectProspecto(v)">
-                                        <div class="flex flex-col">
-                                            <span class="font-bold text-gray-800">{{ v.nombre_plantel }}</span>
-                                            <div class="flex gap-2 items-center">
-                                                <small class="status-pill bg-blue-100 text-blue-700">
-                                                    {{ v.es_primera_visita ? 'PRIMERA VISITA' : 'SEGUIMIENTO PREVIO' }}
-                                                </small>
-                                                <small class="text-gray-500 truncate">{{ v.direccion_plantel }}</small>
-                                            </div>
-                                        </div>
-                                    </li>
-                                </ul>
-
-                                <!-- MENSAJE SI NO HAY RESULTADOS -->
-                                <div v-else-if="searchQuery.length >= 3 && !searchingClients && hasAttemptedSearch" class="autocomplete-list p-4 text-center text-xs text-gray-400">
-                                    <i class="fas fa-search-minus mb-1 block text-lg"></i>
-                                    No se encontraron registros previos para "{{ searchQuery }}".
-                                </div>
+                    <div class="lg:col-span-1 space-y-6 min-w-0">
+                        <div class="form-section" style="overflow: visible;">
+                            <div class="section-title">
+                                <i class="fas fa-search"></i> 1. Identificar Plantel
                             </div>
-                        </div>
-
-                        <!-- Card de info del plantel seleccionado -->
-                        <div v-if="selectedCliente" class="selected-client-card animate-fade-in">
-                            <div class="p-5 rounded-xl border-2 border-red-100 bg-red-50 shadow-sm">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex-1">
-                                        <h4 class="font-black text-red-900 leading-tight text-lg">{{ selectedCliente.name }}</h4>
-                                        <p class="text-xs text-red-700 mt-2 font-bold"><i class="fas fa-map-marker-alt mr-1"></i> {{ selectedCliente.direccion }}</p>
-                                        <p class="text-xs text-gray-500 mt-1"><i class="fas fa-user-tie mr-1"></i> Director: {{ selectedCliente.contacto }}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="badge-custom" :class="selectedCliente.visita_id ? 'badge-orange' : 'badge-green'">
-                                            {{ selectedCliente.visita_id ? 'PROSPECTO' : 'CLIENTE' }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-else class="p-10 text-center border-2 border-dashed border-gray-200 rounded-xl text-gray-400 italic">
-                            Escribe el nombre de la escuela para cargar sus datos previos.
-                        </div>
-                    </div>
-
-                    <!-- BLOQUE 2: DETALLES DE LA ENTREVISTA -->
-                    <div class="form-section" :class="{'opacity-50 pointer-events-none': !selectedCliente}">
-                        <div class="section-title">
-                            <i class="fas fa-calendar-check"></i> 2. Datos de la Visita Actual
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div class="form-group">
-                                <label>Fecha de Hoy</label>
-                                <input v-model="form.fecha" type="date" class="form-input" required :disabled="loading">
-                            </div>
-                            <div class="form-group">
-                                <label>Tentativa Próxima Visita</label>
-                                <input v-model="form.proxima_visita" type="date" class="form-input" :disabled="loading">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div class="form-group">
-                                <label>Persona Entrevistada</label>
-                                <input v-model="form.persona_entrevistada" type="text" class="form-input" placeholder="¿Quién atendió hoy?" required :disabled="loading">
-                            </div>
-                            <div class="form-group">
-                                <label>Cargo</label>
-                                <input v-model="form.cargo" type="text" class="form-input" placeholder="Ej: Director" required :disabled="loading">
-                            </div>
-                        </div>
-
-                        <!-- LIBROS DE INTERÉS -->
-                        <div class="form-section-inner mb-6 bg-white p-4 rounded-xl border border-gray-100" style="overflow: visible !important;">
-                            <label class="font-bold text-gray-700 block mb-2 text-xs uppercase tracking-widest">Libros de Interés</label>
-                            <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
-                                <div class="md:col-span-10 relative">
+                            
+                            <div v-if="!route.params.id" class="form-group relative">
+                                <div class="relative">
                                     <input 
-                                        v-model="bookInput.titulo" 
+                                        v-model="searchQuery" 
                                         type="text" 
-                                        class="form-input text-sm" 
-                                        placeholder="Buscar título..." 
-                                        @input="searchBooks"
-                                        @keydown.enter.prevent="addBookToList"
-                                        :disabled="loading"
+                                        class="form-input pl-10" 
+                                        placeholder="Nombre del plantel..."
+                                        @input="searchProspectos"
                                         autocomplete="off"
                                     >
-                                    <ul v-if="bookSuggestions.length" class="autocomplete-list">
-                                        <li v-for="b in bookSuggestions" :key="b.id" @click="selectBook(b)">{{ b.titulo }}</li>
-                                    </ul>
+                                    <i class="fas fa-history absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                                 </div>
-                                <div class="md:col-span-2">
-                                    <button type="button" @click="addBookToList" class="btn-primary w-full py-3" :disabled="!bookInput.id || loading">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
+                                
+                                <ul v-if="clientesSuggestions.length" class="autocomplete-list shadow-xl">
+                                    <li v-for="v in clientesSuggestions" :key="v.id" @click="selectProspecto(v)">
+                                        <div class="text-xs font-bold text-gray-800 text-break line-clamp-1">{{ v.name }}</div>
+                                        <div class="text-[10px] text-gray-500 text-break line-clamp-1">{{ v.direccion }}</div>
+                                    </li>
+                                </ul>
                             </div>
 
-                            <div v-if="selectedBooks.length" class="mt-3 space-y-2">
-                                <div v-for="(item, idx) in selectedBooks" :key="idx" class="flex justify-between items-center bg-gray-50 p-2 rounded border text-xs">
-                                    <span class="font-bold text-gray-700">{{ item.titulo }}</span>
-                                    <button type="button" @click="removeBook(idx)" class="text-red-500 hover:text-red-700" :disabled="loading">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                            <div v-if="selectedCliente" class="selected-client-card animate-fade-in p-4 rounded-xl border-2 border-red-100 bg-red-50 overflow-hidden shadow-sm">
+                                <h4 class="font-black text-red-900 text-sm text-break line-clamp-2 uppercase" :title="selectedCliente.name">
+                                    {{ selectedCliente.name }}
+                                </h4>
+                                <div class="mt-3 space-y-2 border-t border-red-200 pt-2">
+                                    <p class="text-[10px] text-gray-600 text-break line-clamp-2" :title="selectedCliente.direccion">
+                                        <i class="fas fa-map-marker-alt mr-1 text-red-400"></i> {{ selectedCliente.direccion }}
+                                    </p>
+                                    <p class="text-[10px] text-gray-600 font-bold text-break line-clamp-1">
+                                        <i class="fas fa-user-tie mr-1 text-red-400"></i> {{ selectedCliente.contacto }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-group mb-4">
-                            <label class="flex items-center gap-3 cursor-pointer select-none">
-                                <input v-model="form.material_entregado" type="checkbox" class="w-5 h-5 accent-red-600" :disabled="loading">
-                                <span class="font-bold text-gray-700 text-sm">¿Se entregó material físico de promoción?</span>
-                            </label>
-                        </div>
-
-                        <Transition name="fade">
-                            <div v-if="form.material_entregado" class="form-group mb-4 p-4 bg-red-50 rounded-xl border border-red-100 animate-fade-in">
-                                <label class="text-red-800 font-bold">Cantidad de libros entregados</label>
-                                <input v-model.number="form.material_cantidad" type="number" min="1" class="form-input mt-1 border-red-200" placeholder="Ej: 5" required :disabled="loading">
+                        <div v-if="selectedCliente" class="form-section animate-fade-in overflow-hidden">
+                            <div class="section-title text-xs"><i class="fas fa-history"></i> Historial Reciente</div>
+                            
+                            <div v-if="loadingHistory" class="text-center py-6">
+                                <i class="fas fa-spinner fa-spin text-red-600"></i>
                             </div>
-                        </Transition>
-
-                        <div class="form-group mb-4">
-                            <label>Comentarios y Acuerdos de esta sesión</label>
-                            <textarea v-model="form.comentarios" class="form-input" rows="3" placeholder="Describe los puntos clave..." :disabled="loading"></textarea>
-                        </div>
-
-                        <!-- RESULTADO DE LA VISITA -->
-                        <div class="form-group bg-gray-50 p-4 rounded-xl border-2 border-red-100">
-                            <label class="font-black text-red-800 text-xs uppercase tracking-widest mb-2 block">Resolución de la Visita</label>
-                            <select v-model="form.resultado_visita" class="form-input font-bold" required :disabled="loading">
-                                <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
-                                <option value="compra">DECISIÓN DE COMPRA (Convertir a Cliente)</option>
-                                <option value="rechazo">NO INTERESADO / INACTIVAR</option>
-                            </select>
+                            
+                            <div v-else class="timeline-container space-y-3">
+                                <div v-for="h in historialVisitas" :key="h.id" class="timeline-item bg-white p-3 rounded-lg border border-gray-100 shadow-sm overflow-hidden mb-3">
+                                    <div class="flex justify-between items-center mb-2 gap-4">
+                                        <span class="text-[10px] font-black text-red-700 bg-red-50 px-2 py-1 rounded border border-red-100 shrink-0">
+                                           Fecha: {{ formatDateShort(h.fecha) }}
+                                        </span>
+                                        <br>
+                                        <br>
+                                        <span class="text-[9px] font-bold uppercase truncate text-gray-400">
+                                           Estado: {{ h.resultado_visita }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-1 border-t border-gray-50 pt-2">
+                                        <p class="text-[11px] text-gray-700 italic text-break leading-normal">
+                                           Comentarios: "{{ h.comentarios || 'Sin observaciones.' }}"
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="mt-8 flex justify-end gap-4 border-t pt-6">
-                    <button type="submit" class="btn-primary px-20 shadow-lg" :disabled="loading || !selectedCliente">
-                        <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save'"></i> 
-                        {{ loading ? 'Procesando...' : 'Finalizar Seguimiento' }}
-                    </button>
+                    <div class="lg:col-span-2">
+                        <div class="form-section" :class="{'opacity-50 pointer-events-none': !selectedCliente || loadingPrecarga}">
+                            <div class="section-title"><i class="fas fa-calendar-plus"></i> Detalles de la Nueva Interacción</div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="form-group">
+                                    <label>Fecha de Hoy</label>
+                                    <input v-model="form.fecha" type="date" class="form-input" required :disabled="loading">
+                                </div>
+                                <div class="form-group">
+                                    <label>Próxima Visita Estimada</label>
+                                    <input v-model="form.proxima_visita" type="date" class="form-input" :disabled="loading">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="form-group">
+                                    <label>Persona Entrevistada</label>
+                                    <input v-model="form.persona_entrevistada" type="text" class="form-input" placeholder="Nombre completo" required :disabled="loading">
+                                </div>
+                                <div class="form-group">
+                                    <label>Cargo</label>
+                                    <input v-model="form.cargo" type="text" class="form-input" placeholder="Ej: Director" required :disabled="loading">
+                                </div>
+                            </div>
+
+                            <div class="form-section-inner mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200" style="overflow: visible !important;">
+                                <label class="font-bold text-gray-700 block mb-2 text-xs uppercase tracking-widest">Libros de Interés</label>
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                                    <div class="md:col-span-10 relative">
+                                        <input 
+                                            v-model="bookInput.titulo" 
+                                            type="text" 
+                                            class="form-input" 
+                                            placeholder="Buscar título..." 
+                                            @input="searchBooks"
+                                            @keydown.enter.prevent="addBookToList"
+                                            autocomplete="off"
+                                        >
+                                        <ul v-if="bookSuggestions.length" class="autocomplete-list">
+                                            <li v-for="b in bookSuggestions" :key="b.id" @click="selectBook(b)">{{ b.titulo }}</li>
+                                        </ul>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <button type="button" @click="addBookToList" class="btn-primary w-full py-3">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div v-if="selectedBooks.length" class="mt-3 flex flex-wrap gap-2">
+                                    <div v-for="(item, idx) in selectedBooks" :key="idx" class="bg-white px-3 py-1 rounded-full border text-[10px] font-bold flex items-center gap-2">
+                                        <span class="text-gray-700">{{ item.titulo }}</span>
+                                        <button type="button" @click="selectedBooks.splice(idx, 1)" class="text-red-500"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-6">
+                                <label>Comentarios y Acuerdos de hoy</label>
+                                <textarea v-model="form.comentarios" class="form-input" rows="5" placeholder="¿Qué se trató en esta visita?" :disabled="loading"></textarea>
+                            </div>
+
+                            <div class="form-group bg-gray-50 p-5 rounded-xl border-2 border-red-100">
+                                <label class="font-black text-red-800 text-xs uppercase tracking-widest mb-3 block text-center">Resolución</label>
+                                <select v-model="form.resultado_visita" class="form-input font-bold text-center" required :disabled="loading">
+                                    <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
+                                    <option value="compra">DECISIÓN DE COMPRA</option>
+                                    <option value="rechazo">RECHAZADO</option>
+                                </select>
+                            </div>
+
+                            <div class="mt-8 flex justify-end">
+                                <button type="submit" class="btn-primary py-3 px-16 shadow-xl" :disabled="loading || !selectedCliente">
+                                    <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save mr-2'"></i> 
+                                    Guardar Seguimiento
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
-
-        <!-- MODAL DE ÉXITO -->
-        <Transition name="modal-fade">
-            <div v-if="showSuccessModal" class="modal-overlay-custom">
-                <div class="modal-content-success">
-                    <div class="success-icon-wrapper">
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <h2 class="modal-title-success">¡Seguimiento Guardado!</h2>
-                    <p class="modal-text-success">
-                        La bitácora se ha actualizado correctamente.
-                        <span v-if="form.resultado_visita === 'compra'" class="block mt-2 font-bold text-green-600">
-                            <i class="fas fa-star"></i> El plantel ahora es CLIENTE oficial.
-                        </span>
-                    </p>
-                    <button @click="goToHistory" class="btn-modal-success">Entendido, volver</button>
-                </div>
-            </div>
-        </Transition>
     </div>
 </template>
 
@@ -218,126 +183,95 @@ const router = useRouter();
 const route = useRoute();
 
 const loading = ref(false);
-const loadingOriginal = ref(false);
-const showSuccessModal = ref(false);
-const hasAttemptedSearch = ref(false);
+const loadingPrecarga = ref(false);
+const loadingHistory = ref(false);
 
-// Prospectos (Visitas previas)
 const searchQuery = ref('');
 const clientesSuggestions = ref([]);
 const selectedCliente = ref(null);
-const searchingClients = ref(false);
-let clientSearchTimeout = null;
-
-// Libros
-const bookInput = reactive({ id: null, titulo: '' });
+const historialVisitas = ref([]);
 const bookSuggestions = ref([]);
 const selectedBooks = ref([]);
-let bookSearchTimeout = null;
+const bookInput = reactive({ id: null, titulo: '' });
+let searchTimeout = null;
 
 const form = reactive({
-    original_visita_id: null,
     cliente_id: null,
     fecha: new Date().toISOString().split('T')[0],
     persona_entrevistada: '',
     cargo: '',
-    libros_interes: '',
-    material_entregado: false,
-    material_cantidad: null,
     comentarios: '',
+    libros_interes: '',
     proxima_visita: '',
-    resultado_visita: 'seguimiento',
-    proxima_accion: 'visita'
+    resultado_visita: 'seguimiento'
 });
 
-const initView = async () => {
-    const id = route.params.id;
-    if (id) {
-        loadingOriginal.value = true;
-        try {
-            const res = await axios.get(`/visitas/${id}`);
-            const data = res.data;
-            form.original_visita_id = data.id;
-            selectProspecto(data);
-            form.persona_entrevistada = data.persona_entrevistada;
-            form.cargo = data.cargo;
-        } catch (e) {
-            console.error("Error cargando origen:", e);
-        } finally {
-            loadingOriginal.value = false;
-        }
+/**
+ * LÓGICA DE PRECARGA POR ID
+ */
+const verificarPrecarga = async () => {
+    const idParam = route.params.id;
+    if (!idParam) return;
+
+    loadingPrecarga.value = true;
+    try {
+        const response = await axios.get(`/visitas/${idParam}`);
+        const data = response.data;
+
+        selectedCliente.value = data.cliente;
+        form.cliente_id = data.cliente_id;
+        form.persona_entrevistada = data.persona_entrevistada;
+        form.cargo = data.cargo;
+        searchQuery.value = data.cliente.name;
+
+        fetchHistorial(data.cliente_id);
+    } catch (e) {
+        console.error("Error en precarga:", e);
+    } finally {
+        loadingPrecarga.value = false;
     }
 };
 
 /**
- * BUSCADOR DE PROSPECTOS: Consulta la tabla 'visitas'
+ * BUSCADORES Y SELECCIÓN
  */
 const searchProspectos = async () => {
-    if (selectedCliente.value && searchQuery.value !== selectedCliente.value.name) {
-        selectedCliente.value = null;
-        form.cliente_id = null;
-    }
-    
-    if (searchQuery.value.trim().length < 3) {
+    if (searchQuery.value.length < 3) {
         clientesSuggestions.value = [];
-        hasAttemptedSearch.value = false;
         return;
     }
-
-    clearTimeout(clientSearchTimeout);
-    clientSearchTimeout = setTimeout(async () => {
-        searchingClients.value = true;
-        hasAttemptedSearch.value = true;
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(async () => {
         try {
-            // Llamada al nuevo endpoint del SearchController
-            const res = await axios.get('/search/prospectos', { 
-                params: { query: searchQuery.value } 
-            });
-            
-            // LOG DE DEPURACIÓN: Revisa esto en la consola F12
-            console.log("Resultados de búsqueda prospectos:", res.data);
-            
-            const results = res.data.data || res.data;
-            clientesSuggestions.value = Array.isArray(results) ? results : [];
-        } catch (e) { 
-            console.error("Error en búsqueda:", e);
-            clientesSuggestions.value = [];
-        } 
-        finally { searchingClients.value = false; }
+            const res = await axios.get('/search/prospectos', { params: { query: searchQuery.value } });
+            clientesSuggestions.value = res.data;
+        } catch (e) { console.error(e); }
     }, 400);
 };
 
-const selectProspecto = (v) => {
-    selectedCliente.value = {
-        id: v.cliente_id || null, 
-        visita_id: v.id,
-        name: v.nombre_plantel,
-        direccion: v.direccion_plantel,
-        contacto: v.director_plantel,
-    };
-    
-    form.cliente_id = v.cliente_id || null;
-    form.original_visita_id = v.id;
-    searchQuery.value = v.nombre_plantel;
+const selectProspecto = async (cliente) => {
+    selectedCliente.value = cliente;
+    form.cliente_id = cliente.id;
+    searchQuery.value = cliente.name;
     clientesSuggestions.value = [];
-    hasAttemptedSearch.value = false;
+    fetchHistorial(cliente.id);
+};
+
+const fetchHistorial = async (id) => {
+    loadingHistory.value = true;
+    try {
+        const res = await axios.get(`/clientes/${id}/historial`);
+        historialVisitas.value = res.data;
+    } catch (e) { historialVisitas.value = []; }
+    finally { loadingHistory.value = false; }
 };
 
 const searchBooks = async () => {
-    if (bookInput.titulo.trim().length < 3) {
-        bookSuggestions.value = [];
-        return;
-    }
-    clearTimeout(bookSearchTimeout);
-    bookSearchTimeout = setTimeout(async () => {
-        try {
-            const res = await axios.get('/search/libros', { params: { query: bookInput.titulo } });
-            const results = res.data.data || res.data;
-            bookSuggestions.value = Array.isArray(results) ? results : [];
-        } catch (e) { 
-            bookSuggestions.value = [];
-        }
-    }, 400);
+    if (bookInput.titulo.length < 3) { bookSuggestions.value = []; return; }
+    try {
+        const res = await axios.get('/search/libros', { params: { query: bookInput.titulo } });
+        bookSuggestions.value = res.data;
+    } catch (e) { console.error(e); }
 };
 
 const selectBook = (b) => {
@@ -354,60 +288,90 @@ const addBookToList = () => {
     bookInput.id = null; bookInput.titulo = '';
 };
 
-const removeBook = (idx) => selectedBooks.value.splice(idx, 1);
-
 const handleSubmit = async () => {
     loading.value = true;
     form.libros_interes = selectedBooks.value.map(b => b.titulo).join(', ');
-
     try {
         await axios.post('/visitas/seguimiento', form);
-        showSuccessModal.value = true;
-    } catch (e) {
-        alert(e.response?.data?.message || "Error al procesar el seguimiento.");
-    } finally {
-        loading.value = false;
-    }
+        router.push('/visitas');
+    } catch (e) { alert("Error al guardar"); }
+    finally { loading.value = false; }
 };
 
-const goToHistory = () => {
-    showSuccessModal.value = false;
-    router.push('/visitas');
+const formatDateShort = (d) => {
+    if (!d) return '---';
+    const p = d.split('T')[0].split('-');
+    return `${p[2]}/${p[1]}`;
 };
 
-const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-};
-
-onMounted(initView);
+onMounted(() => {
+    verificarPrecarga();
+});
 </script>
 
 <style scoped>
-.form-section { background: white; padding: 25px; border-radius: 16px; border: 1px solid #eef2f6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-.form-section-inner { background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; }
-.section-title { color: var(--brand-red-dark); font-weight: 900; font-size: 1.1rem; border-bottom: 2px solid #fee2e2; padding-bottom: 8px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-
-.autocomplete-list { 
-    position: absolute; width: 100%; background: white; border: 1px solid #e2e8f0; z-index: 9999; 
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 250px; overflow-y: auto; 
-    list-style: none; padding: 0; margin: 4px 0 0; border-radius: 8px;
+/* SOLUCIÓN AL TEXTO LARGO */
+.text-break {
+    overflow-wrap: break-word;
+    word-break: break-all;
+    display: block;
 }
-.autocomplete-list li { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.2s; }
-.autocomplete-list li:hover { background: #f8fafc; }
 
-.status-pill { padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 900; text-transform: uppercase; margin-right: 5px; }
-.badge-custom { padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; border: 1px solid transparent; }
-.badge-orange { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
-.badge-green { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
-/* MODAL DE ÉXITO */
-.modal-overlay-custom { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 2000; }
-.modal-content-success { background: white; padding: 40px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; }
-.success-icon-wrapper { width: 70px; height: 70px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 20px; }
-.btn-modal-success { width: 100%; background: #0f172a; color: white; padding: 14px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; }
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* DISEÑO DE UI */
+.form-section { 
+    background: white; 
+    padding: 24px; 
+    border-radius: 16px; 
+    border: 1px solid #e2e8f0; 
+    min-width: 0; 
+}
+
+.section-title { font-weight: 900; color: #b91c1c; margin-bottom: 20px; border-bottom: 2px solid #fee2e2; padding-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+
+.timeline-container {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.timeline-item {
+    border-left: 4px solid #b91c1c;
+    min-width: 0;
+}
+
+.autocomplete-list {
+    position: absolute;
+    z-index: 1000;
+    width: 100%;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 5px;
+}
+
+.autocomplete-list li { padding: 10px; cursor: pointer; border-bottom: 1px solid #f1f5f9; }
+.autocomplete-list li:hover { background: #fdf2f2; }
+
+.form-section-inner { background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; }
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.timeline-container::-webkit-scrollbar { width: 4px; }
+.timeline-container::-webkit-scrollbar-thumb { background: #fee2e2; border-radius: 10px; }
 </style>

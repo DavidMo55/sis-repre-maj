@@ -112,13 +112,23 @@
                         <tr v-for="visita in visitas" :key="visita.id" class="hover:bg-gray-50 transition-colors">
                             <td class="table-cell table-cell-bold text-gray-700">{{ formatDate(visita.fecha) }}</td>
                             <td class="table-cell">
-                                <div class="text-red-900 font-bold uppercase text-xs">{{ visita.nombre_plantel }}</div>
-                                <div class="text-[10px] text-gray-400 uppercase tracking-tighter">{{ visita.nivel_educativo_plantel }}</div>
-                            </td>
-                            <td class="table-cell">
-                                <div class="text-sm font-medium text-gray-800">{{ visita.persona_entrevistada }}</div>
-                                <div class="text-[10px] text-gray-400 uppercase font-bold">{{ visita.cargo }}</div>
-                            </td>
+                            <div class="text-red-900 font-bold uppercase text-xs text-truncate max-w-plantel" 
+                                :title="visita.cliente?.name"> {{ visita.cliente?.name || 'Plantel no disponible' }}
+                            </div>
+                            <div class="text-[10px] text-gray-400 uppercase tracking-tighter text-truncate max-w-plantel">
+                                {{ visita.cliente?.nivel_educativo || '---' }}
+                            </div>
+                        </td>
+
+                        <td class="table-cell">
+                            <div class="text-sm font-medium text-gray-800 text-truncate max-w-entrevistado" 
+                                :title="visita.persona_entrevistada">
+                                {{ visita.persona_entrevistada }}
+                            </div>
+                            <div class="text-[10px] text-gray-400 uppercase font-bold text-truncate max-w-entrevistado">
+                                {{ visita.cargo }}
+                            </div>
+                        </td>
                             <td class="table-cell text-center">
                                 <span :class="visita.es_primera_visita ? 'badge-blue' : 'badge-gray'">
                                     {{ visita.es_primera_visita ? 'Inicial' : 'Seguimiento' }}
@@ -159,7 +169,6 @@ const router = useRouter();
 const visitas = ref([]);
 const loading = ref(true);
 
-// Estado reactivo para los filtros
 const filters = reactive({
     query: '',
     fecha_inicio: '',
@@ -170,7 +179,6 @@ const filters = reactive({
 const fetchVisitas = async () => {
     loading.value = true;
     try {
-        // Limpiamos los parámetros para no enviar campos vacíos
         const params = {};
         if (filters.query) params.search = filters.query;
         if (filters.fecha_inicio) params.desde = filters.fecha_inicio;
@@ -179,8 +187,7 @@ const fetchVisitas = async () => {
 
         const response = await axios.get('/visitas', { params });
         
-        // Laravel paginate devuelve la data en response.data.data
-        // Si no hay paginación, intentamos response.data
+        // Laravel paginate entrega los registros en data.data
         const dataReceived = response.data.data || response.data;
         visitas.value = Array.isArray(dataReceived) ? dataReceived : [];
         
@@ -201,14 +208,21 @@ const resetFilters = () => {
 };
 
 const formatDate = (dateString) => {
-    if (!dateString) return null;
-    // Ajuste para evitar desfase de zona horaria en objetos Date
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('es-ES', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-    });
+    if (!dateString) return '---';
+    try {
+        const cleanDate = dateString.split('T')[0];
+        const parts = cleanDate.split('-');
+        if (parts.length !== 3) return dateString; 
+        const date = new Date(parts[0], parts[1] - 1, parts[2]);
+        if (isNaN(date.getTime())) return 'Fecha inválida';
+        return date.toLocaleDateString('es-ES', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+    } catch (e) {
+        return '---';
+    }
 };
 
 const getOutcomeClass = (outcome) => {
@@ -235,77 +249,49 @@ onMounted(fetchVisitas);
 </script>
 
 <style scoped>
-.filter-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 15px;
-    align-items: flex-end;
-}
-
-@media (min-width: 1024px) {
-    .col-span-2 {
-        grid-column: span 2;
-    }
-}
-
+/* (Se mantienen tus estilos anteriores) */
+.filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: flex-end; }
+@media (min-width: 1024px) { .col-span-2 { grid-column: span 2; } }
 .relative { position: relative; }
 .pl-10 { padding-left: 2.5rem; }
-
-.search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    pointer-events: none;
-    z-index: 10;
-}
-
-.filter-section {
-    background-color: #fdfdfd;
-    border: 1px solid #e2e8f0;
-    padding: 20px;
-    border-radius: 12px;
-}
-
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; z-index: 10; }
+.filter-section { background-color: #fdfdfd; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px; }
 .table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; text-align: left; letter-spacing: 0.025em; }
 .table-cell { padding: 16px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
 .table-cell-bold { font-weight: 700; }
-
-.text-red-link { 
-    color: #b91c1c; 
-    background: none; 
-    border: none; 
-    cursor: pointer; 
-    transition: color 0.2s; 
-    font-weight: 700;
-}
+.text-red-link { color: #b91c1c; background: none; border: none; cursor: pointer; transition: color 0.2s; font-weight: 700; }
 .text-red-link:hover { color: #7f1d1d; text-decoration: underline; }
-
 .badge-blue { background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
 .badge-gray { background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 12px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
-
-.status-badge { 
-    padding: 6px 12px; 
-    border-radius: 20px; 
-    font-size: 0.7rem; 
-    font-weight: 800; 
-    display: inline-flex; 
-    align-items: center;
+.status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; }
+.detail-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+@media (max-width: 768px) { .detail-header-flex { flex-direction: column; align-items: flex-start; gap: 15px; } }
+/* Truncado universal para celdas */
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
 }
 
-.detail-header-flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+/* Anchos máximos específicos para que la tabla no se estire */
+.max-w-plantel {
+    max-width: 200px; /* Ajusta según prefieras */
 }
 
-@media (max-width: 768px) {
-    .detail-header-flex {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
+.max-w-entrevistado {
+    max-width: 150px;
+}
+
+/* Forzar que la tabla respete los anchos y no se salga del contenedor */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    table-layout: fixed; /* Esto es clave para que los max-width funcionen bien */
+    width: 100%;
 }
 </style>

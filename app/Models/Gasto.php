@@ -9,30 +9,26 @@ class Gasto extends Model
 {
     use HasFactory;
 
+    protected $table = 'gastos';
+
     protected $fillable = [
         'user_id',
         'fecha',
         'concepto',
         'monto',
-        'facturado',
+        'facturado', // Usamos el nombre exacto de tu BD
     ];
 
     protected $casts = [
         'fecha' => 'date',
-        'facturado' => 'boolean',
+        'facturado' => 'boolean', // Mapea el tinyint(1) de tu BD
     ];
 
-    /**
-     * Relación: Un gasto pertenece a un representante (User).
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Relación: Un gasto puede tener muchos comprobantes.
-     */
     public function comprobantes()
     {
         return $this->hasMany(Comprobante::class, 'gasto_id');

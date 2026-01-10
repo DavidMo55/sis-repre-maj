@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Visita;
+use App\Models\Cliente;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class VisitaController extends Controller
 {
@@ -16,72 +18,53 @@ class VisitaController extends Controller
     public function index(Request $request)
     {
         try {
-            // Iniciamos la consulta filtrando por el usuario autenticado
-            $query = Visita::where('user_id', Auth::id());
+            $query = Visita::with('cliente')->where('user_id', Auth::id());
 
-            // Aplicamos los Scopes definidos en el Modelo Visita.php
-            // Solo se ejecutan si el parámetro está presente en la request
             $query->search($request->query('search'))
                   ->byDateRange($request->query('desde'), $request->query('hasta'))
                   ->byResultado($request->query('resultado'));
 
-            // Ordenamos por fecha más reciente y paginamos
-            $visitas = $query->orderBy('fecha', 'desc')
-                             ->paginate(15);
+            $visitas = $query->orderBy('fecha', 'desc')->paginate(15);
 
-            // Importante: Retornamos el objeto de paginación completo
             return response()->json($visitas);
-
         } catch (\Exception $e) {
             Log::error("Error en VisitaController@index: " . $e->getMessage());
-            return response()->json([
-                'message' => 'Error al obtener el historial de visitas.',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['message' => 'Error al obtener el historial.'], 500);
         }
     }
 
     /**
-     * Mostrar detalles de una visita específica.
+     * Detalle de una visita para precarga o consulta.
+     * Carga cliente y estado para el "Header" y tarjetas del Front.
      */
     public function show($id)
     {
         try {
-            $visita = Visita::with('estado')
+            $visita = Visita::with(['cliente.estado'])
                 ->where('user_id', Auth::id())
                 ->findOrFail($id);
 
             return response()->json($visita);
-
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json([
-                'message' => "La visita con ID #{$id} no existe o no tienes permisos para verla."
-            ], 404);
         } catch (\Exception $e) {
-            Log::error("Error en VisitaController@show: " . $e->getMessage());
-            return response()->json([
-                'message' => 'Error interno al recuperar el detalle.',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['message' => 'Visita no encontrada.'], 404);
         }
     }
 
     /**
-     * Registro de primera visita (Prospecto).
+     * Registro de primera visita (Crea Cliente + Visita).
      */
     public function storePrimeraVisita(Request $request)
     {
         $validated = $request->validate([
-            'plantel.name' => 'required|string',
+            'plantel.name' => 'required|string|max:100',
             'plantel.nivel_educativo' => 'required|string',
             'plantel.direccion' => 'required|string',
-            'plantel.estado_id' => 'nullable|exists:estados,id',
+            'plantel.estado_id' => 'required|exists:estados,id',
             'plantel.telefono' => 'required|string',
-            'plantel.email' => 'required|email',
+            'plantel.email' => 'required|email|unique:clientes,email',
             'plantel.director' => 'required|string',
             'plantel.latitud' => 'nullable|numeric',
             'plantel.longitud' => 'nullable|numeric',
-            
             'visita.fecha' => 'required|date',
             'visita.persona_entrevistada' => 'required|string',
             'visita.cargo' => 'required|string',
@@ -93,39 +76,61 @@ class VisitaController extends Controller
         ]);
 
         try {
-            $visita = Visita::create([
-                'user_id' => Auth::id(),
-                'nombre_plantel' => $validated['plantel']['name'],
-                'nivel_educativo_plantel' => $validated['plantel']['nivel_educativo'],
-                'direccion_plantel' => $validated['plantel']['direccion'],
-                'estado_id' => $validated['plantel']['estado_id'] ?? null,
-                'latitud' => $validated['plantel']['latitud'],
-                'longitud' => $validated['plantel']['longitud'],
-                'telefono_plantel' => $validated['plantel']['telefono'],
-                'email_plantel' => $validated['plantel']['email'],
-                'director_plantel' => $validated['plantel']['director'],
-                'fecha' => $validated['visita']['fecha'],
-                'persona_entrevistada' => $validated['visita']['persona_entrevistada'],
-                'cargo' => $validated['visita']['cargo'],
-                'libros_interes' => $request->input('visita.libros_interes'),
-                'material_entregado' => $validated['visita']['material_entregado'],
-                'material_cantidad' => $validated['visita']['material_cantidad'],
-                'resultado_visita' => $validated['visita']['resultado_visita'],
-                'proxima_visita_estimada' => $validated['visita']['proxima_visita'],
-                'proxima_accion' => $request->input('visita.proxima_accion', 'visita'),
-                'comentarios' => $validated['visita']['comentarios'],
-                'es_primera_visita' => true
-            ]);
+            $visitaId = DB::transaction(function () use ($validated, $request) {
+                $cliente = Cliente::create([
+                    'tipo' => $validated['visita']['resultado_visita'] === 'compra' ? 'CLIENTE' : 'PROSPECTO',
+                    'nivel_educativo' => $validated['plantel']['nivel_educativo'],
+                    'name' => $validated['plantel']['name'],
+                    'contacto' => $validated['plantel']['director'],
+                    'email' => $validated['plantel']['email'],
+                    'telefono' => $validated['plantel']['telefono'],
+                    'direccion' => $validated['plantel']['direccion'],
+                    'latitud' => $validated['plantel']['latitud'],
+                    'longitud' => $validated['plantel']['longitud'],
+                    'estado_id' => $validated['plantel']['estado_id'],
+                    'user_id' => Auth::id(),
+                    'moneda_id' => 1,
+                    'status' => 'activo'
+                ]);
 
-            return response()->json([
-                'message' => 'Bitácora registrada correctamente.',
-                'visita_id' => $visita->id
-            ], 201);
+                $visita = Visita::create([
+                    'user_id' => Auth::id(),
+                    'cliente_id' => $cliente->id,
+                    'fecha' => $validated['visita']['fecha'],
+                    'persona_entrevistada' => $validated['visita']['persona_entrevistada'],
+                    'cargo' => $validated['visita']['cargo'],
+                    'libros_interes' => $request->input('visita.libros_interes'),
+                    'material_entregado' => $validated['visita']['material_entregado'],
+                    'material_cantidad' => $validated['visita']['material_cantidad'],
+                    'resultado_visita' => $validated['visita']['resultado_visita'],
+                    'proxima_visita_estimada' => $validated['visita']['proxima_visita'],
+                    'proxima_accion' => $request->input('visita.proxima_accion', 'visita'),
+                    'comentarios' => $validated['visita']['comentarios'],
+                    'es_primera_visita' => true
+                ]);
 
+                return $visita->id;
+            });
+
+            return response()->json(['message' => 'Registro exitoso', 'visita_id' => $visitaId], 201);
         } catch (\Exception $e) {
             Log::error("Error en storePrimeraVisita: " . $e->getMessage());
-            return response()->json(['message' => 'Error al guardar.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Error al guardar', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Historial de visitas por cliente.
+     * Protegido por Auth::id() para seguridad de datos.
+     */
+    public function historialPorCliente($cliente_id)
+    {
+        $historial = Visita::where('cliente_id', $cliente_id)
+            ->where('user_id', Auth::id())
+            ->orderBy('fecha', 'desc')
+            ->get();
+
+        return response()->json($historial);
     }
 
     /**
@@ -134,7 +139,8 @@ class VisitaController extends Controller
     public function storeSeguimiento(Request $request)
     {
         $validated = $request->validate([
-            'original_visita_id' => 'required|exists:visitas,id',
+            // Ahora aceptamos cliente_id directo para mayor flexibilidad desde el Front
+            'cliente_id' => 'required|exists:clientes,id',
             'fecha' => 'required|date',
             'persona_entrevistada' => 'required|string',
             'cargo' => 'required|string',
@@ -147,38 +153,34 @@ class VisitaController extends Controller
         ]);
 
         try {
-            $original = Visita::where('user_id', Auth::id())->findOrFail($validated['original_visita_id']);
+            $nuevaVisita = DB::transaction(function () use ($validated, $request) {
+                
+                // Si el resultado es compra, convertimos el PROSPECTO en CLIENTE
+                if ($validated['resultado_visita'] === 'compra') {
+                    Cliente::where('id', $validated['cliente_id'])->update(['tipo' => 'CLIENTE']);
+                }
 
-            $nuevaVisita = Visita::create([
-                'user_id' => Auth::id(),
-                'cliente_id' => $original->cliente_id,
-                'nombre_plantel' => $original->nombre_plantel,
-                'nivel_educativo_plantel' => $original->nivel_educativo_plantel,
-                'direccion_plantel' => $original->direccion_plantel,
-                'estado_id' => $original->estado_id,
-                'latitud' => $original->latitud,
-                'longitud' => $original->longitud,
-                'telefono_plantel' => $original->telefono_plantel,
-                'email_plantel' => $original->email_plantel,
-                'director_plantel' => $original->director_plantel,
-                'fecha' => $validated['fecha'],
-                'persona_entrevistada' => $validated['persona_entrevistada'],
-                'cargo' => $validated['cargo'],
-                'libros_interes' => $validated['libros_interes'],
-                'material_entregado' => $validated['material_entregado'],
-                'material_cantidad' => $validated['material_cantidad'],
-                'resultado_visita' => $validated['resultado_visita'],
-                'proxima_visita_estimada' => $validated['proxima_visita'],
-                'proxima_accion' => $request->input('proxima_accion', 'visita'),
-                'comentarios' => $validated['comentarios'],
-                'es_primera_visita' => false
-            ]);
+                return Visita::create([
+                    'user_id' => Auth::id(),
+                    'cliente_id' => $validated['cliente_id'],
+                    'fecha' => $validated['fecha'],
+                    'persona_entrevistada' => $validated['persona_entrevistada'],
+                    'cargo' => $validated['cargo'],
+                    'libros_interes' => $validated['libros_interes'],
+                    'material_entregado' => $validated['material_entregado'],
+                    'material_cantidad' => $validated['material_cantidad'],
+                    'resultado_visita' => $validated['resultado_visita'],
+                    'proxima_visita_estimada' => $validated['proxima_visita'],
+                    'proxima_accion' => $request->input('proxima_accion', 'visita'),
+                    'comentarios' => $validated['comentarios'],
+                    'es_primera_visita' => false
+                ]);
+            });
 
-            return response()->json(['message' => 'Seguimiento registrado.', 'visita_id' => $nuevaVisita->id], 201);
-
+            return response()->json(['message' => 'Seguimiento registrado', 'visita_id' => $nuevaVisita->id], 201);
         } catch (\Exception $e) {
             Log::error("Error en storeSeguimiento: " . $e->getMessage());
-            return response()->json(['message' => 'Error al procesar seguimiento.', 'error' => $e->getMessage()], 500);
+            return response()->json(['message' => 'Error al procesar seguimiento'], 500);
         }
     }
 }

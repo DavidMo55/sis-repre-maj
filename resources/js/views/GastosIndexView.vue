@@ -7,6 +7,12 @@
                     <h1>Gestión de Gastos</h1>
                     <p>Visualiza tus gastos asignados y gestiona los comprobantes de forma directa.</p>
                 </div>
+                <button 
+                    @click="router.push({ name: 'GastosCreate' })" 
+                    class="btn-primary flex-row-centered gap-2 px-6 shadow-lg"
+                >
+                    <i class="fas fa-plus-circle"></i> Registrar Nuevo Gasto
+                </button>
             </div>
 
             <div class="filter-section form-section">

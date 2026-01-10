@@ -14,6 +14,7 @@ class Visita extends Model
 
     /**
      * Campos habilitados para asignación masiva.
+     * Se eliminaron los campos de texto del plantel ya que ahora residen en 'clientes'.
      */
     protected $fillable = [
         'user_id',
@@ -29,15 +30,6 @@ class Visita extends Model
         'proxima_accion',
         'es_primera_visita',
         'resultado_visita',
-        'nombre_plantel',
-        'direccion_plantel',
-        'latitud',
-        'longitud',
-        'telefono_plantel',
-        'email_plantel',
-        'director_plantel',
-        'nivel_educativo_plantel',
-        'estado_id'
     ];
 
     protected $casts = [
@@ -48,22 +40,25 @@ class Visita extends Model
     ];
 
     /**
-     * SCOPE: Filtrar por término de búsqueda (Nombre del plantel o entrevistado).
-     * Corresponde al parámetro 'search' enviado desde el frontend.
+     * SCOPE: Búsqueda avanzada.
+     * Busca el término en el nombre del cliente (tabla relacionada) o en el entrevistado.
      */
     public function scopeSearch(Builder $query, $term)
     {
         if ($term) {
             $query->where(function($q) use ($term) {
-                $q->where('nombre_plantel', 'like', "%{$term}%")
-                  ->orWhere('persona_entrevistada', 'like', "%{$term}%");
+                // Busca en la tabla de clientes a través de la relación
+                $q->whereHas('cliente', function($sub) use ($term) {
+                    $sub->where('name', 'like', "%{$term}%");
+                })
+                // O busca en la persona entrevistada registrada en la visita
+                ->orWhere('persona_entrevistada', 'like', "%{$term}%");
             });
         }
     }
 
     /**
-     * SCOPE: Filtrar por rango de fechas de la visita.
-     * Corresponde a los parámetros 'desde' y 'hasta'.
+     * SCOPE: Filtrar por rango de fechas.
      */
     public function scopeByDateRange(Builder $query, $from, $to)
     {
@@ -76,8 +71,7 @@ class Visita extends Model
     }
 
     /**
-     * SCOPE: Filtrar por resultado (seguimiento, compra, rechazo).
-     * Corresponde al parámetro 'resultado'.
+     * SCOPE: Filtrar por resultado.
      */
     public function scopeByResultado(Builder $query, $resultado)
     {
@@ -87,7 +81,8 @@ class Visita extends Model
     }
 
     /**
-     * Relación con el Cliente (Opcional, para registros que ya son clientes oficiales).
+     * Relación con el Cliente.
+     * Vincula la visita con la información centralizada del plantel/persona.
      */
     public function cliente()
     {
@@ -100,13 +95,5 @@ class Visita extends Model
     public function representative()
     {
         return $this->belongsTo(User::class, 'user_id');
-    }
-
-    /**
-     * Relación con el Estado Geográfico (Heredada para visualización).
-     */
-    public function estado()
-    {
-        return $this->belongsTo(Estado::class, 'estado_id');
     }
 }

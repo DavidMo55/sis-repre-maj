@@ -5,98 +5,103 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Cliente;
 use App\Models\Libro;
+use App\Models\Estado;
+use Illuminate\Support\Facades\Log;
 
 class SearchController extends Controller
 {
-
-
-    
     /**
-     * Busca clientes (planteles) por nombre que sean CLIENTE o DISTRIBUIDOR.
+     * Buscador de Clientes y Distribuidores para Pedidos.
+     * Filtra estrictamente por tipos autorizados para venta y estatus activo.
      */
     public function searchClientes(Request $request)
     {
         $query = $request->input('query');
-        $includeProspectos = $request->boolean('include_prospectos', false);
 
-        if (empty($query)) {
+        if (empty($query) || strlen($query) < 3) {
             return response()->json([]);
         }
 
-        $search = Cliente::select('id', 'name', 'tipo', 'direccion', 'contacto')
-            ->where('name', 'like', '%' . $query . '%');
+        try {
+            $clientes = Cliente::select(
+                    'id', 
+                    'name', 
+                    'tipo', 
+                    'direccion', 
+                    'contacto', 
+                    'telefono', 
+                    'email'
+                )
+                ->where('name', 'like', "%{$query}%")
+                ->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR']) // Excluye PROSPECTOS para pedidos de venta
+                ->where('status', 'activo')
+                ->limit(10)
+                ->get();
 
-        if ($includeProspectos) {
-            $search->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR', 'PROSPECTO']);
-        } else {
-            $search->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR']);
+            return response()->json($clientes);
+
+        } catch (\Exception $e) {
+            Log::error("Error en SearchController@searchClientes: " . $e->getMessage());
+            return response()->json(['message' => 'Error al buscar clientes'], 500);
         }
-
-        $clientes = $search->limit(10)->get();
-
-        return response()->json($clientes);
     }
 
     /**
-     * Busca libros por título para el detalle del pedido.
-     */
-    public function searchLibros(Request $request)
-    {
-        $query = $request->input('query');
-
-        if (empty($query)) {
-            return response()->json([]);
-        }
-
-        $libros = Libro::select('id', 'titulo', 'ISBN', 'editorial')
-            ->where('titulo', 'like', '%' . $query . '%')
-            ->where('estado', 'activo')
-            ->limit(10) // Limitar resultados para autocompletado
-            ->get();
-
-        return response()->json($libros);
-    }
-
-    /**
-     * Busca específicamente en la tabla de visitas para identificar prospectos.
+     * Buscador de Prospectos para el módulo de Visitas.
+     * Permite encontrar planteles que aún no son clientes formales.
      */
     public function searchProspectos(Request $request)
     {
         $query = $request->input('query');
 
-        if (empty($query) || strlen($query) < 2) {
+        if (empty($query) || strlen($query) < 3) {
             return response()->json([]);
         }
 
-        // Buscamos en la tabla de visitas
-        // Nota: Si quieres que un representante vea prospectos de otros, quita el filtro de user_id
-        $prospectos = \App\Models\Visita::where('nombre_plantel', 'like', '%' . $query . '%')
-            ->where('user_id', \Illuminate\Support\Facades\Auth::id()) 
-            ->select([
-                'id', 
-                'nombre_plantel', 
-                'direccion_plantel', 
-                'director_plantel', 
-                'cliente_id', 
-                'es_primera_visita', 
-                'fecha', 
-                'persona_entrevistada',
-                'cargo'
-            ])
-            ->orderBy('fecha', 'desc')
-            ->get()
-            // Agrupamos por nombre para no mostrar la misma escuela 20 veces si tiene mucho historial
-            ->unique('nombre_plantel')
-            ->values();
+        $prospectos = Cliente::select('id', 'name', 'direccion', 'contacto', 'tipo')
+            ->where('name', 'like', "%{$query}%")
+            ->limit(10)
+            ->get();
 
         return response()->json($prospectos);
     }
 
-/**
- * Obtiene la lista de estados ordenados alfabéticamente.
- */
-        public function getEstados()
-        {
-            return response()->json(\App\Models\Estado::orderBy('estado', 'asc')->get());
+    /**
+     * Buscador de Libros.
+     * Devuelve el campo 'type' (digital/fisico) para validar licencias en el Front.
+     */
+    public function searchLibros(Request $request)
+    {
+        $query = $request->input('query');
+
+        if (empty($query) || strlen($query) < 3) {
+            return response()->json([]);
         }
+
+        try {
+            $libros = Libro::select('id', 'titulo', 'ISBN', 'editorial', 'type')
+                ->where('titulo', 'like', "%{$query}%")
+                ->where('estado', 'activo')
+                ->limit(15)
+                ->get();
+
+            return response()->json($libros);
+
+        } catch (\Exception $e) {
+            Log::error("Error en SearchController@searchLibros: " . $e->getMessage());
+            return response()->json(['message' => 'Error al buscar libros'], 500);
+        }
+    }
+
+    /**
+     * Obtener listado de Estados para formularios de direcciones.
+     */
+    public function getEstados()
+    {
+        try {
+            return response()->json(Estado::orderBy('estado', 'asc')->get());
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
+    }
 }

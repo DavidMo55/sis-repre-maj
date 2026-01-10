@@ -28,6 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/gastos', [GastoController::class, 'index']); 
     Route::post('/gastos/comprobante', [GastoController::class, 'storeComprobante']); 
     Route::get('/gastos/{id}', [GastoController::class, 'show']); 
+    Route::post('/gastos-nuevos', [GastoController::class, 'store']);
     
     Route::get('/search/clientes', [SearchController::class, 'searchClientes']);
     Route::get('/search/libros', [SearchController::class, 'searchLibros']);
@@ -38,5 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/visitas/{id}', [VisitaController::class, 'show']);
     Route::post('/visitas/seguimiento', [VisitaController::class, 'storeSeguimiento']); 
     Route::get('/search/prospectos', [SearchController::class, 'searchProspectos']);
+    Route::get('/clientes/{cliente_id}/historial', [VisitaController::class, 'historialPorCliente']);
+
 
 });
