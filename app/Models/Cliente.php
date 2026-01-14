@@ -11,29 +11,40 @@ class Cliente extends Model
 
     protected $table = 'clientes'; 
 
-    /**
-     * Campos habilitados para asignación masiva.
-     * Incluye los campos necesarios para la transición de Prospecto a Cliente.
-     */
     protected $fillable = [
-        'tipo',             // enum('CLIENTE', 'DISTRIBUIDOR', 'PROSPECTO')
-        'nivel_educativo',  // Nivel del plantel
-        'name',             // Nombre del plantel o cliente
-        'contacto',         // Nombre del Director / Coordinador
+        'user_id',
+        'tipo', 
+        'nivel_educativo', 
+        'name', 
+        'contacto', 
         'email', 
         'telefono', 
         'tel_oficina', 
         'direccion', 
-        'latitud',          // Coordenada GPS
-        'longitud',         // Coordenada GPS
+        'latitud',
+        'longitud',
         'estado_id', 
         'moneda_id', 
         'condiciones_pago', 
         'rfc', 
+        'regimen_fiscal', // Nuevo
+        'cp',             // Nuevo
+        'municipio',      // Nuevo
+        'colonia',        // Nuevo
+        'calle_num',      // Nuevo
         'fiscal', 
-        'user_id',          // Representante asignado
-        'status'            // activo/inactivo
+        'status'
     ];
+
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     /**
      * Un cliente tiene muchas visitas.
@@ -50,22 +61,6 @@ class Cliente extends Model
     public function estado()
     {
         return $this->belongsTo(Estado::class, 'estado_id');
-    }
-
-    /**
-     * Relación con el Usuario (Representante que lo registró).
-     */
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    /**
-     * Relación con los Pedidos.
-     */
-    public function pedidos()
-    {
-        return $this->hasMany(Pedido::class);
     }
 
     /**

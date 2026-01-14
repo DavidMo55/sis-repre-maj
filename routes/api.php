@@ -30,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/pedidos', [PedidoController::class, 'index']); 
     Route::post('/pedidos', [PedidoController::class, 'store']);
     Route::get('/pedidos/{id}', [PedidoController::class, 'show']); 
+    Route::get('/proxy/dipomex', [PedidoController::class, 'proxyDipomex']);
 
     // Gastos
     Route::get('/gastos', [GastoController::class, 'index']); 

@@ -1,82 +1,95 @@
 <template>
-    <div class="content-wrapper">
-        <div class="module-page">
-            <div class="module-header detail-header-flex">
+    <div class="content-wrapper p-2 md:p-6">
+        <div class="module-page max-w-7xl mx-auto">
+            <!-- Encabezado -->
+            <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
-                    <h1>Detalle del Pedido #{{ pedido && pedido.display_id ? pedido.display_id : id }}</h1>
-                    <p class="text-sm text-slate-500">Consulta la información logística, financiera y el desglose de materiales.</p>
+                    <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">
+                        Detalle del Pedido #{{ pedido && pedido.display_id ? pedido.display_id : id }}
+                    </h1>
+                    <p class="text-xs md:text-sm text-slate-500 font-medium">Consulta la información logística, financiera y el desglose de materiales.</p>
                 </div>
-                <button @click="router.push('/pedidos')" class="btn-secondary flex-row-centered gap-2 px-6">
-                    <i class="fas fa-arrow-left"></i> <span class="hidden sm:inline">Volver al Listado</span><span class="sm:hidden">Volver</span>
+                <button @click="router.push('/pedidos')" class="btn-secondary flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm">
+                    <i class="fas fa-arrow-left"></i> Volver al Listado
                 </button>
             </div>
             
-            <div v-if="loading" class="loading-state mt-12">
-                <i class="fas fa-spinner fa-spin text-3xl text-red-600 mb-3"></i>
-                <p class="font-medium text-slate-600">Cargando detalles del pedido...</p>
+            <!-- Loader -->
+            <div v-if="loading" class="loading-state py-20 text-center animate-pulse">
+                <i class="fas fa-circle-notch fa-spin text-4xl text-red-600 mb-4"></i>
+                <p class="text-slate-400 font-black uppercase tracking-widest text-[10px]">Sincronizando información...</p>
             </div>
 
-            <div v-else-if="error" class="error-message text-center py-8 bg-red-50 rounded-2xl border border-red-100 mt-6">
-                <i class="fas fa-exclamation-circle text-2xl text-red-500 mb-2"></i>
-                <p class="font-bold text-red-800 uppercase text-xs tracking-widest">Error de Sistema</p>
-                <p class="text-red-600">{{ error }}</p>
+            <!-- Error -->
+            <div v-else-if="error" class="error-message-container p-10 text-center bg-red-50 border-2 border-red-100 rounded-[2.5rem] shadow-sm animate-fade-in">
+                <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle fa-2xl"></i>
+                </div>
+                <h2 class="text-xl font-black text-red-800 uppercase tracking-tighter">Error de Sistema</h2>
+                <p class="text-red-600/70 text-sm mt-2 font-medium">{{ error }}</p>
+                <button @click="fetchPedidoDetail" class="btn-primary mt-6 px-10 py-3 rounded-2xl shadow-lg">Reintentar</button>
             </div>
 
-            <div v-else-if="pedido" class="mt-6 space-y-6">
+            <div v-else-if="pedido" class="space-y-8 animate-fade-in">
                 
+                <!-- 1. GRID DE INFORMACIÓN GENERAL -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     
-                    <div class="form-section shadow-premium border-t-4 border-t-red-700">
+                    <!-- Datos del Cliente -->
+                    <div class="info-card shadow-premium border-t-4 border-t-red-700">
                         <div class="section-title">
                             <i class="fas fa-user-tag text-red-700"></i> 1. Datos del Cliente
                         </div>
                         <div class="space-y-4">
                             <div>
-                                <label class="label-mini">Nombre Completo</label>
-                                <p class="text-sm font-black text-slate-800 uppercase">{{ pedido.cliente.name }}</p>
+                                <label class="label-mini">Plantel / Distribuidor</label>
+                                <p class="text-sm font-black text-slate-800 uppercase leading-tight">{{ pedido.cliente.name }}</p>
                             </div>
-                            <div>
-                                <label class="label-mini">Perfil de Cuenta</label>
-                                <span :class="{'bg-red-100 text-red-700': pedido.cliente.tipo === 'CLIENTE', 'bg-blue-100 text-blue-700': pedido.cliente.tipo === 'DISTRIBUIDOR'}" class="status-badge">
-                                    {{ pedido.cliente.tipo }}
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="label-mini">Contacto</label>
-                                    <p class="text-[11px] font-bold text-slate-600">{{ pedido.cliente.contacto }}</p>
+                                    <label class="label-mini">Perfil</label>
+                                    <span :class="pedido.cliente.tipo === 'CLIENTE' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700 border-blue-100'" class="status-badge">
+                                        {{ pedido.cliente.tipo }}
+                                    </span>
                                 </div>
                                 <div>
-                                    <label class="label-mini">Teléfono</label>
-                                    <p class="text-[11px] font-bold text-slate-600">{{ pedido.cliente.telefono }}</p>
+                                    <label class="label-mini">RFC</label>
+                                    <p class="text-[10px] font-mono font-black text-slate-500 uppercase">{{ pedido.cliente.rfc || 'N/A' }}</p>
                                 </div>
+                            </div>
+                            <div class="pt-3 border-t border-slate-50">
+                                <label class="label-mini">Contacto Directo</label>
+                                <p class="text-xs font-bold text-slate-600">{{ pedido.cliente.contacto }}</p>
+                                <p class="text-xs text-slate-400 mt-1"><i class="fas fa-phone-alt mr-1"></i> {{ pedido.cliente.telefono }}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-section shadow-premium border-t-4 border-t-slate-800">
+                    <!-- Logística -->
+                    <div class="info-card shadow-premium border-t-4 border-t-slate-800">
                         <div class="section-title">
-                            <i class="fas fa-truck-moving text-slate-800"></i> 2. Entrega y Logística
+                            <i class="fas fa-truck text-slate-800"></i> 2. Entrega y Logística
                         </div>
                         <div class="space-y-4">
                             <div>
-                                <label class="label-mini">Receptor Final</label>
+                                <label class="label-mini">Destinatario Final</label>
                                 <p class="text-sm font-black text-slate-800">{{ getReceiverName(pedido) }}</p>
                             </div>
                             <div>
                                 <label class="label-mini">Dirección de Envío</label>
-                                <p class="text-[11px] text-slate-600 leading-tight italic">
-                                    <i class="fas fa-map-marker-alt text-red-500 mr-1"></i> {{ pedido.delivery_address || 'Entrega en Sucursal / No especificada' }}
+                                <p class="text-[11px] text-slate-500 leading-relaxed italic">
+                                    <i class="fas fa-map-marker-alt text-red-500 mr-1"></i> 
+                                    {{ pedido.delivery_address || 'Entrega en Sucursal / Oficina' }}
                                 </p>
                             </div>
-                            <div class="flex flex-wrap gap-2">
-                                <div class="flex-1">
+                            <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <div>
                                     <label class="label-mini">Método</label>
-                                    <span class="text-[10px] font-black text-red-600 uppercase tracking-tighter">{{ getDeliveryOption(pedido.delivery_option) }}</span>
+                                    <span class="text-[10px] font-black text-red-700 uppercase">{{ getDeliveryOption(pedido.delivery_option) }}</span>
                                 </div>
-                                <div v-if="pedido.paqueteria_nombre">
-                                    <label class="label-mini">Paquetería</label>
-                                    <span class="text-[10px] font-bold text-slate-800 italic underline">{{ pedido.paqueteria_nombre }}</span>
+                                <div v-if="pedido.paqueteria_nombre" class="text-right">
+                                    <label class="label-mini">Empresa</label>
+                                    <span class="text-[10px] font-bold text-slate-800">{{ pedido.paqueteria_nombre }}</span>
                                 </div>
                             </div>
                             <div>
@@ -88,103 +101,151 @@
                         </div>
                     </div>
 
-                    <div class="form-section shadow-premium border-t-4 border-t-red-800 bg-slate-50/50">
+                    <!-- Finanzas y Estatus -->
+                    <div class="info-card shadow-premium border-t-4 border-t-red-800 bg-slate-50/30">
                         <div class="section-title">
-                            <i class="fas fa-info-circle text-red-800"></i> 3. Configuración y Costo
+                            <i class="fas fa-wallet text-red-800"></i> 3. Resumen Financiero
                         </div>
                         <div class="space-y-4">
-                            <div class="flex justify-between items-start">
+                            <div class="flex justify-between">
                                 <div>
                                     <label class="label-mini">Tipo de Operación</label>
                                     <p class="text-[10px] font-black uppercase" :class="pedido.tipo_pedido === 'promocion' ? 'text-purple-600' : 'text-slate-800'">
-                                        {{ pedido.tipo_pedido === 'promocion' ? 'PROMOCIÓN / REGALO' : 'VENTA NORMAL' }}
+                                        {{ pedido.tipo_pedido === 'promocion' ? 'PROMOCIÓN' : 'VENTA NORMAL' }}
                                     </p>
                                 </div>
                                 <div class="text-right">
                                     <label class="label-mini">Prioridad</label>
-                                    <span :class="getPriorityClass(pedido.prioridad)" class="status-badge">
+                                    <span :class="getPriorityClass(pedido.prioridad)" class="status-badge mt-1">
                                         {{ (pedido.prioridad || 'media').toUpperCase() }}
                                     </span>
                                 </div>
                             </div>
-                            <div>
-                                <label class="label-mini">Registro de Sistema</label>
-                                <p class="text-[11px] font-medium text-slate-500">{{ formatDate(pedido.created_at) }}</p>
-                            </div>
                             
                             <div class="pt-4 border-t border-slate-200">
-                                <div class="flex justify-between items-end">
-                                    <span class="text-[10px] font-black text-slate-400 uppercase">Total Unidades:</span>
-                                    <span class="text-sm font-black text-slate-700">{{ calculateTotalItems(pedido.detalles) }}</span>
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase">Volumen total:</span>
+                                    <span class="text-xs font-black text-slate-700">{{ calculateTotalItems(pedido.detalles) }} Libros</span>
                                 </div>
-                                <div class="mt-1 flex justify-between items-center">
-                                    <span class="text-xs font-black text-red-900 uppercase tracking-widest">Monto Total:</span>
-                                    <span class="text-2xl font-black text-red-800 tracking-tighter">{{ totalOrderCost }}</span>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-black text-red-900 uppercase">Inversión Final:</span>
+                                    <span class="text-2xl font-black text-red-700 tracking-tighter">{{ totalOrderCost }}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div v-if="pedido.comments" class="form-section shadow-premium animate-fade-in bg-yellow-50/30 border border-yellow-100">
-                    <h2 class="section-title !text-slate-700 !border-yellow-200"><i class="fas fa-comment-dots"></i> Observaciones</h2>
-                    <p class="text-sm text-slate-600 italic whitespace-pre-wrap leading-relaxed">{{ pedido.comments }}</p>
+                <!-- 2. APARTADO DE ARCHIVOS ADJUNTOS (DISEÑO INTEGRADO) -->
+                <div class="info-card shadow-premium border-l-8 border-l-slate-800">
+                    <div class="section-title !border-b-0 mb-6">
+                        <i class="fas fa-folder-open text-slate-800"></i> Expediente Digital y Documentos
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Factura del Pedido -->
+                        <div class="flex items-center justify-between p-4 rounded-2xl border-2 transition-all" 
+                             :class="pedido.factura_path ? 'border-red-50 bg-red-50/20' : 'border-slate-50 bg-slate-50/30 opacity-60'">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm">
+                                    <i class="fas fa-file-invoice text-xl" :class="pedido.factura_path ? 'text-red-600' : 'text-slate-300'"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Factura</p>
+                                    <p class="text-xs font-bold text-slate-700">{{ pedido.factura_path ? 'PDF Disponible' : 'No cargada' }}</p>
+                                </div>
+                            </div>
+                            <a v-if="pedido.factura_path" :href="pedido.factura_url" target="_blank" class="btn-icon-action bg-red-600">
+                                <i class="fas fa-download"></i>
+                            </a>
+                        </div>
+
+                        <!-- Guía de Envío -->
+                        <div class="flex items-center justify-between p-4 rounded-2xl border-2 transition-all" 
+                             :class="pedido.guia_envio_path ? 'border-blue-50 bg-blue-50/20' : 'border-slate-50 bg-slate-50/30 opacity-60'">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm">
+                                    <i class="fas fa-shipping-fast text-xl" :class="pedido.guia_envio_path ? 'text-blue-600' : 'text-slate-300'"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Guía</p>
+                                    <p class="text-xs font-bold text-slate-700">{{ pedido.guia_envio_path ? 'Rastreo Listo' : 'Pendiente' }}</p>
+                                </div>
+                            </div>
+                            <a v-if="pedido.guia_envio_path" :href="pedido.guia_url" target="_blank" class="btn-icon-action bg-blue-600">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
+                <br><br>
+                <!-- 3. DESGLOSE DE MATERIALES -->
                 <div class="mt-8">
                     <div class="section-title !border-none !mb-4">
                         <i class="fas fa-book text-red-800"></i> Libros Solicitados
                     </div>
                     
-                    <div class="table-responsive table-shadow-lg border rounded-2xl overflow-hidden bg-white">
-                        <table class="min-width-full">
-                            <thead class="bg-red-800 hidden md:table-header-group">
+                    <div class="table-responsive shadow-premium border border-slate-200 rounded-[2rem] overflow-hidden bg-white">
+                        <table class="w-full text-sm">
+                            <thead class="bg-red-800 text-white hidden md:table-header-group">
                                 <tr>
-                                    <th class="table-header-red">Material / Libro</th>
-                                    <th class="table-header-red">Configuración</th>
+                                    <th class="table-header-red text-left">Material / Libro</th>
+                                    <th class="table-header-red text-center">Formato</th>
                                     <th class="table-header-red text-center">Cant.</th>
                                     <th class="table-header-red text-right">Unitario</th>
                                     <th class="table-header-red text-right">Total</th>
-                                    <th class="table-header-red">ISBN</th>
+                                    <th class="table-header-red text-center">Adjunto</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 block md:table-row-group">
-                                <tr v-for="detalle in pedido.detalles" :key="detalle.id" 
-                                    class="block md:table-row p-4 md:p-0 hover:bg-slate-50 transition-colors relative">
-                                    
-                                    <td class="table-cell block md:table-cell font-black text-slate-800 text-sm md:text-[13px]">
-                                        <span class="md:hidden block text-[9px] uppercase text-slate-400 mb-1">Libro</span>
-                                        {{ detalle.libro ? detalle.libro.titulo : 'Libro no encontrado' }}
+                                <tr v-for="detalle in pedido.detalles" :key="detalle.id" class="hover:bg-slate-50 transition-colors block md:table-row p-4 md:p-0 relative">
+                                    <td class="px-6 py-5 block md:table-cell">
+                                        <p class="font-black text-slate-800 text-sm uppercase leading-tight">{{ detalle.libro?.titulo || 'Material no encontrado' }}</p>
+                                        <p class="text-[9px] font-mono text-slate-400 mt-1 uppercase">ISBN: {{ detalle.libro?.ISBN || 'N/A' }}</p>
                                     </td>
-                                    
-                                    <td class="table-cell block md:table-cell py-2 md:py-4">
-                                        <span class="md:hidden inline-block text-[9px] uppercase text-slate-400 mr-2">Formato:</span>
-                                        <span class="text-[10px] font-black text-slate-500 uppercase bg-slate-100 px-2 py-0.5 rounded">{{ detalle.tipo_licencia }}</span>
+                                    <td class="px-6 py-5 text-center block md:table-cell">
+                                        <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2">Formato:</span>
+                                        <span class="text-[10px] font-black text-slate-500 uppercase bg-slate-100 px-3 py-1 rounded-full border border-slate-200">{{ detalle.tipo_licencia }}</span>
                                     </td>
-                                    
-                                    <td class="table-cell block md:table-cell text-left md:text-center py-2 md:py-4">
-                                        <span class="md:hidden inline-block text-[9px] uppercase text-slate-400 mr-2">Cantidad:</span>
-                                        <span class="text-sm font-black text-red-700 bg-red-50 md:bg-transparent px-2 py-0.5 rounded md:p-0">{{ detalle.cantidad }}</span>
+                                    <td class="px-6 py-5 text-center block md:table-cell font-black text-red-700 text-base">
+                                        <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2">Cant:</span>
+                                        {{ detalle.cantidad }}
                                     </td>
-                                    
-                                    <td class="table-cell block md:table-cell text-left md:text-right text-xs text-slate-500 font-bold py-2 md:py-4">
-                                        <span class="md:hidden inline-block text-[9px] uppercase text-slate-400 mr-2">Precio Unitario:</span>
+                                    <td class="px-6 py-5 text-right block md:table-cell font-mono text-xs text-slate-500">
+                                        <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2">Precio:</span>
                                         {{ formatCurrency(detalle.precio_unitario) }}
                                     </td>
-                                    
-                                    <td class="table-cell block md:table-cell text-left md:text-right font-black text-red-800 text-base md:text-[14px] py-2 md:py-4">
-                                        <span class="md:hidden block text-[9px] uppercase text-slate-400 mb-1">Costo Total Línea</span>
+                                    <td class="px-6 py-5 text-right block md:table-cell font-black text-slate-800 text-[14px]">
+                                        <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2">Subtotal:</span>
                                         {{ formatCurrency(detalle.costo_total) }}
                                     </td>
-                                    
-                                    <td class="table-cell block md:table-cell text-[10px] font-mono text-slate-400 py-2 md:py-4">
-                                        <span class="md:hidden inline-block text-[9px] uppercase text-slate-400 mr-2">ISBN:</span>
-                                        {{ detalle.libro ? detalle.libro.ISBN : 'N/A' }}
+                                    <td class="px-6 py-5 text-center block md:table-cell">
+                                        <a v-if="detalle.archivo_path" :href="detalle.archivo_url" target="_blank" class="text-red-600 hover:text-red-800 transition-colors">
+                                            <i class="fas fa-file-pdf fa-lg"></i>
+                                        </a>
+                                        <span v-else class="text-slate-200 text-[10px] italic">--</span>
                                     </td>
                                 </tr>
                             </tbody>
+                            <tfoot class="bg-slate-50 border-t-2 border-slate-200 hidden md:table-footer-group">
+                                <tr>
+                                    <td colspan="4" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-widest text-slate-400">Total Acumulado:</td>
+                                    <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none">{{ totalOrderCost }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
+                </div>
+
+                <br><br>
+                <!-- Comentarios -->
+                <div v-if="pedido.comments" class="info-card border-none bg-amber-50/50 p-8 rounded-[2.5rem] border border-amber-100">
+                    <h3 class="text-[10px] font-black text-amber-600 uppercase mb-3 tracking-widest flex items-center gap-2">
+                        <i class="fas fa-comment-dots"></i> Observaciones Adicionales
+                    </h3>
+                    <p class="text-sm text-slate-700 italic leading-relaxed">{{ pedido.comments }}</p>
                 </div>
 
             </div>
@@ -193,7 +254,6 @@
 </template>
 
 <script setup>
-/* El script permanece igual, solo se añadieron clases de utilidad */
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../axios';
@@ -215,7 +275,7 @@ const fetchPedidoDetail = async () => {
         if (err.response && (err.response.status === 404 || err.response.status === 403)) {
              error.value = err.response.data.message;
         } else {
-             error.value = 'Ocurrió un error al cargar los detalles del pedido.';
+             error.value = 'No se pudieron cargar los detalles del pedido profesional.';
         }
     } finally {
         loading.value = false;
@@ -235,43 +295,43 @@ const formatCurrency = (value) => {
 
 const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString('es-ES', options);
+    return new Date(dateString).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
 const calculateTotalItems = (detalles) => detalles ? detalles.reduce((sum, item) => sum + item.cantidad, 0) : 0;
 
 const getStatusClass = (status) => {
+    const base = 'status-badge ';
     switch (status) {
-        case 'ENTREGADO': return 'bg-green-100 text-green-800 border border-green-200 uppercase';
-        case 'PENDIENTE': return 'bg-yellow-100 text-yellow-800 border border-yellow-200 uppercase';
-        case 'EN PROCESO': return 'bg-blue-100 text-blue-800 border border-blue-200 uppercase';
-        case 'CANCELADO': return 'bg-red-100 text-red-800 border border-red-200 uppercase';
-        default: return 'bg-slate-100 text-slate-800 uppercase';
+        case 'ENTREGADO': return base + 'bg-green-100 text-green-700 border border-green-200';
+        case 'PENDIENTE': return base + 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+        case 'EN PROCESO': return base + 'bg-blue-100 text-blue-700 border border-blue-200';
+        case 'CANCELADO': return base + 'bg-red-100 text-red-700 border border-red-200';
+        default: return base + 'bg-slate-100 text-slate-400';
     }
 };
 
 const getPriorityClass = (priority) => {
     if (!priority) return 'bg-slate-100 text-slate-600';
     switch (priority.toLowerCase()) {
-        case 'alta': return 'bg-red-600 text-white font-black px-3 shadow-sm uppercase';
-        case 'media': return 'bg-orange-100 text-orange-700 font-bold border border-orange-200 uppercase';
-        case 'baja': return 'bg-slate-100 text-slate-600 font-medium border border-slate-200 uppercase';
-        default: return 'bg-slate-50 text-slate-500 uppercase';
+        case 'alta': return 'bg-red-600 text-white font-black px-3 shadow-sm';
+        case 'media': return 'bg-orange-100 text-orange-700 font-bold border border-orange-200';
+        case 'baja': return 'bg-slate-100 text-slate-400 border border-slate-200';
+        default: return 'bg-slate-50 text-slate-300';
     }
 };
 
 const getReceiverName = (p) => {
-    if (p.receiver_type === 'nuevo') return `${p.receiver_nombre || 'Desconocido'} (Temporal)`; 
-    return p.cliente?.contacto || p.cliente?.name || 'Cliente'; 
+    if (p.receiver_type === 'nuevo') return `${p.receiver_nombre || 'No especificado'} (Temporal)`; 
+    return p.cliente?.contacto || p.cliente?.name || 'Titular de Cuenta'; 
 };
 
 const getDeliveryOption = (option) => {
     switch (option) {
-        case 'recoleccion': return 'RECOLECCIÓN ALMACÉN';
+        case 'recoleccion': return 'ALMACÉN';
         case 'paqueteria': return 'PAQUETERÍA';
         case 'none': return 'ESTÁNDAR';
-        default: return 'NO DEFINIDO';
+        default: return 'SUCURSAL';
     }
 };
 
@@ -279,22 +339,43 @@ onMounted(() => fetchPedidoDetail());
 </script>
 
 <style scoped>
-.form-section { background: white; padding: 24px; border-radius: 20px; border: 1px solid #f1f5f9; }
-.section-title { font-weight: 900; color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
-.label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-widest; }
-.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; display: inline-block; }
-.table-header-red { padding: 14px 16px; text-align: left; font-size: 0.7rem; font-weight: 900; color: white; background-color: #a93339; text-transform: uppercase; letter-spacing: 1px; }
-.table-cell { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; }
-.shadow-premium { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.04); }
+.info-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f1f5f9; }
+.section-title { font-weight: 900; color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+.label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-[0.1em]; }
+.status-badge { padding: 4px 14px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; text-transform: uppercase; }
 
-/* Responsividad extra */
-@media (max-width: 640px) {
-    .content-wrapper { padding: 12px !important; }
-    .form-section { padding: 20px 15px !important; }
-    .table-cell { padding: 10px 15px !important; }
-    .detail-header-flex { flex-direction: column; align-items: flex-start; gap: 1rem; }
+.shadow-premium { box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05); }
+
+.table-header-red {
+    padding: 18px 24px;
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    background-color: #a93339;
+    color: white;
 }
 
-.animate-fade-in { animation: fadeIn 0.3s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+.btn-icon-action {
+    width: 34px;
+    height: 34px;
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.btn-icon-action:hover {
+    transform: scale(1.1);
+    opacity: 0.9;
+}
+
+.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 640px) {
+    .info-card { padding: 20px; }
+}
 </style>

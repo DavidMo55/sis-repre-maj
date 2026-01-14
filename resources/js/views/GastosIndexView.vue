@@ -109,15 +109,8 @@
                                     {{ gasto.comprobantes.length ? 'COMPLETADO' : 'PENDIENTE' }}
                                 </span>
                             </td>
-                            <td class="table-cell-action">
-                                <button 
-                                    @click="openUploadModal(gasto)" 
-                                    class="btn-action-link"
-                                    :class="gasto.comprobantes.length ? 'text-teal-600' : 'text-red-700'"
-                                >
-                                    <i class="fas fa-file-upload"></i> 
-                                    {{ gasto.comprobantes.length ? 'Subir Más' : 'Subir Comprobante' }}
-                                </button>
+                           <td class="table-cell-action">
+                                
                                 
                                 <button @click="viewDetails(gasto)" class="text-red-link font-bold ml-4">
                                     <i class="fas fa-eye"></i> Ver Detalle

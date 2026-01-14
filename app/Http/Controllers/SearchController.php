@@ -16,36 +16,42 @@ class SearchController extends Controller
      * Filtra estrictamente por tipos autorizados para venta y estatus activo.
      */
     public function searchClientes(Request $request)
-    {
-        $query = $request->input('query');
+{
+    $query = $request->input('query');
 
-        if (empty($query) || strlen($query) < 3) {
-            return response()->json([]);
-        }
-
-        try {
-            $clientes = Cliente::select(
-                    'id', 
-                    'name', 
-                    'tipo', 
-                    'direccion', 
-                    'contacto', 
-                    'telefono', 
-                    'email'
-                )
-                ->where('name', 'like', "%{$query}%")
-                ->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR']) // Excluye PROSPECTOS para pedidos de venta
-                ->where('status', 'activo')
-                ->limit(10)
-                ->get();
-
-            return response()->json($clientes);
-
-        } catch (\Exception $e) {
-            Log::error("Error en SearchController@searchClientes: " . $e->getMessage());
-            return response()->json(['message' => 'Error al buscar clientes'], 500);
-        }
+    if (empty($query) || strlen($query) < 3) {
+        return response()->json([]);
     }
+
+    try {
+        $clientes = Cliente::select(
+                'id', 
+                'name', 
+                'tipo', 
+                'direccion', 
+                'contacto', 
+                'telefono', 
+                'email',
+                'rfc',            // <--- AGREGADO
+                'regimen_fiscal', // <--- AGREGADO
+                'cp',             // <--- AGREGADO
+                'municipio',      // <--- AGREGADO
+                'colonia',        // <--- AGREGADO
+                'calle_num'       // <--- AGREGADO
+            )
+            ->where('name', 'like', "%{$query}%")
+            ->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR'])
+            ->where('status', 'activo')
+            ->limit(10)
+            ->get();
+
+        return response()->json($clientes);
+
+    } catch (\Exception $e) {
+        Log::error("Error en SearchController@searchClientes: " . $e->getMessage());
+        return response()->json(['message' => 'Error al buscar clientes'], 500);
+    }
+}
 
     /**
      * Buscador de Prospectos para el módulo de Visitas.

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute; 
+use Illuminate\Support\Facades\Storage;
 
 class Pedido extends Model
 {
@@ -13,19 +14,18 @@ class Pedido extends Model
     protected $table = 'pedidos'; 
 
     protected $fillable = [
+        'numero_referencia',
         'user_id',
         'cliente_id',
+        'tipo_pedido',
         'prioridad',
-        'receiver_type',
-        'receiver_nombre',
-        'receiver_telefono',
-        'receiver_correo',
-        'delivery_address',
-        'delivery_option',
+        'receptor_id',      // Enlace a pedido_receptores
+        'receiver_type',    // 'cliente' o 'nuevo'
+        'delivery_option',  // 'recoleccion', 'paqueteria', 'none'
         'paqueteria_nombre',
+        'delivery_address',
+        'comments',
         'status',
-        'comments', 
-        'numero_referencia', 
     ];
     
     protected $appends = ['display_id', 'total_unidades', 'total_costo']; 
@@ -59,6 +59,11 @@ class Pedido extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
+    }
+
+    public function receptor()
+    {
+        return $this->belongsTo(PedidoReceptor::class, 'receptor_id');
     }
 
     public function representative()

@@ -7,9 +7,9 @@
     --accent: #ef4036;
 
     /* 2. Colores de Contraste (Variables originales del usuario) */
-    --textcontrast: #ffdd00;
-    --bgcontrast: #ffdd00;
-    --primarycontrast: #ffdd00;
+    --textcontrast: #daeba7;
+    --bgcontrast: #c9e66d;
+    --primarycontrast: #e2f499;
     --secondarycontrast: #ff8f8f;
     --accentcontrast: #ff8f8f;
 
@@ -69,7 +69,7 @@
     --red-50: var(--primary5);
     --red-100: var(--primary10);
     --red-700: var(--primary);
-    --text-light: #fcfac3;
+    --text-light: #d0b3b3;
     --gray-light: var(--bg);
     --green-100: #dcfce7;
     --green-800: #166534;

@@ -1,144 +1,133 @@
 <template>
-    <div class="content-wrapper">
-        <div class="module-page">
-            <div class="module-header detail-header-flex">
+    <div class="content-wrapper p-2 md:p-6">
+        <div class="module-page max-w-7xl mx-auto">
+            <!-- Encabezado -->
+            <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
-                    <h1>Detalle de Gasto</h1>
-                    <p>Información detallada del paquete y documentos probatorios adjuntos.</p>
+                    <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Detalle de Paquete de Gastos</h1>
+                    <p class="text-xs md:text-sm text-slate-500 font-medium">Información resumida y desglose de conceptos con comprobantes.</p>
                 </div>
-                <button @click="router.push('/gastos')" class="btn-secondary flex-row-centered gap-2">
-                    <i class="fas fa-arrow-left"></i> Volver al Listado
-                </button>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button @click="router.push('/gastos')" class="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm">
+                        <i class="fas fa-arrow-left"></i> Volver al Listado
+                    </button>
+                </div>
             </div>
 
-            <div v-if="loading" class="loading-state py-12 text-center">
-                <i class="fas fa-spinner fa-spin text-3xl text-red-600 mb-3"></i>
-                <p class="text-slate-500 font-medium">Recuperando información ...</p>
+            <!-- Estado de Carga -->
+            <div v-if="loading" class="loading-state py-20 text-center animate-pulse">
+                <i class="fas fa-circle-notch fa-spin text-4xl text-red-600 mb-4"></i>
+                <p class="text-slate-400 font-black uppercase tracking-widest text-[10px]">Sincronizando información...</p>
             </div>
 
-            <div v-else-if="error" class="error-message-container mt-6 p-8 text-center bg-red-50 border border-red-200 rounded-xl">
-                <i class="fas fa-exclamation-circle text-4xl text-red-500 mb-4"></i>
-                <h2 class="text-xl font-bold text-red-800">No se pudo cargar el detalle</h2>
-                <p class="text-red-600 mt-2">{{ error }}</p>
-                <button @click="fetchGastoDetail" class="btn-primary mt-6">Reintentar</button>
+            <!-- Error -->
+            <div v-else-if="error" class="error-message-container p-10 text-center bg-red-50 border-2 border-red-100 rounded-[2.5rem] shadow-sm animate-fade-in">
+                <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle fa-2xl"></i>
+                </div>
+                <h2 class="text-xl font-black text-red-800 uppercase tracking-tighter">Error de Conexión</h2>
+                <p class="text-red-600/70 text-sm mt-2 font-medium">{{ error }}</p>
+                <button @click="fetchGastoDetail" class="btn-primary mt-6 px-10 py-3 rounded-2xl shadow-lg">Intentar de nuevo</button>
             </div>
 
-            <div v-else-if="gasto" class="detail-container mt-6 animate-fade-in space-y-8">
+            <!-- Contenido del Gasto -->
+            <div v-else-if="gasto" class="space-y-8 animate-fade-in">
                 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Resumen del Gasto -->
-                    <div class="lg:col-span-1">
-                        <div class="info-card border-brand shadow-premium h-full">
-                            <h2 class="card-title text-red-800">
-                                <i class="fas fa-file-invoice-dollar"></i> Resumen
-                            </h2>
-                            <div class="space-y-4 mt-6">
-                                <div>
-                                    <span class="label-xs">ID Registro:</span>
-                                    <span class="text-sm font-bold text-slate-700">#{{ gasto.id }}</span>
-                                </div>
-                                <div>
-                                    <span class="label-xs">Fecha:</span>
-                                    <span class="text-sm font-bold text-slate-700">{{ formatDate(gasto.fecha) }}</span>
-                                </div>
-                                <div>
-                                    <span class="label-xs">Región / Estado:</span>
-                                    <span class="text-sm font-bold text-slate-700 uppercase">{{ gasto.estado_nombre || 'No especificado' }}</span>
-                                </div>
-                                <div class="pt-4 border-t border-slate-50">
-                                    <span class="label-xs text-red-700">Monto Total:</span>
-                                    <span class="text-3xl font-black text-red-700">{{ formatCurrency(gasto.monto) }}</span>
-                                </div>
-                            </div>
-                            <button @click="showUploadModal = true" class="btn-primary w-full mt-8 shadow-lg">
-                                <i class="fas fa-plus"></i> Añadir Comprobante
-                            </button>
-                        </div>
+                <!-- 1. RESUMEN EJECUTIVO (TOP BAR) -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="summary-stat shadow-premium">
+                        <span class="label-xs">ID Registro</span>
+                        <p class="stat-value">#{{ gasto.id }}</p>
                     </div>
-
-                    <!-- Documentos Adjuntos -->
-                    <div class="lg:col-span-2">
-                        <div class="info-card bg-white shadow-premium h-full">
-                            <h2 class="card-title text-slate-800">
-                                <i class="fas fa-folder-open text-red-700"></i> Documentos Adjuntos ({{ gasto.comprobantes?.length || 0 }})
-                            </h2>
-
-                            <div v-if="!gasto.comprobantes || gasto.comprobantes.length === 0" class="empty-docs py-12 text-center text-slate-400">
-                                <i class="fas fa-file-excel text-5xl mb-4 opacity-20"></i>
-                                <p class="italic">No hay documentos adjuntos todavía.</p>
-                            </div>
-
-                            <div v-else class="comprobantes-grid mt-6">
-                                <div 
-                                    v-for="file in gasto.comprobantes" 
-                                    :key="file.id" 
-                                    class="file-card group"
-                                >
-                                    <div class="file-preview-area">
-                                        <!-- Previsualización Real -->
-                                        <img 
-                                            v-if="isImage(file.extension)" 
-                                            :src="file.public_url" 
-                                            class="preview-img"
-                                            @error="handleImageError"
-                                        />
-                                        <div v-else class="file-icon-placeholder">
-                                            <i :class="getFileIcon(file.extension)" class="text-4xl"></i>
-                                            <span class="mt-2 text-[10px] font-black uppercase text-slate-400">{{ file.extension }}</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="file-info p-3 bg-white">
-                                        <p class="file-name truncate text-[10px] font-bold text-slate-500 uppercase">{{ file.name }}</p>
-                                        <div class="file-actions mt-2">
-                                            <a :href="file.public_url" target="_blank" class="btn-file-view">
-                                                <i class="fas fa-external-link-alt mr-1"></i> Ver pantalla completa
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="summary-stat shadow-premium">
+                        <span class="label-xs">Fecha del Viaje</span>
+                        <p class="stat-value">{{ formatDate(gasto.fecha) }}</p>
+                    </div>
+                    <div class="summary-stat shadow-premium">
+                        <span class="label-xs">Región / Estado</span>
+                        <p class="stat-value uppercase truncate">{{ gasto.estado_nombre || 'No definido' }}</p>
+                    </div>
+                    <div class="summary-stat shadow-premium bg-slate-900 border-none">
+                        <span class="label-xs text-slate-400">Inversión Total</span>
+                        <p class="stat-value text-red-400">{{ formatCurrency(gasto.monto) }}</p>
                     </div>
                 </div>
 
-                <!-- DESGLOSE DE SUB-GASTOS (PAQUETE) -->
-                <div v-if="gasto.detalles && gasto.detalles.length" class="info-card w-full shadow-premium animate-fade-in">
-                    <h2 class="card-title text-slate-800 border-0 mb-6">
-                        <i class="fas fa-list-ul text-red-700"></i> Desglose Detallado de Conceptos
-                    </h2>
-                    
-                    <div class="overflow-hidden border border-slate-100 rounded-[2rem] bg-white shadow-sm">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-50">
+                <!-- 2. TABLA UNIFICADA: CONCEPTOS + COMPROBANTES -->
+                <div class="form-section shadow-premium !p-0 overflow-hidden border border-slate-200 rounded-[2rem] bg-white">
+                    <div class="p-6 md:p-8 border-b border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center">
+                                <i class="fas fa-receipt"></i>
+                            </div>
+                            <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Desglose de Conceptos y Archivos</h2>
+                        </div>
+                        <button @click="showUploadModal = true" class="btn-primary-action !py-2.5 !px-6 !text-[10px] shadow-md">
+                            <i class="fas fa-cloud-upload-alt mr-1"></i> Gestionar Comprobantes
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse">
+                            <thead class="bg-slate-50 text-slate-400 uppercase text-[9px] font-black tracking-[0.2em] border-b border-slate-100">
                                 <tr>
-                                    <th class="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">#</th>
-                                    <th class="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Concepto / Rubro</th>
-                                    <th class="px-6 py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Estatus Fiscal</th>
-                                    <th class="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Monto</th>
+                                    <th class="px-8 py-5 text-left w-16">#</th>
+                                    <th class="px-6 py-5 text-left">Concepto / Rubro</th>
+                                    <th class="px-6 py-5 text-center">Documento Probatorio</th>
+                                    <th class="px-6 py-5 text-center">Estatus Fiscal</th>
+                                    <th class="px-6 py-5 text-right">Monto</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <tr v-for="(sub, idx) in gasto.detalles" :key="idx" class="hover:bg-red-50/30 transition-colors">
-                                    <td class="px-6 py-4 font-black text-slate-300">{{ idx + 1 }}</td>
-                                    <td class="px-6 py-4 font-bold text-slate-700">{{ sub.concepto }}</td>
-                                    <td class="px-6 py-4 text-center">
-                                        <span v-if="sub.es_facturado" class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[9px] font-black uppercase border border-green-200">Facturado</span>
-                                        <span v-else class="bg-slate-100 text-slate-400 px-3 py-1 rounded-full text-[9px] font-black uppercase border border-slate-200">Sin Factura</span>
+                            <tbody class="divide-y divide-slate-50">
+                                <tr v-for="(sub, idx) in gasto.detalles" :key="idx" class="hover:bg-slate-50/50 transition-colors group">
+                                    <td class="px-8 py-6 font-black text-slate-300">{{ idx + 1 }}</td>
+                                    <td class="px-6 py-6">
+                                        <p class="font-black text-slate-800 text-sm uppercase leading-tight">{{ sub.concepto }}</p>
+                                        <p v-if="sub.descripcion" class="text-[10px] text-slate-400 mt-1 italic">{{ sub.descripcion }}</p>
                                     </td>
-                                    <td class="px-6 py-4 text-right font-black text-slate-800">{{ formatCurrency(sub.monto) }}</td>
+                                    <td class="px-6 py-6 text-center">
+                                        <!-- Enlace directo al comprobante si existe -->
+                                        <div v-if="gasto.comprobantes && gasto.comprobantes[idx]" class="inline-flex items-center">
+                                            <a :href="gasto.comprobantes[idx].public_url" 
+                                               target="_blank" 
+                                               class="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-slate-600 hover:border-red-600 hover:text-red-700 hover:shadow-md transition-all">
+                                                <i class="fas" :class="getFileIcon(gasto.comprobantes[idx].extension)"></i>
+                                                Ver Archivo
+                                            </a>
+                                        </div>
+                                        <!-- Botón de acción para subir si no existe -->
+                                        <button v-else 
+                                            @click="showUploadModal = true"
+                                            class="flex items-center gap-2 bg-red-50 border border-red-100 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-red-600 hover:bg-red-600 hover:text-white transition-all mx-auto shadow-sm"
+                                        >
+                                            <i class="fas fa-plus-circle"></i>
+                                            Subir Comprobante
+                                        </button>
+                                    </td>
+                                    <td class="px-6 py-6 text-center">
+                                        <span v-if="sub.es_facturado" class="status-badge bg-green-100 text-green-700 border border-green-200">Facturado</span>
+                                        <span v-else class="status-badge bg-slate-100 text-slate-400 border border-slate-200">Sin Factura</span>
+                                    </td>
+                                    <td class="px-6 py-6 text-right font-black text-red-700 text-base">
+                                        {{ formatCurrency(sub.monto) }}
+                                    </td>
                                 </tr>
                             </tbody>
                             <tfoot class="bg-slate-900 text-white">
                                 <tr>
-                                    <td colspan="3" class="px-6 py-5 text-right font-black uppercase text-[11px] tracking-widest">Total Acumulado:</td>
-                                    <td class="px-6 py-5 text-right font-black text-xl text-red-400">{{ formatCurrency(gasto.monto) }}</td>
+                                    <td colspan="4" class="px-8 py-6 text-right font-black uppercase text-[11px] tracking-[0.2em] text-slate-400">Total Acumulado del Paquete:</td>
+                                    <td class="px-6 py-6 text-right font-black text-2xl text-red-400">{{ formatCurrency(gasto.monto) }}</td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
                 </div>
 
+                <!-- Comentarios Generales -->
+                <div v-if="gasto.comments" class="bg-amber-50 p-8 rounded-[2.5rem] border border-amber-100 shadow-sm animate-fade-in">
+                    <h3 class="text-[10px] font-black text-amber-600 uppercase mb-3 tracking-widest"><i class="fas fa-comment-alt mr-2"></i> Notas de Almacén / Oficina</h3>
+                    <p class="text-slate-700 text-sm font-medium italic leading-relaxed">"{{ gasto.comments }}"</p>
+                </div>
             </div>
         </div>
 
@@ -173,21 +162,16 @@ const fetchGastoDetail = async () => {
         const response = await axios.get(`/gastos/${gastoId}`);
         gasto.value = response.data;
     } catch (err) {
-        error.value = 'No se pudo cargar el detalle del gasto. Verifique su conexión.';
+        error.value = 'No se pudo recuperar la información del paquete. Verifique su conexión.';
         console.error(err);
     } finally {
         loading.value = false;
     }
 };
 
-const handleImageError = (e) => {
-    e.target.style.display = 'none';
-    e.target.parentElement.innerHTML = '<i class="fas fa-image text-gray-300 text-4xl"></i>';
-};
-
 const formatDate = (dateString) => {
     if (!dateString) return '---';
-    return new Date(dateString).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+    return new Date(dateString).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
 const formatCurrency = (value) => {
@@ -195,12 +179,10 @@ const formatCurrency = (value) => {
     return Number(value).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 };
 
-const isImage = (ext) => ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext?.toLowerCase());
-
 const getFileIcon = (ext) => {
     const e = ext?.toLowerCase();
-    if (e === 'pdf') return 'fas fa-file-pdf text-red-600';
-    return 'fas fa-file-alt text-gray-400';
+    if (e === 'pdf') return 'fa-file-pdf text-red-500';
+    return 'fa-file-image text-blue-500';
 };
 
 onMounted(fetchGastoDetail);
@@ -208,22 +190,52 @@ onMounted(fetchGastoDetail);
 
 <style scoped>
 .shadow-premium { box-shadow: 0 15px 35px -10px rgba(0,0,0,0.05); }
-.info-card { padding: 28px; background: white; border-radius: 32px; border: 1px solid #f1f5f9; }
-.info-card.border-brand { border-top: 6px solid #a93339; }
+.form-section { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f1f5f9; }
 
-.card-title { font-size: 1.1rem; font-weight: 900; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+.summary-stat {
+    background: white;
+    padding: 20px 25px;
+    border-radius: 24px;
+    border: 1px solid #f1f5f9;
+}
 
-.label-xs { font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: 900; display: block; margin-bottom: 4px; letter-spacing: 0.05em; }
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #1e293b;
+    margin-top: 4px;
+    letter-spacing: -0.025em;
+}
 
-.comprobantes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
-.file-card { border: 1px solid #f1f5f9; border-radius: 20px; overflow: hidden; transition: transform 0.3s; }
-.file-card:hover { transform: translateY(-5px); border-color: #fee2e2; }
+.label-xs {
+    font-size: 0.6rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 900;
+    display: block;
+    letter-spacing: 0.1em;
+}
 
-.file-preview-area { height: 140px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid #f1f5f9; }
-.preview-img { width: 100%; height: 100%; object-fit: cover; }
+.status-badge {
+    @apply px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest inline-flex items-center;
+}
 
-.btn-file-view { display: block; text-align: center; padding: 10px; background: #f8fafc; border-radius: 12px; font-size: 0.7rem; font-weight: 800; color: #64748b; text-decoration: none; text-transform: uppercase; border: 1px solid #e2e8f0; transition: all 0.2s; }
-.btn-file-view:hover { background: #a93339; color: white; border-color: #a93339; }
+.btn-primary-action {
+    background: linear-gradient(135deg, #a93339 0%, #881337 100%);
+    color: white;
+    border-radius: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.btn-primary-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(169, 51, 57, 0.2);
+}
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
