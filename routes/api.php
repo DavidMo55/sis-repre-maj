@@ -9,31 +9,43 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\GastoController;
 use App\Http\Controllers\VisitaController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 
+// Rutas Públicas
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/request-ticket', [TicketController::class, 'storeRecoveryTicket']);
 
+// Rutas Protegidas (Requieren Token)
 Route::middleware('auth:sanctum')->group(function () {
     
+    // Información de sesión básica
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
 
+    // Dashboard
     Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
     
+    // Pedidos
     Route::get('/pedidos', [PedidoController::class, 'index']); 
     Route::post('/pedidos', [PedidoController::class, 'store']);
     Route::get('/pedidos/{id}', [PedidoController::class, 'show']); 
 
+    // Gastos
     Route::get('/gastos', [GastoController::class, 'index']); 
     Route::post('/gastos/comprobante', [GastoController::class, 'storeComprobante']); 
     Route::get('/gastos/{id}', [GastoController::class, 'show']); 
     Route::post('/gastos-nuevos', [GastoController::class, 'store']);
     
+    
+    // Buscadores y Datos Maestros Globales
     Route::get('/search/clientes', [SearchController::class, 'searchClientes']);
     Route::get('/search/libros', [SearchController::class, 'searchLibros']);
+    Route::get('/search/niveles', [SearchController::class, 'getNiveles']); 
+    Route::get('/search/series', [SearchController::class, 'getSeries']);  
     Route::get('/estados', [SearchController::class, 'getEstados']);
 
+    // Visitas y Prospectos
     Route::get('/visitas', [VisitaController::class, 'index']);
     Route::post('/visitas/primera', [VisitaController::class, 'storePrimeraVisita']);
     Route::get('/visitas/{id}', [VisitaController::class, 'show']);
@@ -41,5 +53,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/search/prospectos', [SearchController::class, 'searchProspectos']);
     Route::get('/clientes/{cliente_id}/historial', [VisitaController::class, 'historialPorCliente']);
 
+    // --- SECCIÓN DE PERFIL ---
+    Route::prefix('profile')->group(function () {
+        Route::get('/myprofile', [ProfileController::class, 'show']); // Responde a /api/profile
+        Route::get('/estados', [SearchController::class, 'getEstados']); // <--- ESTA FALTABA AQUÍ
+        Route::put('/', [ProfileController::class, 'update']); 
+        Route::put('/tools', [ProfileController::class, 'updateTools']); 
+        Route::put('/password', [ProfileController::class, 'updatePassword']); 
+        
+        // Gestión de Delegados
+        Route::post('/delegates', [ProfileController::class, 'addDelegate']);
+        Route::delete('/delegates/{id}', [ProfileController::class, 'removeDelegate']);
+    });
 
 });

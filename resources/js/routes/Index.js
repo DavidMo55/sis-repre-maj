@@ -14,6 +14,9 @@ import DetallesPrimerVisita from '@/views/PrimeraVisitaDetailView.vue'
 import SeguimientoVisita from '../views/SeguimientoVisitaView.vue';
 import SeguimientoID from '../views/VisitaIDView.vue';
 import GastosCreateView from '../views/GastosCreateView.vue';
+import CapacitacionesIndexView from '../views/CapacitacionesIndexView.vue';
+import ProfileView from '../views/profile/ProfileView.vue';
+
 const authGuard = (to, from, next) => {
     const token = localStorage.getItem('auth_token');
 
@@ -97,6 +100,16 @@ const routes = [
                 path: 'gastos-nuevo',
                 name: 'GastosCreate',
                 component: GastosCreateView
+            },
+            {
+                path: 'capacitaciones', 
+                name: 'Capacitaciones',
+                component: CapacitacionesIndexView
+            },
+            {
+                path: 'profile',
+                name: 'Profile',
+                component: ProfileView
             }
 
         ]

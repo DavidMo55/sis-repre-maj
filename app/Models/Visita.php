@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
+// Importaciones necesarias para las relaciones
+use App\Models\User;
+use App\Models\Cliente;
+use App\Models\Estado;
+
 class Visita extends Model
 {
     use HasFactory;
@@ -13,12 +18,14 @@ class Visita extends Model
     protected $table = 'visitas';
 
     /**
-     * Campos habilitados para asignación masiva.
-     * Se eliminaron los campos de texto del plantel ya que ahora residen en 'clientes'.
+     * Atributos habilitados para asignación masiva.
+     * * El 'user_id' siempre almacenará el ID del Representante (dueño de la cuenta),
+     * permitiendo que tanto él como sus delegados compartan la misma información.
      */
     protected $fillable = [
         'user_id',
         'cliente_id', 
+        'estado_id', // Añadido para vinculación geográfica directa
         'fecha',
         'persona_entrevistada',
         'cargo',
@@ -32,6 +39,9 @@ class Visita extends Model
         'resultado_visita',
     ];
 
+    /**
+     * Conversión de tipos automática.
+     */
     protected $casts = [
         'fecha' => 'date',
         'proxima_visita_estimada' => 'date',
@@ -41,24 +51,24 @@ class Visita extends Model
 
     /**
      * SCOPE: Búsqueda avanzada.
-     * Busca el término en el nombre del cliente (tabla relacionada) o en el entrevistado.
+     * Permite al representante o delegado buscar visitas por nombre de plantel o contacto.
      */
     public function scopeSearch(Builder $query, $term)
     {
         if ($term) {
             $query->where(function($q) use ($term) {
-                // Busca en la tabla de clientes a través de la relación
+                // Buscamos en el nombre del cliente (plantel) vinculado
                 $q->whereHas('cliente', function($sub) use ($term) {
                     $sub->where('name', 'like', "%{$term}%");
                 })
-                // O busca en la persona entrevistada registrada en la visita
+                // O buscamos en el contacto directo registrado en la visita
                 ->orWhere('persona_entrevistada', 'like', "%{$term}%");
             });
         }
     }
 
     /**
-     * SCOPE: Filtrar por rango de fechas.
+     * SCOPE: Filtrado por periodo de tiempo.
      */
     public function scopeByDateRange(Builder $query, $from, $to)
     {
@@ -71,7 +81,7 @@ class Visita extends Model
     }
 
     /**
-     * SCOPE: Filtrar por resultado.
+     * SCOPE: Filtrado por resultado.
      */
     public function scopeByResultado(Builder $query, $resultado)
     {
@@ -81,8 +91,7 @@ class Visita extends Model
     }
 
     /**
-     * Relación con el Cliente.
-     * Vincula la visita con la información centralizada del plantel/persona.
+     * RELACIÓN: Vínculo con el Cliente (Plantel).
      */
     public function cliente()
     {
@@ -90,10 +99,18 @@ class Visita extends Model
     }
 
     /**
-     * Relación con el Representante (Usuario).
+     * RELACIÓN: Vínculo con el Representante / Dueño (User).
      */
     public function representative()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * RELACIÓN: Vínculo con el Estado geográfico.
+     */
+    public function estado()
+    {
+        return $this->belongsTo(Estado::class, 'estado_id');
     }
 }

@@ -1,10 +1,13 @@
 <template>
-  <div>
+  <!-- El navegador se oculta completamente si estamos en la página de perfil -->
+  <div v-if="!isProfilePage">
+    <!-- Botón Hamburguesa (Solo Móvil) -->
     <button v-if="isMobile" class="hamburger-btn" @click="toggleSidenav">
       <MenuIcon v-if="!open" :size="24" />
       <XIcon v-else :size="24" />
     </button>
 
+    <!-- Overlay para cerrar en móvil al hacer clic fuera -->
     <div v-if="open && isMobile" class="sidenav-overlay" @click="toggleSidenav"></div>
 
     <aside :class="['sidenav', { 'sidenav-collapsed': collapsed, 'sidenav-open': open }]">
@@ -14,6 +17,7 @@
         </div>
         <BookOpenIcon v-else class="logo-icon-mini" :size="28" />
 
+        <!-- Botón de Colapso (Solo Desktop) -->
         <button v-if="!isMobile" class="collapse-btn" @click="toggleSidenav">
           <ChevronLeftIcon :class="{ 'rotated': collapsed }" :size="16" />
         </button>
@@ -33,7 +37,18 @@
         </li>
       </ul>
 
+      <!-- Sección de Perfil y Logout en el Footer -->
       <div class="sidenav-footer">
+        <router-link 
+          to="/profile" 
+          class="nav-link profile-link mb-2" 
+          active-class="active"
+          @click="isMobile ? open = false : null"
+        >
+          <UserIcon class="nav-icon" :size="22" />
+          <span class="nav-text">Mi Perfil</span>
+        </router-link>
+
         <button 
           @click="handleLogout" 
           class="logout-button"
@@ -50,25 +65,31 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import axios from '../axios'
 import { 
   LayoutDashboardIcon, ShoppingCartIcon, UsersIcon, 
   GraduationCapIcon, ReceiptIcon, ChevronLeftIcon,
-  LogOutIcon, MenuIcon, XIcon, BookOpenIcon, Loader2Icon 
+  LogOutIcon, MenuIcon, XIcon, BookOpenIcon, Loader2Icon,
+  UserIcon 
 } from 'lucide-vue-next'
 
 const router = useRouter()
+const route = useRoute()
 const isLoggingOut = ref(false)
 const collapsed = ref(false)
 const open = ref(false)
 const windowWidth = ref(window.innerWidth)
 
+// Lógica para ocultar el nav en la página de perfil
+// Se asegura de detectar la ruta actual de forma reactiva
+const isProfilePage = computed(() => route.path === '/perfil')
+
 const menuItems = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboardIcon },
   { label: 'Pedidos', to: '/pedidos', icon: ShoppingCartIcon },
   { label: 'Visitas', to: '/visitas', icon: UsersIcon },
-  { label: 'Capacitaciones', to: '/capacitaciones', icon: GraduationCapIcon },
+  { label: 'Capacitaciones', to: '/dashboard', icon: GraduationCapIcon },
   { label: 'Gastos', to: '/gastos', icon: ReceiptIcon },
 ]
 
@@ -181,6 +202,10 @@ onUnmounted(() => window.removeEventListener('resize', updateWidth))
 .sidenav-collapsed .nav-text { display: none; }
 
 .sidenav-footer { padding: 20px; border-top: 1px solid rgba(0,0,0,0.05); }
+
+.profile-link {
+    margin: 0 0 10px 0;
+}
 
 .logout-button {
   width: 100%;

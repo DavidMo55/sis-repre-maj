@@ -3,8 +3,8 @@
         <div class="module-page">
             <div class="module-header detail-header-flex">
                 <div>
-                    <h1>Registrar Nuevo Gasto</h1>
-                    <p>Captura los detalles de tus gastos operativos y adjunta los comprobantes correspondientes.</p>
+                    <h1>Registrar Paquete de Gastos</h1>
+                    <p>Agrupa múltiples conceptos y adjunta obligatoriamente tus comprobantes para poder guardar.</p>
                 </div>
                 <button @click="router.push('/gastos')" class="btn-secondary flex-row-centered gap-2">
                     <i class="fas fa-arrow-left"></i> Volver
@@ -15,39 +15,18 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
                     <div class="lg:col-span-2 space-y-6">
-                        <div class="form-section shadow-sm">
+                        <!-- SECCIÓN 1: DATOS GENERALES -->
+                        <div class="form-section shadow-premium">
                             <div class="section-title">
-                                <i class="fas fa-file-invoice-dollar"></i> 1. Información del Gasto
+                                <i class="fas fa-map-marked-alt"></i> 1. Información del Viaje / Ruta
                             </div>
-                            
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="form-group">
-                                    <label>Fecha del Gasto</label>
+                                    <label>Fecha de Inicio / Registro</label>
                                     <input v-model="form.fecha" type="date" class="form-input" required>
                                 </div>
-
                                 <div class="form-group">
-                                    <label>Monto Total ($)</label>
-                                    <div class="relative">
-                                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
-                                        <input v-model.number="form.monto" type="number" step="0.01" class="form-input pl-8" placeholder="0.00" required>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Concepto (Categoría)</label>
-                                    <select v-model="form.concepto_base" class="form-input font-bold" required>
-                                        <option value="" disabled>Seleccione un concepto...</option>
-                                        <option value="Peaje y gasolina">Peaje y gasolina</option>
-                                        <option value="Alimentación">Alimentación</option>
-                                        <option value="Hospedaje">Hospedaje</option>
-                                        <option value="Mantenimiento de vehículo">Mantenimiento de vehículo</option>
-                                        <option value="Papelería y artículos de oficina">Papelería y artículos de oficina</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Estado / Ciudad de la Visita</label>
+                                    <label>Estado / Región de la Visita</label>
                                     <div class="relative">
                                         <select v-model="form.estado_nombre" class="form-input" required>
                                             <option value="" disabled>Seleccione el estado...</option>
@@ -57,61 +36,112 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="mt-6 p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                                <label class="block mb-2 font-bold text-gray-700 text-xs uppercase tracking-widest">Vista previa del concepto final:</label>
-                                <p class="text-sm italic text-gray-600 font-bold">
-                                    {{ form.concepto_base ? form.concepto_base : '...' }} visita {{ form.estado_nombre ? form.estado_nombre : '...' }}
-                                </p>
-                            </div>
                         </div>
 
-                        <div class="form-section shadow-sm">
+                        <!-- SECCIÓN 2: CONSTRUCTOR DE SUB-GASTOS -->
+                        <div class="form-section shadow-premium bg-slate-50/50">
                             <div class="section-title">
-                                <i class="fas fa-check-double"></i> 2. Detalles Fiscales
+                                <i class="fas fa-plus-circle"></i> 2. Agregar Conceptos al Paquete
                             </div>
-                            <div class="flex items-center gap-8 bg-red-50 p-4 rounded-xl border border-red-100">
-                                <label class="font-bold text-red-900">¿El gasto cuenta con factura?</label>
-                                <div class="flex gap-6">
-                                    <label class="flex items-center gap-2 cursor-pointer group">
-                                        <input type="radio" :value="true" v-model="form.es_facturado" class="w-4 h-4 accent-red-600">
-                                        <span class="font-bold group-hover:text-red-600 transition-colors">SÍ</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer group">
-                                        <input type="radio" :value="false" v-model="form.es_facturado" class="w-4 h-4 accent-red-600">
-                                        <span class="font-bold group-hover:text-red-600 transition-colors">NO</span>
-                                    </label>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                                <div class="md:col-span-5 form-group">
+                                    <label class="text-[10px] uppercase font-black text-slate-400 mb-1">Concepto</label>
+                                    <select v-model="tempSub.concepto" class="form-input text-sm font-bold">
+                                        <option value="" disabled>Seleccione...</option>
+                                        <option value="Peaje y gasolina">Gasolina</option>
+                                        <option value="Peaje">Peaje</option>
+                                        <option value="Alimentación">Alimentación</option>
+                                        <option value="Hospedaje">Hospedaje</option>
+                                        <option value="Mantenimiento de vehículo">Mantenimiento</option>
+                                        <option value="Papelería y artículos">Papelería</option>
+                                        
+                                        <option value="Otros">Otros</option>
+                                    </select>
                                 </div>
+                                <div class="md:col-span-3 form-group">
+                                    <label class="text-[10px] uppercase font-black text-slate-400 mb-1">Monto ($)</label>
+                                    <input v-model.number="tempSub.monto" type="number" step="0.01" class="form-input text-sm font-bold" placeholder="0.00">
+                                </div>
+                                <div class="md:col-span-2 form-group flex flex-col items-center">
+                                    <label class="text-[10px] uppercase font-black text-slate-400 mb-1">¿Factura?</label>
+                                    <input type="checkbox" v-model="tempSub.es_facturado" class="w-6 h-6 accent-red-600 cursor-pointer">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <button type="button" @click="addSubExpense" class="btn-primary w-full py-3 rounded-xl flex items-center justify-center gap-2" :disabled="!tempSub.concepto || !tempSub.monto">
+                                        <i class="fas fa-plus"></i> Añadir
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-slate-100 text-slate-500 uppercase text-[10px] font-black tracking-widest">
+                                        <tr>
+                                            <th class="px-6 py-4 text-left">Concepto</th>
+                                            <th class="px-6 py-4 text-center">Fiscal</th>
+                                            <th class="px-6 py-4 text-right">Monto</th>
+                                            <th class="px-6 py-4 text-center">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        <tr v-for="(item, index) in subExpenses" :key="index" class="hover:bg-slate-50 transition-colors animate-fade-in">
+                                            <td class="px-6 py-4 font-bold text-slate-700">{{ item.concepto }}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <span v-if="item.es_facturado" class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[9px] font-black uppercase">Con Factura</span>
+                                                <span v-else class="bg-slate-100 text-slate-400 px-2 py-0.5 rounded text-[9px] font-black uppercase">Sin Factura</span>
+                                            </td>
+                                            <td class="px-6 py-4 text-right font-black text-red-700">${{ item.monto.toFixed(2) }}</td>
+                                            <td class="px-6 py-4 text-center">
+                                                <button type="button" @click="removeSubExpense(index)" class="text-slate-300 hover:text-red-600 transition-colors">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr v-if="subExpenses.length === 0">
+                                            <td colspan="4" class="px-6 py-10 text-center text-slate-400 italic">No se han añadido conceptos a este paquete.</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot v-if="subExpenses.length > 0" class="bg-slate-900 text-white">
+                                        <tr>
+                                            <td colspan="2" class="px-6 py-4 text-right uppercase font-black tracking-tighter">Costo Final del Paquete:</td>
+                                            <td class="px-6 py-4 text-right font-black text-lg text-red-400">${{ totalMonto.toFixed(2) }}</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
                         </div>
                     </div>
 
                     <div class="lg:col-span-1 space-y-6">
-                        <div class="form-section shadow-sm h-full flex flex-col">
+                        <!-- SECCIÓN 3: COMPROBANTES (OBLIGATORIOS) -->
+                        <div class="form-section shadow-premium h-full flex flex-col" :class="{'border-red-200 bg-red-50/20': !selectedFiles.length}">
                             <div class="section-title">
-                                <i class="fas fa-cloud-upload-alt"></i> 3. Comprobantes
+                                <i class="fas fa-cloud-upload-alt"></i> 3. Comprobantes *
                             </div>
                             
-                            <div class="upload-zone flex-grow flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl p-6 transition-all hover:border-red-300 hover:bg-red-50" 
+                            <div class="upload-zone flex-grow flex flex-col items-center justify-center border-2 border-dashed rounded-3xl p-6 transition-all" 
+                                :class="selectedFiles.length ? 'border-green-200 bg-green-50/10' : 'border-slate-200 hover:border-red-300 hover:bg-red-50'"
                                 @dragover.prevent @drop.prevent="handleDrop" @click="$refs.fileInput.click()">
                                 
                                 <input type="file" ref="fileInput" multiple @change="handleFileSelect" class="hidden" accept=".jpg,.jpeg,.png,.pdf">
                                 
                                 <div v-if="!selectedFiles.length" class="text-center">
-                                    <div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <div class="w-16 h-16 bg-white shadow-sm text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-red-100">
                                         <i class="fas fa-file-upload text-2xl"></i>
                                     </div>
-                                    <p class="text-sm font-bold text-gray-500">Haz clic o arrastra archivos</p>
-                                    <p class="text-[10px] text-gray-400 mt-1">Formatos: JPG, PNG, PDF (Máx 3MB)</p>
+                                    <p class="text-sm font-black text-slate-600 uppercase tracking-tighter">Adjuntar Documentación</p>
+                                    <p class="text-[9px] text-red-400 mt-2 font-bold uppercase tracking-widest italic">Este campo es obligatorio para postear</p>
                                 </div>
 
                                 <div v-else class="w-full space-y-3">
-                                    <div v-for="(file, index) in selectedFiles" :key="index" class="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-100 shadow-sm animate-fade-in">
+                                    <div v-for="(file, index) in selectedFiles" :key="index" class="flex items-center justify-between bg-white p-3 rounded-2xl border border-slate-100 shadow-sm animate-fade-in">
                                         <div class="flex items-center gap-3 overflow-hidden">
                                             <i class="fas text-red-600" :class="file.type.includes('pdf') ? 'fa-file-pdf' : 'fa-file-image'"></i>
-                                            <span class="text-[10px] font-bold text-gray-700 truncate max-w-[120px]">{{ file.name }}</span>
+                                            <span class="text-[10px] font-black text-slate-700 truncate max-w-[150px] uppercase">{{ file.name }}</span>
                                         </div>
-                                        <button @click.stop="removeFile(index)" class="text-gray-300 hover:text-red-500 transition-colors">
+                                        <button @click.stop="removeFile(index)" class="text-slate-300 hover:text-red-500">
                                             <i class="fas fa-times-circle"></i>
                                         </button>
                                     </div>
@@ -119,11 +149,14 @@
                             </div>
 
                             <div class="mt-8">
-                                <button type="submit" class="btn-primary w-full py-4 shadow-xl text-lg font-black tracking-widest uppercase flex items-center justify-center gap-3" :disabled="loading">
+                                <button type="submit" class="btn-primary w-full py-4 shadow-xl text-lg font-black tracking-widest uppercase flex items-center justify-center gap-3 rounded-2xl" :disabled="loading">
                                     <i v-if="loading" class="fas fa-spinner fa-spin"></i>
-                                    <i v-else class="fas fa-save"></i>
-                                    {{ loading ? 'Procesando...' : 'Guardar Gasto' }}
+                                    <i v-else class="fas fa-paper-plane"></i>
+                                    {{ loading ? 'Sincronizando...' : 'Postear Gasto' }}
                                 </button>
+                                <p v-if="!selectedFiles.length" class="text-[9px] text-center mt-3 text-red-500 font-black uppercase tracking-widest animate-pulse">
+                                    <i class="fas fa-info-circle"></i> Debes subir al menos un documento
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -131,16 +164,17 @@
             </form>
         </div>
 
+        <!-- MODALES DE ESTADO -->
         <Transition name="fade">
             <div v-if="modal.show" class="modal-overlay" @click.self="closeModal">
                 <div class="modal-content" :class="modal.type">
                     <div class="modal-icon">
                         <i :class="modal.type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle'"></i>
                     </div>
-                    <h2 class="text-xl font-black mb-2">{{ modal.title }}</h2>
-                    <p class="text-gray-600 text-sm mb-6">{{ modal.message }}</p>
-                    <button @click="closeModal" class="btn-modal w-full">
-                        {{ modal.type === 'success' ? 'Entendido' : 'Cerrar' }}
+                    <h2 class="text-2xl font-black mb-2">{{ modal.title }}</h2>
+                    <p class="text-slate-500 text-sm mb-8">{{ modal.message }}</p>
+                    <button @click="closeModal" class="btn-modal w-full py-4 rounded-2xl text-lg font-black shadow-lg">
+                        {{ modal.type === 'success' ? 'Ir al Historial' : 'Revisar Formulario' }}
                     </button>
                 </div>
             </div>
@@ -149,7 +183,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios';
 
@@ -160,36 +194,32 @@ const estados = ref([]);
 const fileInput = ref(null);
 const selectedFiles = ref([]);
 
-const modal = reactive({
-    show: false,
-    type: 'success',
-    title: '',
-    message: ''
-});
+const subExpenses = ref([]);
+const tempSub = reactive({ concepto: '', monto: null, es_facturado: false });
 
-const form = reactive({
-    fecha: new Date().toISOString().split('T')[0],
-    concepto_base: '',
-    estado_nombre: '',
-    monto: null,
-    es_facturado: false
-});
+const modal = reactive({ show: false, type: 'success', title: '', message: '' });
 
-onMounted(() => {
-    fetchEstados();
-});
+const form = reactive({ fecha: new Date().toISOString().split('T')[0], estado_nombre: '' });
+
+const totalMonto = computed(() => subExpenses.value.reduce((acc, item) => acc + item.monto, 0));
+
+onMounted(() => { fetchEstados(); });
 
 const fetchEstados = async () => {
     loadingEstados.value = true;
     try {
         const response = await axios.get('/estados');
         estados.value = response.data;
-    } catch (e) {
-        console.error("Error cargando estados:", e);
-    } finally {
-        loadingEstados.value = false;
-    }
+    } catch (e) { console.error(e); } finally { loadingEstados.value = false; }
 };
+
+const addSubExpense = () => {
+    if (!tempSub.concepto || !tempSub.monto) return;
+    subExpenses.value.push({ ...tempSub });
+    tempSub.concepto = ''; tempSub.monto = null; tempSub.es_facturado = false;
+};
+
+const removeSubExpense = (index) => { subExpenses.value.splice(index, 1); };
 
 const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
@@ -204,67 +234,65 @@ const handleDrop = (e) => {
 const validateAndAddFiles = (files) => {
     files.forEach(file => {
         if (file.size > 3072 * 1024) {
-            showStatusModal('error', 'Archivo muy grande', `El archivo ${file.name} supera los 3MB.`);
+            showStatusModal('error', 'Archivo excedido', `El archivo ${file.name} supera los 3MB.`);
             return;
         }
         selectedFiles.value.push(file);
     });
 };
 
-const removeFile = (index) => {
-    selectedFiles.value.splice(index, 1);
-};
+const removeFile = (index) => { selectedFiles.value.splice(index, 1); };
 
 const showStatusModal = (type, title, message) => {
-    modal.type = type;
-    modal.title = title;
-    modal.message = message;
-    modal.show = true;
+    modal.type = type; modal.title = title; modal.message = message; modal.show = true;
 };
 
 const closeModal = () => {
     modal.show = false;
-    if (modal.type === 'success') {
-        router.push('/gastos');
-    }
+    if (modal.type === 'success') router.push('/gastos');
 };
 
+/**
+ * REGLA DE NEGOCIO: No permite postear si no hay comprobantes
+ */
 const handleSubmit = async () => {
-    if (!selectedFiles.value.length && !confirm("¿Deseas guardar sin subir comprobantes?")) return;
+    if (subExpenses.value.length === 0) {
+        showStatusModal('error', 'Formulario Incompleto', 'Debes añadir al menos un concepto de gasto.');
+        return;
+    }
+
+    // REGLA CRÍTICA: Bloqueo de posteo sin documentos
+    if (selectedFiles.value.length === 0) {
+        showStatusModal('error', 'Comprobante Obligatorio', 'No se puede postear el gasto sin adjuntar los documentos probatorios (Tickets o Facturas). Por favor, sube al menos un archivo.');
+        return;
+    }
 
     loading.value = true;
     try {
-        // PASO 1: Registro del Gasto
         const resGasto = await axios.post('/gastos-nuevos', {
             fecha: form.fecha,
-            monto: form.monto,
-            concepto_base: form.concepto_base,
             estado_nombre: form.estado_nombre,
-            es_facturado: form.es_facturado
+            monto_total: totalMonto.value,
+            conceptos: subExpenses.value
         });
         
         const gastoId = resGasto.data.gasto.id;
 
-        // PASO 2: Subida de Comprobantes (Solución al error files.0)
-        if (selectedFiles.value.length > 0) {
-            const formData = new FormData();
-            formData.append('gasto_id', gastoId);
-            
-            // Usar 'files[]' para que Laravel lo procese como arreglo de archivos
-            selectedFiles.value.forEach((file) => {
-                formData.append('files[]', file); 
-            });
+        // Subida de Comprobantes
+        const formData = new FormData();
+        formData.append('gasto_id', gastoId);
+        selectedFiles.value.forEach((file) => {
+            formData.append('files[]', file); 
+        });
 
-            await axios.post('/gastos/comprobante', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-        }
+        await axios.post('/gastos/comprobante', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
 
-        showStatusModal('success', '¡Éxito!', 'El gasto se ha registrado correctamente.');
+        showStatusModal('success', '¡Gasto Posteado!', 'El paquete de gastos y sus comprobantes se han registrado correctamente.');
     } catch (e) {
-        console.error("Error completo:", e.response?.data);
         const msg = e.response?.data?.message || "Ocurrió un error en el servidor.";
-        showStatusModal('error', 'Error de Envío', msg);
+        showStatusModal('error', 'Fallo en Registro', msg);
     } finally {
         loading.value = false;
     }
@@ -272,44 +300,22 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.form-section { background: white; padding: 24px; border-radius: 16px; border: 1px solid #e2e8f0; }
-.section-title { font-weight: 900; color: #a93339; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
-.upload-zone { cursor: pointer; min-height: 200px; }
+.shadow-premium { box-shadow: 0 15px 35px -10px rgba(0,0,0,0.05); }
+.form-section { background: white; padding: 28px; border-radius: 24px; border: 1px solid #f1f5f9; }
+.section-title { font-weight: 900; color: #a93339; margin-bottom: 25px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1.5px; }
 
-/* ESTILOS DEL MODAL */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.7);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
-.modal-content {
-    background: white;
-    padding: 35px;
-    border-radius: 24px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-}
-.modal-icon { font-size: 4rem; margin-bottom: 15px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.modal-content { background: white; padding: 45px; border-radius: 40px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 35px 70px -15px rgba(0,0,0,0.6); }
+.modal-icon { font-size: 5rem; margin-bottom: 20px; }
 .success .modal-icon { color: #10b981; }
 .error .modal-icon { color: #ef4444; }
 
-.btn-modal {
-    background: #a93339;
-    color: white;
-    padding: 12px;
-    border-radius: 12px;
-    font-weight: 800;
-    transition: transform 0.2s;
-}
-.btn-modal:hover { transform: scale(1.02); }
+.btn-modal { background: #a93339; color: white; border: none; cursor: pointer; transition: all 0.3s; }
+.btn-modal:hover { transform: scale(1.03); background: #881337; }
 
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active, .fade-leave-active { transition: all 0.4s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; transform: scale(0.9); }
+
+.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 </style>

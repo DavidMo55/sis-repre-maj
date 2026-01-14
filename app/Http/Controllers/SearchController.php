@@ -7,6 +7,7 @@ use App\Models\Cliente;
 use App\Models\Libro;
 use App\Models\Estado;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class SearchController extends Controller
 {
@@ -66,33 +67,62 @@ class SearchController extends Controller
         return response()->json($prospectos);
     }
 
+     /**
+     * Obtener listado de Niveles Educativos desde la nueva tabla.
+     */
+    public function getNiveles()
+    {
+        try {
+            // Estructura: id, nombre
+            return response()->json(DB::table('niveles_educativos')->select('id', 'nombre')->get());
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
+    }
+
     /**
-     * Buscador de Libros.
-     * Devuelve el campo 'type' (digital/fisico) para validar licencias en el Front.
+     * Obtener listado de Series vinculadas a niveles educativos.
+     */
+    public function getSeries()
+    {
+        try {
+            // Estructura: id, serie (nombre), nivel_educativo_id
+            return response()->json(DB::table('series')->select('id', 'serie as nombre', 'nivel_educativo_id')->get());
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
+    }
+
+    /**
+     * Buscador de Libros filtrado por Serie.
      */
     public function searchLibros(Request $request)
     {
         $query = $request->input('query');
+        $serieId = $request->input('serie_id');
 
         if (empty($query) || strlen($query) < 3) {
             return response()->json([]);
         }
 
         try {
-            $libros = Libro::select('id', 'titulo', 'ISBN', 'editorial', 'type')
+            $builder = Libro::select('id', 'titulo', 'ISBN', 'editorial', 'type', 'serie_id')
                 ->where('titulo', 'like', "%{$query}%")
-                ->where('estado', 'activo')
-                ->limit(15)
-                ->get();
+                ->where('estado', 'activo');
 
-            return response()->json($libros);
+            // Filtrado opcional por serie si no es "otro"
+            if ($serieId && $serieId !== 'otro') {
+                $builder->where('serie_id', $serieId);
+            }
+
+            return response()->json($builder->limit(15)->get());
 
         } catch (\Exception $e) {
             Log::error("Error en SearchController@searchLibros: " . $e->getMessage());
             return response()->json(['message' => 'Error al buscar libros'], 500);
         }
     }
-
+    
     /**
      * Obtener listado de Estados para formularios de direcciones.
      */

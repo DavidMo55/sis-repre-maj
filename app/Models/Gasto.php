@@ -14,14 +14,17 @@ class Gasto extends Model
     protected $fillable = [
         'user_id',
         'fecha',
+        'estado_nombre',
         'concepto',
         'monto',
-        'facturado', // Usamos el nombre exacto de tu BD
+        'facturado',
+        'detalles', 
     ];
 
     protected $casts = [
-        'fecha' => 'date',
-        'facturado' => 'boolean', // Mapea el tinyint(1) de tu BD
+        'fecha'     => 'date',
+        'facturado' => 'boolean',
+        'detalles'  => 'array', 
     ];
 
     public function user()

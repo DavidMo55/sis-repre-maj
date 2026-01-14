@@ -16,12 +16,16 @@ use Illuminate\Support\Facades\Log;
 class PedidoController extends Controller
 {
     /**
-     * Listado de pedidos del usuario autenticado.
+     * Listado de pedidos con soporte para delegados.
      */
     public function index(Request $request)
     {
         try {
-            $pedidos = Pedido::where('user_id', Auth::id())
+            // Obtenemos el ID del representante (dueño de los datos)
+            $user = $request->user();
+            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
+            $pedidos = Pedido::where('user_id', $ownerId)
                             ->with(['cliente', 'detalles.libro']) 
                             ->orderBy('created_at', 'desc')
                             ->paginate(10);
@@ -39,7 +43,6 @@ class PedidoController extends Controller
 
     /**
      * Búsqueda de libros general.
-     * La lógica de licencias ahora se maneja en el Frontend según el tipo elegido por ítem.
      */
     public function searchLibros(Request $request)
     {
@@ -59,14 +62,17 @@ class PedidoController extends Controller
     }
 
     /**
-     * Detalle de un pedido específico.
+     * Detalle de un pedido verificando propiedad efectiva.
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
+            $user = $request->user();
+            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
             $pedido = Pedido::with(['cliente', 'detalles.libro'])
                             ->where('id', $id)
-                            ->where('user_id', Auth::id())
+                            ->where('user_id', $ownerId)
                             ->firstOrFail();
 
             return response()->json($pedido);
@@ -77,7 +83,7 @@ class PedidoController extends Controller
     }
 
     /**
-     * Almacenamiento del pedido con lógica de Tipo de Material (PROMO/VENTA) por ítem.
+     * Almacenamiento del pedido con lógica colaborativa (Delegados).
      */
     public function store(Request $request)
     {
@@ -89,17 +95,15 @@ class PedidoController extends Controller
             'logistics.paqueteria_nombre' => 'nullable|required_if:logistics.deliveryOption,paqueteria|string',
             'comments' => 'nullable|string|max:1000',
             
-            // Datos del receptor si es nuevo
             'receiver.nombre' => 'nullable|required_if:receiverType,nuevo|string',
             'receiver.telefono' => 'nullable|required_if:receiverType,nuevo|string',
             'receiver.correo' => 'nullable|required_if:receiverType,nuevo|email',
             'receiver.direccion' => 'nullable|string',
             
-            // Ítems de la tabla
             'items' => 'required|array|min:1',
             'items.*.libro_id' => 'required|exists:libros,id',
             'items.*.tipo_material' => 'required|in:promocion,venta',
-            'items.*.sub_type' => 'required|string', // Formato / Licencia
+            'items.*.sub_type' => 'required|string', 
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
         ]);
@@ -107,8 +111,11 @@ class PedidoController extends Controller
         try {
             return DB::transaction(function () use ($validatedData, $request) {
                 
+                $user = $request->user();
+                $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
                 $pedido = new Pedido();
-                $pedido->user_id = Auth::id(); 
+                $pedido->user_id = $ownerId; // El pedido pertenece al Representante
                 $pedido->cliente_id = $validatedData['client_id'];
                 $pedido->prioridad = $validatedData['prioridad'];
                 $pedido->delivery_option = $validatedData['logistics']['deliveryOption'];
@@ -117,7 +124,6 @@ class PedidoController extends Controller
                 $pedido->comments = $validatedData['comments'];
                 $pedido->status = 'PENDIENTE';
 
-                // Gestión de dirección y datos de contacto del receptor
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $rd = $validatedData['receiver'];
                     $pedido->receiver_nombre = $rd['nombre'];
@@ -131,20 +137,17 @@ class PedidoController extends Controller
 
                 $pedido->save();
                 
-                // Generación de Folio: PED + dmy + ID
                 $referencia = "PED" . Carbon::now()->format('dmy') . $pedido->id; 
                 $pedido->numero_referencia = $referencia;
                 $pedido->save(); 
 
-                // Guardar cada ítem con su naturaleza (Promo/Venta)
                 foreach ($validatedData['items'] as $item) {
-                    // REGLA DE NEGOCIO: Si el ítem es promoción, forzamos precio a 0
                     $precioFinal = ($item['tipo_material'] === 'promocion') ? 0 : $item['price'];
 
                     PedidoDetalle::create([
                         'pedido_id' => $pedido->id,
                         'libro_id' => $item['libro_id'],
-                        'tipo' => $item['tipo_material'], // Campo de la nueva migración
+                        'tipo' => $item['tipo_material'], 
                         'tipo_licencia' => $item['sub_type'],
                         'cantidad' => $item['quantity'],
                         'precio_unitario' => $precioFinal,
@@ -160,7 +163,7 @@ class PedidoController extends Controller
 
         } catch (\Exception $e) {
             Log::error("Error al guardar pedido: " . $e->getMessage());
-            return response()->json(['message' => 'Error al guardar el pedido en el servidor.'], 500);
+            return response()->json(['message' => 'Error al guardar el pedido: ' . $e->getMessage()], 500);
         }
     }
 }
