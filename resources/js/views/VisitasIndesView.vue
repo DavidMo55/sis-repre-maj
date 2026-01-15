@@ -10,9 +10,7 @@
                     <router-link to="/primeras-visitas" class="btn-primary flex-row-centered gap-2">
                         <i class="fas fa-plus-circle"></i> Primera Visita
                     </router-link>
-                    <router-link to="/visita-seguimiento" class="btn-secondary flex-row-centered gap-2">
-                        <i class="fas fa-history"></i> Visita Subsecuente
-                    </router-link>
+                    
                 </div>
             </div>
 

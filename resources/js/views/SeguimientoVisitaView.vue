@@ -10,16 +10,16 @@
                     <h1 v-else>Registro de Visita Subsecuente</h1>
                     <p class="text-truncate">Actualiza el avance de negociación basándote en registros previos.</p>
                 </div>
-                <button @click="router.push('/visitas')" class="btn-secondary flex-row-centered gap-2 px-6" :disabled="loading">
-                    <i class="fas fa-arrow-left"></i> Volver
+                <button @click="router.push('/visitas')" class="btn-secondary flex-shrink-0" :disabled="loading">
+                    <i class="fas fa-arrow-left mr-2"></i> Volver
                 </button>
             </div>
 
             <form @submit.prevent="handleSubmit" class="mt-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
                     <div class="lg:col-span-1 space-y-6 min-w-0">
-                        <div class="form-section shadow-premium" style="overflow: visible;">
+                        <div class="form-section" style="overflow: visible;">
                             <div class="section-title">
                                 <i class="fas fa-search"></i> 1. Identificar Plantel
                             </div>
@@ -34,19 +34,19 @@
                                         @input="searchProspectos"
                                         autocomplete="off"
                                     >
-                                    <i class="fas fa-university absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                    <i class="fas fa-history absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                                 </div>
                                 
                                 <ul v-if="clientesSuggestions.length" class="autocomplete-list shadow-xl">
                                     <li v-for="v in clientesSuggestions" :key="v.id" @click="selectProspecto(v)">
-                                        <div class="text-xs font-bold text-gray-800 text-break line-clamp-1 uppercase">{{ v.name }}</div>
+                                        <div class="text-xs font-bold text-gray-800 text-break line-clamp-1">{{ v.name }}</div>
                                         <div class="text-[10px] text-gray-500 text-break line-clamp-1">{{ v.direccion }}</div>
                                     </li>
                                 </ul>
                             </div>
 
-                            <div v-if="selectedCliente" class="selected-client-card animate-fade-in p-4 rounded-2xl border-2 border-red-100 bg-red-50/50 overflow-hidden shadow-sm mt-2">
-                                <h4 class="font-black text-red-900 text-xs text-break line-clamp-2 uppercase" :title="selectedCliente.name">
+                            <div v-if="selectedCliente" class="selected-client-card animate-fade-in p-4 rounded-xl border-2 border-red-100 bg-red-50 overflow-hidden shadow-sm">
+                                <h4 class="font-black text-red-900 text-sm text-break line-clamp-2 uppercase" :title="selectedCliente.name">
                                     {{ selectedCliente.name }}
                                 </h4>
                                 <div class="mt-3 space-y-2 border-t border-red-200 pt-2">
@@ -60,66 +60,63 @@
                             </div>
                         </div>
 
-                        <div v-if="selectedCliente" class="form-section shadow-premium animate-fade-in overflow-hidden">
-                            <div class="section-title"><i class="fas fa-history"></i> Historial Reciente</div>
+                        <div v-if="selectedCliente" class="form-section animate-fade-in overflow-hidden">
+                            <div class="section-title text-xs"><i class="fas fa-history"></i> Historial Reciente</div>
                             
-                            <div v-if="loadingHistory" class="text-center py-10">
-                                <i class="fas fa-spinner fa-spin text-red-600 text-xl"></i>
+                            <div v-if="loadingHistory" class="text-center py-6">
+                                <i class="fas fa-spinner fa-spin text-red-600"></i>
                             </div>
                             
-                            <div v-else class="timeline-container space-y-3 pr-1">
-                                <div v-for="h in historialVisitas" :key="h.id" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-fade-in relative border-l-4 border-l-red-500">
-                                    <div class="flex justify-between items-start gap-2 mb-2">
-                                        <span class="status-badge bg-red-100 text-red-800 uppercase">
-                                           {{ formatDateShort(h.fecha) }}
+                            <div v-else class="timeline-container space-y-3">
+                                <div v-for="h in historialVisitas" :key="h.id" class="timeline-item bg-white p-3 rounded-lg border border-gray-100 shadow-sm overflow-hidden mb-3">
+                                    <div class="flex justify-between items-center mb-2 gap-4">
+                                        <span class="text-[10px] font-black text-red-700 bg-red-50 px-2 py-1 rounded border border-red-100 shrink-0">
+                                            {{ formatDateShort(h.fecha) }}
                                         </span>
-                                        <span class="text-[9px] font-black uppercase text-slate-400 text-right">
-                                           {{ h.resultado_visita }}
+                                        <span class="text-[9px] font-bold uppercase truncate text-gray-400">
+                                            {{ h.resultado_visita }}
                                         </span>
                                     </div>
-                                    <div class="mt-1 border-t border-slate-50 pt-2">
-                                        <p class="text-[11px] text-slate-600 italic leading-relaxed">
-                                           "{{ h.comentarios || 'Sin observaciones.' }}"
+                                    <div class="mt-1 border-t border-gray-50 pt-2">
+                                        <p class="text-[11px] text-gray-700 italic text-break leading-normal">
+                                            "{{ h.comentarios || 'Sin observaciones.' }}"
                                         </p>
                                     </div>
-                                </div>
-                                <div v-if="!historialVisitas.length" class="text-center py-6 text-slate-400 italic text-xs">
-                                    No hay registros previos.
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="lg:col-span-2">
-                        <div class="form-section shadow-premium" :class="{'opacity-50 pointer-events-none': !selectedCliente || loadingPrecarga}">
+                        <div class="form-section" :class="{'opacity-50 pointer-events-none': !selectedCliente || loadingPrecarga}">
                             <div class="section-title"><i class="fas fa-calendar-plus"></i> Detalles de la Nueva Interacción</div>
 
-                            <div class="filter-grid mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div class="form-group">
-                                    <label class="label-style">Fecha de Hoy</label>
+                                    <label>Fecha de Hoy</label>
                                     <input v-model="form.fecha" type="date" class="form-input" required :disabled="loading">
                                 </div>
                                 <div class="form-group">
-                                    <label class="label-style">Próxima Visita Estimada</label>
+                                    <label>Próxima Visita Estimada</label>
                                     <input v-model="form.proxima_visita" type="date" class="form-input" :disabled="loading">
                                 </div>
                             </div>
 
-                            <div class="filter-grid mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div class="form-group">
-                                    <label class="label-style">Persona Entrevistada</label>
+                                    <label>Persona Entrevistada</label>
                                     <input v-model="form.persona_entrevistada" type="text" class="form-input" placeholder="Nombre completo" required :disabled="loading">
                                 </div>
                                 <div class="form-group">
-                                    <label class="label-style">Cargo / Puesto</label>
+                                    <label>Cargo</label>
                                     <input v-model="form.cargo" type="text" class="form-input" placeholder="Ej: Director" required :disabled="loading">
                                 </div>
                             </div>
 
-                            <div class="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 mb-6" style="overflow: visible !important;">
-                                <label class="label-mini mb-3">Libros de Interés</label>
-                                <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-                                    <div class="sm:col-span-10 relative">
+                            <div class="form-section-inner mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200" style="overflow: visible !important;">
+                                <label class="font-bold text-gray-700 block mb-2 text-xs uppercase tracking-widest">Libros de Interés</label>
+                                <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                                    <div class="md:col-span-10 relative">
                                         <input 
                                             v-model="bookInput.titulo" 
                                             type="text" 
@@ -129,37 +126,32 @@
                                             @keydown.enter.prevent="addBookToList"
                                             autocomplete="off"
                                         >
-                                        <ul v-if="bookSuggestions.length" class="autocomplete-list shadow-2xl">
-                                            <li v-for="b in bookSuggestions" :key="b.id" @click="selectBook(b)" class="text-xs font-bold uppercase">
-                                                {{ b.titulo }}
-                                            </li>
+                                        <ul v-if="bookSuggestions.length" class="autocomplete-list">
+                                            <li v-for="b in bookSuggestions" :key="b.id" @click="selectBook(b)">{{ b.titulo }}</li>
                                         </ul>
                                     </div>
-                                    <div class="sm:col-span-2">
-                                        <button type="button" @click="addBookToList" class="btn-primary w-full py-3.5 rounded-xl">
+                                    <div class="md:col-span-2">
+                                        <button type="button" @click="addBookToList" class="btn-primary w-full py-3">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </div>
                                 </div>
-                                
-                                <div v-if="selectedBooks.length" class="mt-4 flex flex-wrap gap-2">
-                                    <div v-for="(item, idx) in selectedBooks" :key="idx" class="bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm text-[10px] font-black flex items-center gap-2 animate-fade-in uppercase">
-                                        <span class="text-slate-700">{{ item.titulo }}</span>
-                                        <button type="button" @click="selectedBooks.splice(idx, 1)" class="text-red-500 hover:text-red-700">
-                                            <i class="fas fa-times-circle"></i>
-                                        </button>
+                                <div v-if="selectedBooks.length" class="mt-3 flex flex-wrap gap-2">
+                                    <div v-for="(item, idx) in selectedBooks" :key="idx" class="bg-white px-3 py-1 rounded-full border text-[10px] font-bold flex items-center gap-2">
+                                        <span class="text-gray-700">{{ item.titulo }}</span>
+                                        <button type="button" @click="selectedBooks.splice(idx, 1)" class="text-red-500"><i class="fas fa-times"></i></button>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="form-group mb-6">
-                                <label class="label-style">Comentarios y Acuerdos de hoy</label>
-                                <textarea v-model="form.comentarios" class="form-input" rows="4" placeholder="¿Qué se trató en esta visita?" :disabled="loading"></textarea>
+                                <label>Comentarios y Acuerdos de hoy</label>
+                                <textarea v-model="form.comentarios" class="form-input" rows="5" placeholder="¿Qué se trató en esta visita?" :disabled="loading"></textarea>
                             </div>
 
-                            <div class="form-group bg-red-50/30 p-6 rounded-2xl border-2 border-red-100">
-                                <label class="label-mini text-center !text-red-800 mb-3">Resolución de la Visita</label>
-                                <select v-model="form.resultado_visita" class="form-input font-black text-center uppercase tracking-widest text-red-900" required :disabled="loading">
+                            <div class="form-group bg-gray-50 p-5 rounded-xl border-2 border-red-100">
+                                <label class="font-black text-red-800 text-xs uppercase tracking-widest mb-3 block text-center">Resolución</label>
+                                <select v-model="form.resultado_visita" class="form-input font-bold text-center" required :disabled="loading">
                                     <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
                                     <option value="compra">DECISIÓN DE COMPRA</option>
                                     <option value="rechazo">RECHAZADO</option>
@@ -167,9 +159,9 @@
                             </div>
 
                             <div class="mt-8 flex justify-end">
-                                <button type="submit" class="btn-primary py-4 px-12 shadow-xl text-lg font-black tracking-widest uppercase rounded-2xl w-full sm:w-auto" :disabled="loading || !selectedCliente">
-                                    <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
-                                    {{ loading ? 'Procesando...' : 'Guardar Seguimiento' }}
+                                <button type="submit" class="btn-primary py-3 px-16 shadow-xl" :disabled="loading || !selectedCliente">
+                                    <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save mr-2'"></i> 
+                                    Guardar Seguimiento
                                 </button>
                             </div>
                         </div>
@@ -179,70 +171,6 @@
         </div>
     </div>
 </template>
-
-<style scoped>
-/* HEREDADO DE REGISTRO DE GASTOS */
-.filter-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    align-items: flex-end;
-}
-
-.status-badge {
-    padding: 4px 10px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    border-radius: 20px;
-    display: inline-flex;
-    align-items: center;
-    letter-spacing: 0.5px;
-}
-
-.label-style { @apply text-xs font-black text-slate-500 uppercase tracking-tighter mb-2 block; }
-.label-mini { @apply text-[10px] uppercase font-black text-slate-400 mb-1 block; }
-
-.shadow-premium { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
-.form-section { background: white; padding: 24px; border-radius: 24px; border: 1px solid #f1f5f9; }
-
-.section-title { font-weight: 900; color: #a93339; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
-
-/* AUTOCOMPLETE & CONTAINERS */
-.autocomplete-list {
-    position: absolute;
-    z-index: 1000;
-    width: 100%;
-    background: white;
-    border: 1px solid #f1f5f9;
-    border-radius: 16px;
-    max-height: 250px;
-    overflow-y: auto;
-    margin-top: 8px;
-}
-.autocomplete-list li { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f8fafc; transition: background 0.2s; }
-.autocomplete-list li:hover { background: #fff1f2; }
-
-.timeline-container {
-    max-height: 500px;
-    overflow-y: auto;
-}
-
-/* RESPONSIVIDAD */
-@media (max-width: 640px) {
-    .content-wrapper { padding: 15px !important; }
-    .form-section { padding: 20px 15px !important; border-radius: 18px !important; }
-    .form-input { font-size: 16px !important; }
-    .detail-header-flex { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .btn-secondary { width: 100%; }
-}
-
-.text-break { overflow-wrap: break-word; word-break: break-all; }
-.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-.timeline-container::-webkit-scrollbar { width: 4px; }
-.timeline-container::-webkit-scrollbar-thumb { background: #fee2e2; border-radius: 10px; }
-</style>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
@@ -379,3 +307,69 @@ onMounted(() => {
 });
 </script>
 
+<style scoped>
+/* SOLUCIÓN AL TEXTO LARGO */
+.text-break {
+    overflow-wrap: break-word;
+    word-break: break-all;
+    display: block;
+}
+
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* DISEÑO DE UI */
+.form-section { 
+    background: white; 
+    padding: 24px; 
+    border-radius: 16px; 
+    border: 1px solid #e2e8f0; 
+    min-width: 0; 
+}
+
+.section-title { font-weight: 900; color: #b91c1c; margin-bottom: 20px; border-bottom: 2px solid #fee2e2; padding-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+
+.timeline-container {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.timeline-item {
+    border-left: 4px solid #b91c1c;
+    min-width: 0;
+}
+
+.autocomplete-list {
+    position: absolute;
+    z-index: 1000;
+    width: 100%;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 5px;
+}
+
+.autocomplete-list li { padding: 10px; cursor: pointer; border-bottom: 1px solid #f1f5f9; }
+.autocomplete-list li:hover { background: #fdf2f2; }
+
+.form-section-inner { background: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; }
+
+.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.timeline-container::-webkit-scrollbar { width: 4px; }
+.timeline-container::-webkit-scrollbar-thumb { background: #fee2e2; border-radius: 10px; }
+</style>

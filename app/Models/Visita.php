@@ -19,13 +19,21 @@ class Visita extends Model
 
     /**
      * Atributos habilitados para asignación masiva.
-     * * El 'user_id' siempre almacenará el ID del Representante (dueño de la cuenta),
-     * permitiendo que tanto él como sus delegados compartan la misma información.
+     * El 'user_id' almacena el ID del Representante dueño de la información.
      */
     protected $fillable = [
         'user_id',
         'cliente_id', 
-        'estado_id', // Añadido para vinculación geográfica directa
+        'nombre_plantel',
+        'rfc_plantel',
+        'nivel_educativo_plantel',
+        'direccion_plantel',
+        'estado_id',
+        'latitud',
+        'longitud',
+        'telefono_plantel',
+        'email_plantel',
+        'director_plantel',
         'fecha',
         'persona_entrevistada',
         'cargo',
@@ -33,42 +41,48 @@ class Visita extends Model
         'material_entregado',
         'material_cantidad',
         'comentarios',
-        'proxima_visita_estimada',
-        'proxima_accion',
-        'es_primera_visita',
         'resultado_visita',
+        'proxima_accion',
+        'proxima_visita_estimada',
+        'es_primera_visita',
     ];
 
     /**
      * Conversión de tipos automática.
+     * CRÍTICO: 'libros_interes' como 'array' permite manejar JSON desde Vue automáticamente.
      */
     protected $casts = [
         'fecha' => 'date',
         'proxima_visita_estimada' => 'date',
         'material_entregado' => 'boolean',
-        'es_primera_visita' => 'boolean'
+        'es_primera_visita' => 'boolean',
+        'libros_interes' => 'array',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | SCOPES (Filtros de Consulta)
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * SCOPE: Búsqueda avanzada.
-     * Permite al representante o delegado buscar visitas por nombre de plantel o contacto.
+     * Buscador avanzado por nombre de plantel o persona entrevistada.
      */
     public function scopeSearch(Builder $query, $term)
     {
         if ($term) {
             $query->where(function($q) use ($term) {
-                // Buscamos en el nombre del cliente (plantel) vinculado
-                $q->whereHas('cliente', function($sub) use ($term) {
-                    $sub->where('name', 'like', "%{$term}%");
-                })
-                // O buscamos en el contacto directo registrado en la visita
-                ->orWhere('persona_entrevistada', 'like', "%{$term}%");
+                $q->where('nombre_plantel', 'like', "%{$term}%")
+                  ->orWhere('persona_entrevistada', 'like', "%{$term}%")
+                  ->orWhereHas('cliente', function($sub) use ($term) {
+                      $sub->where('name', 'like', "%{$term}%");
+                  });
             });
         }
     }
 
     /**
-     * SCOPE: Filtrado por periodo de tiempo.
+     * Filtrado por periodo de tiempo.
      */
     public function scopeByDateRange(Builder $query, $from, $to)
     {
@@ -81,7 +95,7 @@ class Visita extends Model
     }
 
     /**
-     * SCOPE: Filtrado por resultado.
+     * Filtrado por resultado de la visita (seguimiento, compra, rechazo).
      */
     public function scopeByResultado(Builder $query, $resultado)
     {
@@ -90,8 +104,14 @@ class Visita extends Model
         }
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | RELACIONES
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * RELACIÓN: Vínculo con el Cliente (Plantel).
+     * Vínculo con el Cliente (Plantel).
      */
     public function cliente()
     {
@@ -99,7 +119,7 @@ class Visita extends Model
     }
 
     /**
-     * RELACIÓN: Vínculo con el Representante / Dueño (User).
+     * Vínculo con el Representante / Dueño (User).
      */
     public function representative()
     {
@@ -107,7 +127,7 @@ class Visita extends Model
     }
 
     /**
-     * RELACIÓN: Vínculo con el Estado geográfico.
+     * Vínculo con el Estado geográfico para geolocalización.
      */
     public function estado()
     {
