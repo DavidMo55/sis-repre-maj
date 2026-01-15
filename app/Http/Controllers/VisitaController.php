@@ -13,18 +13,19 @@ use Carbon\Carbon;
 class VisitaController extends Controller
 {
     /**
-     * Listado de todas las visitas del representante o sus delegados.
-     * Soporta filtros de búsqueda por nombre, fechas y resultado.
+     * Listado de todas las visitas vinculadas al representante (dueño).
+     * Soporta filtros por búsqueda, rango de fechas y resultado.
      */
     public function index(Request $request)
     {
         try {
             $user = $request->user();
+            // Determinamos el ID del dueño de la información (soporte para delegados)
             $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
             $query = Visita::where('user_id', $ownerId);
 
-            // Aplicar Scopes de búsqueda definidos en el Modelo
+            // Aplicamos los Scopes de búsqueda definidos en el modelo Visita
             $query->search($request->input('search'))
                   ->byDateRange($request->input('desde'), $request->input('hasta'))
                   ->byResultado($request->input('resultado'));
@@ -41,18 +42,18 @@ class VisitaController extends Controller
 
         } catch (\Exception $e) {
             Log::error("Error en VisitaController@index: " . $e->getMessage());
-            return response()->json(['message' => 'Error al cargar el historial.'], 500);
+            return response()->json(['message' => 'Error al cargar el historial de bitácoras.'], 500);
         }
     }
 
     /**
-     * Almacena una "Primera Visita". 
-     * Crea un registro en la tabla 'clientes' (como PROSPECTO) y la bitácora en 'visitas'.
+     * Registro de una Primera Visita.
+     * Crea un Prospecto (o Cliente directo) y registra la bitácora inicial.
      */
     public function storePrimeraVisita(Request $request)
     {
         $validated = $request->validate([
-            // Datos del Plantel
+            // Datos del Plantel (Identidad)
             'plantel.name'      => 'required|string|max:100',
             'plantel.rfc'       => 'required|string|max:50',
             'plantel.niveles'   => 'required|array|min:1',
@@ -64,7 +65,7 @@ class VisitaController extends Controller
             'plantel.latitud'   => 'nullable|numeric',
             'plantel.longitud'  => 'nullable|numeric',
             
-            // Datos de la Visita
+            // Datos de la Visita (Bitácora)
             'visita.fecha'                => 'required|date',
             'visita.persona_entrevistada' => 'required|string',
             'visita.cargo'                => 'required|string',
@@ -80,12 +81,16 @@ class VisitaController extends Controller
                 $user = $request->user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-                // 1. Crear o Actualizar el Prospecto en la tabla maestra de Clientes
+                // Lógica dinámica: Si la resolución es compra, se guarda como CLIENTE de inmediato
+                $resultado = $request->input('visita.resultado_visita');
+                $tipoFinal = ($resultado === 'compra') ? 'CLIENTE' : 'PROSPECTO';
+
+                // 1. GESTIÓN DEL REGISTRO MAESTRO (Tabla Clientes)
                 $cliente = Cliente::updateOrCreate(
                     ['email' => $request->input('plantel.email')],
                     [
                         'user_id'         => $ownerId,
-                        'tipo'            => 'PROSPECTO',
+                        'tipo'            => $tipoFinal,
                         'name'            => $request->input('plantel.name'),
                         'rfc'             => strtoupper($request->input('plantel.rfc')),
                         'nivel_educativo' => implode(', ', $request->input('plantel.niveles')),
@@ -99,7 +104,7 @@ class VisitaController extends Controller
                     ]
                 );
 
-                // 2. Registrar la Bitácora de la Visita
+                // 2. REGISTRO DE LA BITÁCORA (Tabla Visitas - Snapshot de datos)
                 $visita = Visita::create([
                     'user_id'                 => $ownerId,
                     'cliente_id'              => $cliente->id,
@@ -116,28 +121,31 @@ class VisitaController extends Controller
                     'fecha'                   => $request->input('visita.fecha'),
                     'persona_entrevistada'    => $request->input('visita.persona_entrevistada'),
                     'cargo'                   => $request->input('visita.cargo'),
+                    
+                    // El modelo Visita debe tener 'libros_interes' en $casts como 'array'
                     'libros_interes'          => $request->input('visita.libros_interes'),
+                    
                     'comentarios'             => $request->input('visita.comentarios'),
-                    'resultado_visita'        => $request->input('visita.resultado_visita'),
+                    'resultado_visita'        => $resultado,
                     'proxima_visita_estimada' => $request->input('visita.proxima_visita'),
                     'proxima_accion'          => $request->input('visita.proxima_accion') ?? 'visita',
                     'es_primera_visita'       => true,
                 ]);
 
                 return response()->json([
-                    'message'   => 'Alta de prospecto y visita exitosa.',
+                    'message'   => "Registro de $tipoFinal y bitácora procesado correctamente.",
                     'visita_id' => $visita->id
                 ], 201);
             });
         } catch (\Exception $e) {
-            Log::error("Error en storePrimeraVisita: " . $e->getMessage());
-            return response()->json(['message' => 'Error al registrar: ' . $e->getMessage()], 500);
+            Log::error("Fallo en storePrimeraVisita: " . $e->getMessage());
+            return response()->json(['message' => 'Error técnico al registrar la primera visita.'], 500);
         }
     }
 
     /**
-     * Almacena una "Visita Subsecuente" (Seguimiento).
-     * Se vincula a un cliente/prospecto ya existente.
+     * Registro de una Visita Subsecuente (Seguimiento).
+     * Actualiza el estatus del cliente (a CLIENTE o Inactivo) según el resultado.
      */
     public function storeSeguimiento(Request $request)
     {
@@ -146,10 +154,11 @@ class VisitaController extends Controller
             'fecha'                => 'required|date',
             'persona_entrevistada' => 'required|string',
             'cargo'                => 'required|string',
-            'libros_interes'       => 'required', // Puede venir como string JSON o array según el front
+            'libros_interes'       => 'required', // Se recibe el objeto dual de materiales
             'comentarios'          => 'nullable|string',
             'resultado_visita'     => 'required|in:seguimiento,compra,rechazo',
             'proxima_visita'       => 'nullable|date',
+            'proxima_accion'       => 'nullable|string'
         ]);
 
         try {
@@ -158,13 +167,14 @@ class VisitaController extends Controller
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
                 $cliente = Cliente::findOrFail($validated['cliente_id']);
+                $resultado = $validated['resultado_visita'];
 
-                // Decodificar libros si vienen como string desde el front
+                // Procesamos el JSON de libros si llega como cadena
                 $libros = is_string($request->libros_interes) 
                           ? json_decode($request->libros_interes, true) 
                           : $request->libros_interes;
 
-                // 1. Crear el registro de seguimiento
+                // 1. CREACIÓN DEL SEGUIMIENTO EN BITÁCORA
                 $visita = Visita::create([
                     'user_id'                 => $ownerId,
                     'cliente_id'              => $cliente->id,
@@ -178,29 +188,34 @@ class VisitaController extends Controller
                     'cargo'                   => $validated['cargo'],
                     'libros_interes'          => $libros,
                     'comentarios'             => $validated['comentarios'],
-                    'resultado_visita'        => $validated['resultado_visita'],
+                    'resultado_visita'        => $resultado,
                     'proxima_visita_estimada' => $validated['proxima_visita'],
+                    'proxima_accion'          => $request->input('proxima_accion') ?? 'visita',
                     'es_primera_visita'       => false,
                 ]);
 
-                // 2. Opcional: Actualizar el estatus del cliente si la resolución fue 'rechazo' o 'compra'
-                if ($validated['resultado_visita'] === 'rechazo') {
+                // 2. ACTUALIZACIÓN AUTOMÁTICA DEL REGISTRO MAESTRO
+                if ($resultado === 'compra') {
+                    // Conversión oficial de Prospecto a CLIENTE
+                    $cliente->update(['tipo' => 'CLIENTE']);
+                } elseif ($resultado === 'rechazo') {
+                    // Marcamos como inactivo para sacarlo de las listas de seguimiento activo
                     $cliente->update(['status' => 'inactivo']);
                 }
 
                 return response()->json([
-                    'message' => 'Seguimiento registrado correctamente.',
-                    'id'      => $visita->id
+                    'message' => 'Seguimiento registrado y estatus de cuenta actualizado con éxito.',
+                    'visita_id' => $visita->id
                 ], 201);
             });
         } catch (\Exception $e) {
-            Log::error("Error en storeSeguimiento: " . $e->getMessage());
-            return response()->json(['message' => 'Error interno del servidor.'], 500);
+            Log::error("Fallo en storeSeguimiento: " . $e->getMessage());
+            return response()->json(['message' => 'Error técnico al procesar el seguimiento.'], 500);
         }
     }
 
     /**
-     * Muestra el detalle de una visita específica.
+     * Consulta del detalle técnico de una bitácora.
      */
     public function show(Request $request, $id)
     {
@@ -208,18 +223,18 @@ class VisitaController extends Controller
             $user = $request->user();
             $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-            // Cargamos relaciones para el detalle técnico
+            // Cargamos relaciones para el detalle visual
             $visita = Visita::with(['estado', 'cliente'])->findOrFail($id);
 
-            // Verificación de seguridad: solo el dueño o sus delegados ven la bitácora
+            // Verificación de seguridad de propiedad de datos
             if ($visita->user_id !== $ownerId) {
-                return response()->json(['message' => 'Acceso denegado a esta bitácora.'], 403);
+                return response()->json(['message' => 'No tiene autorización para ver esta bitácora.'], 403);
             }
 
             return response()->json($visita);
 
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Bitácora no encontrada.'], 404);
+            return response()->json(['message' => 'Bitácora no localizada.'], 404);
         }
     }
 }

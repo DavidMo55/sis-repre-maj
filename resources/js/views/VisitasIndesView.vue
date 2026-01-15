@@ -100,7 +100,6 @@
                             <th class="table-header">Fecha</th>
                             <th class="table-header">Plantel</th>
                             <th class="table-header">Entrevistado</th>
-                            <th class="table-header text-center">Tipo</th>
                             <th class="table-header text-center">Resultado</th>
                             <th class="table-header">Próxima</th>
                             <th class="px-6 py-3"></th>
@@ -114,7 +113,6 @@
                                 :title="visita.cliente?.name"> {{ visita.cliente?.name || 'Plantel no disponible' }}
                             </div>
                             <div class="text-[10px] text-gray-400 uppercase tracking-tighter text-truncate max-w-plantel">
-                                {{ visita.cliente?.nivel_educativo || '---' }}
                             </div>
                         </td>
 
@@ -124,14 +122,9 @@
                                 {{ visita.persona_entrevistada }}
                             </div>
                             <div class="text-[10px] text-gray-400 uppercase font-bold text-truncate max-w-entrevistado">
-                                {{ visita.cargo }}
                             </div>
                         </td>
-                            <td class="table-cell text-center">
-                                <span :class="visita.es_primera_visita ? 'badge-blue' : 'badge-gray'">
-                                    {{ visita.es_primera_visita ? 'Inicial' : 'Seguimiento' }}
-                                </span>
-                            </td>
+                            
                             <td class="table-cell text-center">
                                 <span class="status-badge" :class="getOutcomeClass(visita.resultado_visita)">
                                     <i :class="getOutcomeIcon(visita.resultado_visita)" class="mr-1"></i>
