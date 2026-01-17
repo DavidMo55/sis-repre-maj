@@ -114,7 +114,7 @@ const routes = [
 
         ]
     },
-    { path: '/:pathMatch(.*)*', redirect: '/dashboard' } // Captura cualquier ruta inexistente
+    { path: '/:pathMatch(.*)*', redirect: '/dashboard' } 
 ];
 
 const router = createRouter({
@@ -122,6 +122,29 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach(authGuard);
+router.beforeEach((to, from, next) => {
+    const token = localStorage.getItem('auth_token');
+    const sessionStart = localStorage.getItem('session_start_time');
+    
+    if (token && sessionStart) {
+        const twoHoursInMs = 2 * 60 * 60 * 1000;
+        const now = new Date().getTime();
+
+        if (now - parseInt(sessionStart) > twoHoursInMs) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('session_start_time');
+            localStorage.removeItem('user_data');
+            return next('/login');
+        }
+    }
+
+    if (to.meta.requiresAuth && !token) {
+        next('/login');
+    } else if (to.path === '/login' && token) {
+        next('/dashboard');
+    } else {
+        next();
+    }
+});
 
 export default router;
