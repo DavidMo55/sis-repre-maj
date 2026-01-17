@@ -170,20 +170,21 @@ const filters = reactive({
 const fetchVisitas = async () => {
     loading.value = true;
     try {
-        const params = {};
+        const params = {
+            es_primera_visita: 1 // REGLA: Solo primeras visitas
+        };
+        
         if (filters.query) params.search = filters.query;
         if (filters.fecha_inicio) params.desde = filters.fecha_inicio;
         if (filters.fecha_fin) params.hasta = filters.fecha_fin;
         if (filters.resultado) params.resultado = filters.resultado;
 
         const response = await axios.get('/visitas', { params });
-        
-        // Laravel paginate entrega los registros en data.data
         const dataReceived = response.data.data || response.data;
         visitas.value = Array.isArray(dataReceived) ? dataReceived : [];
         
     } catch (err) {
-        console.error("Error al cargar visitas:", err);
+        console.error("Error:", err);
         visitas.value = [];
     } finally {
         loading.value = false;
@@ -191,45 +192,29 @@ const fetchVisitas = async () => {
 };
 
 const resetFilters = () => {
-    filters.query = '';
-    filters.fecha_inicio = '';
-    filters.fecha_fin = '';
-    filters.resultado = '';
+    Object.assign(filters, { query: '', fecha_inicio: '', fecha_fin: '', resultado: '' });
     fetchVisitas();
 };
 
 const formatDate = (dateString) => {
     if (!dateString) return '---';
-    try {
-        const cleanDate = dateString.split('T')[0];
-        const parts = cleanDate.split('-');
-        if (parts.length !== 3) return dateString; 
-        const date = new Date(parts[0], parts[1] - 1, parts[2]);
-        if (isNaN(date.getTime())) return 'Fecha inválida';
-        return date.toLocaleDateString('es-ES', { 
-            year: 'numeric', 
-            month: 'short', 
-            day: 'numeric' 
-        });
-    } catch (e) {
-        return '---';
-    }
+    const cleanDate = dateString.split('T')[0];
+    const parts = cleanDate.split('-');
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
 const getOutcomeClass = (outcome) => {
-    switch (outcome) {
-        case 'compra': return 'bg-green-100 text-green-700 border border-green-200';
-        case 'rechazo': return 'bg-red-100 text-red-700 border border-red-200';
-        default: return 'bg-orange-100 text-orange-700 border border-orange-200';
-    }
+    const base = 'status-badge ';
+    if (outcome === 'compra') return base + 'bg-green-100 text-green-700 border-green-200';
+    if (outcome === 'rechazo') return base + 'bg-red-100 text-red-700 border-red-200';
+    return base + 'bg-orange-100 text-orange-700 border-orange-200';
 };
 
 const getOutcomeIcon = (outcome) => {
-    switch (outcome) {
-        case 'compra': return 'fas fa-check-circle';
-        case 'rechazo': return 'fas fa-times-circle';
-        default: return 'fas fa-clock';
-    }
+    if (outcome === 'compra') return 'fas fa-check-circle';
+    if (outcome === 'rechazo') return 'fas fa-times-circle';
+    return 'fas fa-clock';
 };
 
 const viewDetails = (visita) => {

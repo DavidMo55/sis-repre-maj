@@ -9,7 +9,7 @@
                         Seguimiento: {{ selectedCliente.name }}
                     </h1>
                     <h1 v-else class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight text-red-800">Seguimiento de Prospectos</h1>
-                    <p class="text-xs md:text-sm text-slate-500 font-medium mt-1 uppercase tracking-tighter">Actualiza avances, materiales y estatus de negociación.</p>
+                    <p class="text-xs md:text-sm text-slate-500 font-medium mt-1 uppercase tracking-tighter italic">Actualiza el expediente y registra los nuevos acuerdos de la visita subsecuente.</p>
                 </div>
                 <button @click="router.push('/visitas')" class="btn-secondary flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm shrink-0 w-full sm:w-auto" :disabled="loading">
                     <i class="fas fa-arrow-left"></i> Volver al Historial
@@ -17,151 +17,149 @@
             </div>
 
             <!-- Alerta de Error -->
-            <div v-if="errorMessage" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl animate-fade-in shadow-sm">
+            <div v-if="errorMessage" class="error-message-container mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl animate-fade-in shadow-sm">
                 <div class="flex items-start gap-3">
                     <i class="fas fa-exclamation-triangle text-red-600 mt-1"></i>
                     <div>
-                        <p class="text-red-800 font-black uppercase text-[10px]">Error en validación</p>
-                        <p class="text-red-600 text-xs mt-1 font-medium">{{ errorMessage }}</p>
+                        <p class="text-red-800 font-black uppercase text-[10px] tracking-widest">Error al procesar registro</p>
+                        <p class="text-red-600 text-xs mt-1 font-medium whitespace-pre-wrap">{{ errorMessage }}</p>
                     </div>
                 </div>
             </div>
 
             <form @submit.prevent="handleSubmit">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     
-                    <!-- COLUMNA IZQUIERDA: IDENTIFICACIÓN E HISTORIAL -->
-                    <div class="lg:col-span-1 space-y-6">
+                    <!-- BLOQUE 1: IDENTIFICACIÓN Y DATOS DEL PLANTEL -->
+                    <div class="form-section shadow-premium border-t-4 border-t-red-700">
+                        <div class="section-title">
+                            <i class="fas fa-school text-red-700"></i> 1. Identidad del Plantel
+                        </div>
                         
-                        <!-- 1. Buscador y Datos del Plantel -->
-                        <div class="form-section shadow-premium border-t-4 border-t-red-700 relative" style="overflow: visible;">
-                            <div class="section-title">
-                                <i class="fas fa-search text-red-700"></i> 1. Identificar Plantel
+                        <!-- Buscador (Solo si no hay precarga) -->
+                        <div v-if="!route.params.id" class="form-group relative mb-6">
+                            <label class="label-style">Buscar Plantel en Seguimiento *</label>
+                            <div class="relative">
+                                <input v-model="searchQuery" type="text" class="form-input pl-10 font-bold" placeholder="Escribe nombre del plantel..." @input="searchProspectos" autocomplete="off">
+                                <i class="fas fa-university absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             </div>
-                            
-                            <div v-if="!route.params.id" class="form-group relative mb-6">
-                                <label class="label-mini">Buscar Prospecto Activo</label>
-                                <div class="relative">
-                                    <input v-model="searchQuery" type="text" class="form-input pl-10 font-bold" placeholder="Escribe nombre del plantel..." @input="searchProspectos" autocomplete="off">
-                                    <i class="fas fa-university absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                </div>
-                                <ul v-if="clientesSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
-                                    <li v-for="v in clientesSuggestions" :key="v.id" @click="selectProspecto(v)" class="hover:bg-red-50 transition-colors border-b last:border-0 border-slate-50">
-                                        <div class="flex justify-between items-start">
-                                            <div class="text-xs font-black text-slate-800 uppercase line-clamp-1">{{ v.name }}</div>
-                                            <span class="text-[7px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-black uppercase">{{ v.tipo }}</span>
-                                        </div>
-                                    </li>
-                                </ul>
+                            <ul v-if="clientesSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
+                                <li v-for="v in clientesSuggestions" :key="v.id" @click="selectProspecto(v)" class="hover:bg-red-50 transition-colors border-b last:border-0 border-slate-50">
+                                    <div class="flex justify-between items-start">
+                                        <div class="text-xs font-black text-slate-800 uppercase line-clamp-1">{{ v.name }}</div>
+                                        <span class="text-[7px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-black uppercase">{{ v.tipo }}</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="form-group mb-6">
+                            <label class="label-style">Nombre del Plantel *</label>
+                            <input v-model="form.plantel.name" type="text" class="form-input font-bold" placeholder="Confirmar nombre" disabled required minlength="5" :disabled="loading">
+                        </div>
+
+                        <div class="form-group mb-6">
+                            <label class="label-style">RFC del Plantel (Obligatorio) *</label>
+                            <input v-model="form.plantel.rfc" type="text" class="form-input uppercase font-mono border-red-100 font-black text-red-900" disabled="" placeholder="RFC para facturación" required minlength="12" maxlength="13" :disabled="loading">
+                        </div>
+
+                        <!-- GPS -->
+                        <div class="bg-blue-50 p-6 rounded-[2rem] border border-blue-200 mb-6 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <label class="text-[10px] font-black text-blue-700 uppercase tracking-[0.2em]">
+                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica (GPS)
+                                </label>
+                                <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase">✓ Actualizada</span>
                             </div>
+                            <button type="button" @click="getLocation" class="btn-primary bg-blue-600 border-none w-full py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 transition-all" :disabled="gettingLocation || loading">
+                                <i class="fas" :class="gettingLocation ? 'fa-spinner fa-spin' : 'fa-crosshairs'"></i>
+                                <span class="font-black uppercase tracking-widest text-[11px]">{{ form.plantel.latitud ? 'Actualizar Coordenadas GPS' : 'Capturar Ubicación Actual' }}</span>
+                            </button>
+                        </div>
 
-                            <div v-if="selectedCliente" class="space-y-6 animate-fade-in">
-                                <!-- Datos Identidad -->
-                                <div class="form-group">
-                                    <label class="label-style">RFC Confirmado</label>
-                                    <input v-model="form.plantel.rfc" type="text" class="form-input uppercase font-mono font-black text-red-900 border-red-100" required>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="label-style">Nombre del Director / Coordinador</label>
-                                    <input v-model="form.plantel.director" type="text" class="form-input font-bold" required>
-                                </div>
-                                
-                                <!-- GPS y Ubicación -->
-                                <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 shadow-inner">
-                                    <label class="label-mini text-blue-700 font-black mb-3 block text-center uppercase tracking-widest">Geolocalización</label>
-                                    <button type="button" @click="getLocation" class="btn-primary bg-blue-600 border-none w-full py-4 rounded-2xl shadow-lg shadow-blue-100 active:scale-95 transition-all flex items-center justify-center gap-2" :disabled="gettingLocation">
-                                        <i class="fas" :class="gettingLocation ? 'fa-spinner fa-spin' : 'fa-crosshairs'"></i>
-                                        <span class="font-black uppercase tracking-widest text-[11px]">{{ form.plantel.latitud ? 'GPS Actualizado ✓' : 'Capturar GPS' }}</span>
-                                    </button>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="label-style">Estado / Región</label>
-                                    <select v-model="form.plantel.estado_id" class="form-input font-bold" required>
-                                        <option value="">Seleccionar...</option>
-                                        <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="label-style">Dirección Completa</label>
-                                    <textarea v-model="form.plantel.direccion" class="form-input font-medium" rows="2" required></textarea>
-                                </div>
-
-                                <!-- Contacto -->
-                                <div class="grid grid-cols-1 gap-4">
-                                    <div class="form-group">
-                                        <label class="label-style">Celular / Teléfono</label>
-                                        <input v-model="form.plantel.telefono" type="tel" class="form-input font-bold" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="label-style">Correo Electrónico</label>
-                                        <input v-model="form.plantel.email" type="email" class="form-input font-bold" required>
-                                    </div>
-                                </div>
-
-                                <!-- Niveles -->
-                                <div class="form-group">
-                                    <label class="label-style">Niveles Educativos</label>
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <label v-for="nivel in nivelesCatalog" :key="nivel.id" 
-                                            class="flex items-center gap-2 p-3 border rounded-2xl cursor-pointer text-[10px] font-black uppercase transition-all"
-                                            :class="form.plantel.niveles.includes(nivel.id) ? 'bg-red-50 border-red-200 text-red-700 shadow-sm' : 'bg-white border-slate-100 text-slate-400'"
-                                        >
-                                            <input type="checkbox" :value="nivel.id" v-model="form.plantel.niveles" class="w-3 h-3 accent-red-600">
-                                            {{ nivel.nombre }}
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div v-else-if="!loadingPrecarga" class="text-center py-12 border-2 border-dashed border-slate-100 rounded-3xl bg-slate-50/30">
-                                <i class="fas fa-search-location text-slate-200 text-4xl mb-3"></i>
-                                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Selecciona una institución arriba</p>
+                        <!-- Niveles -->
+                        <div class="form-group mb-6">
+                            <label class="label-style">Niveles Educativos *</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label v-for="nivel in nivelesCatalog" :key="nivel.id" 
+                                    class="flex items-center gap-3 p-3 border-2 rounded-2xl cursor-pointer hover:border-red-200 transition-all shadow-sm bg-white" 
+                                    :class="{'border-red-600 bg-red-50/30': form.plantel.niveles.includes(nivel.id), 'border-slate-50': !form.plantel.niveles.includes(nivel.id)}"
+                                >
+                                    <input type="checkbox" :value="nivel.id" v-model="form.plantel.niveles" class="w-4 h-4 accent-red-600">
+                                    <span class="text-[10px] font-black uppercase text-slate-700 leading-none">{{ nivel.nombre }}</span>
+                                </label>
                             </div>
                         </div>
 
-                        <!-- 2. Historial de Visitas -->
-                        <div v-if="selectedCliente" class="form-section shadow-premium border-t-4 border-t-slate-800">
-                            <div class="section-title">
+                        <div class="form-group mb-6">
+                            <label class="label-style">Estado / Región *</label>
+                            <select v-model="form.plantel.estado_id" class="form-input font-bold" required :disabled="loading">
+                                <option value="">Seleccionar Estado...</option>
+                                <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-6">
+                            <label class="label-style">Dirección Completa *</label>
+                            <textarea v-model="form.plantel.direccion" class="form-input font-medium" rows="2" placeholder="Calle, número, colonia, CP..." required minlength="10" :disabled="loading"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="form-group">
+                                <label class="label-style">Celular / Teléfono *</label>
+                                <input v-model="form.plantel.telefono" type="tel" class="form-input font-bold" required minlength="10" :disabled="loading">
+                            </div>
+                            <div class="form-group">
+                                <label class="label-style">Correo Electrónico *</label>
+                                <input v-model="form.plantel.email" type="email" class="form-input font-bold" required :disabled="loading">
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-6">
+                            <label class="label-style">Nombre del Director / Coordinador *</label>
+                            <input v-model="form.plantel.director" type="text" class="form-input font-bold" required minlength="3" :disabled="loading">
+                        </div>
+                            </div>
+                            <div class="form-section shadow-premium border-t-4 border-t-slate-800">
+                        <!-- 2. Historial de Visitas (Inline para seguimiento) -->
+                        <div v-if="selectedCliente" class="mt-8 pt-8 border-t border-slate-100">
+                            <div class="section-title !mb-4">
                                 <i class="fas fa-history text-slate-800"></i> Historial Reciente
                             </div>
-                            <div v-if="loadingHistory" class="text-center py-10"><i class="fas fa-spinner fa-spin text-red-600"></i></div>
-                            <div v-else class="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scroll">
-                                <div v-for="h in historialVisitas" :key="h.id" class="p-4 bg-white border-l-4 rounded-xl shadow-sm border-slate-200" :class="getOutcomeBorder(h.resultado_visita)">
-                                    <div class="flex justify-between mb-1">
-                                        <span class="text-[9px] font-black text-slate-400 uppercase">{{ formatDateShort(h.fecha) }}</span>
-                                        <br><br>
+                            <div v-if="loadingHistory" class="text-center py-6"><i class="fas fa-circle-notch fa-spin text-red-600"></i></div>
+                            <div v-else class="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scroll">
+                                <div v-for="h in historialVisitas" :key="h.id" class="p-4 bg-slate-50 border-l-4 rounded-xl shadow-sm border-slate-200" :class="getOutcomeBorder(h.resultado_visita)">
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ formatDateShort(h.fecha) }}</span>
                                         <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !text-[7px]">{{ h.resultado_visita }}</span>
                                     </div>
-                                    <p class="text-[11px] text-slate-600 italic line-clamp-2">"{{ h.comentarios || 'Sin comentarios.' }}"</p>
+                                    <p class="text-[11px] text-slate-600 italic line-clamp-3">"{{ h.comentarios || 'Sin observaciones.' }}"</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- COLUMNA DERECHA: FORMULARIO DE INTERACCIÓN -->
-                    <div class="lg:col-span-2 space-y-6">
-                        <div class="form-section shadow-premium border-t-4 border-t-slate-800 transition-opacity" :class="{'opacity-40 pointer-events-none': !selectedCliente}">
+                    <!-- BLOQUE 2: DETALLES DE LA NUEVA VISITA -->
+                    <div class="space-y-8">
+                        <div class="form-section shadow-premium border-t-4 border-t-slate-800">
                             <div class="section-title">
-                                <i class="fas fa-calendar-plus text-slate-800"></i> 2. Detalles de la Nueva Interacción
+                                <i class="fas fa-calendar-plus text-slate-800"></i> 2. Detalles de la Interacción
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div class="form-group">
                                     <label class="label-style">Fecha de la Visita *</label>
-                                    <input v-model="form.visita.fecha" type="date" class="form-input font-bold" required>
+                                    <input v-model="form.visita.fecha" type="date" class="form-input font-bold" required :disabled="loading">
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">Persona Entrevistada *</label>
-                                    <input v-model="form.visita.persona_entrevistada" type="text" class="form-input font-bold" placeholder="¿Quién atendió?" required>
+                                    <input v-model="form.visita.persona_entrevistada" type="text" class="form-input font-bold" placeholder="¿Quién atendió?" required minlength="3" :disabled="loading">
                                 </div>
                             </div>
 
-                            <div class="form-group mb-8">
+                            <div class="form-group mb-6">
                                 <label class="label-style">Cargo / Puesto de la Persona *</label>
-                                <select v-model="form.visita.cargo" class="form-input font-bold" required>
+                                <select v-model="form.visita.cargo" class="form-input font-bold" required :disabled="loading">
                                     <option value="Director/Coordinador">Director/Coordinador</option>
                                     <option value="Subdirector">Subdirector</option>
                                     <option value="Jefe de Departamento">Jefe de Departamento</option>
@@ -169,30 +167,38 @@
                                     <option value="Otro">Otro</option>
                                 </select>
                             </div>
+                        </div>
 
-                                </div>
-                                <div class="form-section ">
-                            <!-- APARTADO A: INTERÉS -->
-                            <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative">
-                                <label class="label-mini mb-4 text-slate-600 font-black"><i class="fas fa-eye mr-1 text-blue-500"></i> Apartado A: Libros de Interés (Venta)</label>
+                        <!-- APARTADO A: LIBROS DE INTERÉS -->
+                        <div class="form-section shadow-premium border-t-4 border-t-slate-800">
+                            <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
+                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i> Apartado A: Libros de Interés (Venta)</label>
+                                
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                                    <select v-model="selectedSerieIdA" class="form-input font-bold text-xs" @change="handleSerieChange('interest')">
-                                        <option value="">Cualquier serie...</option>
-                                        <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
-                                        <option value="otro">VER TODAS</option>
-                                    </select>
-                                    <div class="relative">
-                                        <input v-model="interestInput.titulo" type="text" class="form-input pr-10 font-bold" placeholder="Buscar libro..." @input="searchBooks($event, 'interest')">
-                                        <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <div class="form-group">
+                                        <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Filtrar por Serie</label>
+                                        <select v-model="selectedSerieIdA" class="form-input font-bold text-xs" @change="handleSerieChange('interest')">
+                                            <option value="">Cualquier serie...</option>
+                                            <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
+                                            <option value="otro">VER TODAS</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group relative">
+                                        <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Buscar Libro</label>
+                                        <div class="relative">
+                                            <input v-model="interestInput.titulo" type="text" class="form-input pr-10 font-bold" placeholder="Título o ISBN..." @input="searchBooks($event, 'interest')" autocomplete="off">
+                                            <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                        </div>
                                         <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
-                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 flex justify-between">
+                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 flex justify-between items-center">
                                                 <span>{{ b.titulo }}</span>
-                                                <span class="text-[7px] bg-slate-100 px-1.5 rounded">{{ b.type }}</span>
+                                                <span class="text-[7px] bg-slate-100 px-1.5 py-0.5 rounded">{{ b.type }}</span>
                                             </li>
                                         </ul>
                                     </div>
                                 </div>
-                                <div v-if="selectedInterestBooks.length" class="table-modern-wrapper">
+                                
+                                <div v-if="selectedInterestBooks.length" class="table-modern-wrapper mt-6">
                                     <table class="table-modern">
                                         <thead>
                                             <tr>
@@ -218,29 +224,39 @@
                                                     </select>
                                                 </td>
                                                 <td class="text-center">
-                                                    <button @click="selectedInterestBooks.splice(idx, 1)" class="text-slate-300 hover:text-red-600"><i class="fas fa-trash-alt"></i></button>
+                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-slate-300 hover:text-red-600 transition-colors">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                <div v-else class="text-center py-6 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50 text-[10px] font-black text-slate-300 uppercase italic">Sin libros añadidos</div>
-                            </div>
+                                <div v-else class="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50">
+                                    <p class="text-[10px] font-bold text-slate-300 uppercase italic">Añade libros de interés para seguimiento</p>
                                 </div>
-                                <div class="form-section ">
-                            <!-- APARTADO B: PROMOCIÓN -->
-                            <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 mb-8 relative">
-                                <label class="label-mini mb-4 text-red-800 font-black"><i class="fas fa-box-open mr-1"></i> Apartado B: Muestras de Promoción Entregadas</label>
-                                <div class="relative mb-4">
-                                    <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100 shadow-sm" placeholder="Buscar libros de PROMOCIÓN física..." @input="searchBooks($event, 'delivered')">
-                                    <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
+                            </div>
+                        </div>
+
+                        <!-- APARTADO B: PROMOCIÓN -->
+                        <div class="form-section shadow-premium border-t-4 border-t-slate-800">
+                            <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 mb-8 relative" style="overflow: visible !important;">
+                                <label class="label-mini mb-4 text-red-800 font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> Apartado B: Muestras de Promoción Entregadas</label>
+                                
+                                <div class="form-group relative mb-4">
+                                    <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Buscar Libro de Promoción (Solo Material Físico)</label>
+                                    <div class="relative">
+                                        <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100 shadow-sm" placeholder="Escribe título o ISBN..." @input="searchBooks($event, 'delivered')" autocomplete="off">
+                                        <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
+                                    </div>
                                     <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
                                         <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3">
                                             <span>{{ b.titulo }}</span>
                                         </li>
                                     </ul>
                                 </div>
-                                <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper">
+                                
+                                <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6">
                                     <table class="table-modern variant-red">
                                         <thead>
                                             <tr>
@@ -258,26 +274,30 @@
                                                 <td>
                                                     <div class="flex justify-center">
                                                         <div class="quantity-control">
-                                                            <input v-model.number="item.cantidad" type="number" min="1" />
+                                                            <input v-model.number="item.cantidad" type="number" min="1" class="form-input py-1.5 px-1 text-center font-black" />
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td class="text-right">
                                                     <button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary text-slate-300 hover:text-red-600 transition-colors">
-                                                        <i class="fas fa-trash-alt mr-1"></i> Quitar
+                                                        <i class="fas fa-trash-alt"></i> Quitar
                                                     </button>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                <div v-else class="text-center py-8 border-2 border-dashed border-red-100 rounded-3xl bg-white/50 text-[10px] font-black text-red-300 uppercase tracking-widest">No se dejaron muestras hoy</div>
-                            </div>
+                                <div v-else class="text-center py-8 border-2 border-dashed border-red-100 rounded-3xl bg-white/50">
+                                    <p class="text-[10px] font-black text-red-300 uppercase tracking-widest">No se dejaron muestras hoy</p>
                                 </div>
-                                <div class="form-section ">
+                            </div>
+                        </div>
+
+                        <!-- RESULTADO Y COMENTARIOS -->
+                        <div class="form-section shadow-premium border-t-4 border-t-slate-800">
                             <div class="form-group mb-6">
-                                <label class="label-style">Resolución Actual</label>
-                                <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required>
+                                <label class="label-style">Resolución / Resultado Actual</label>
+                                <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required :disabled="loading">
                                     <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
                                     <option value="compra">DECISIÓN DE COMPRA</option>
                                     <option value="rechazo">NO INTERESADO</option>
@@ -285,10 +305,10 @@
                             </div>
 
                             <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
-                                <label class="text-orange-800 font-black uppercase text-[9px] mb-3 block tracking-widest">Próxima Acción *</label>
+                                <label class="text-orange-800 font-black uppercase text-[9px] mb-3 block tracking-widest">Próxima Acción Agendada *</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold" required>
-                                    <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold">
+                                    <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold" required :disabled="loading">
+                                    <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold" :disabled="loading">
                                         <option value="visita">Visita de Seguimiento</option>
                                         <option value="presentacion">Presentación Académica</option>
                                     </select>
@@ -297,29 +317,31 @@
 
                             <div class="form-group">
                                 <label class="label-style">Comentarios y Acuerdos de la Sesión</label>
-                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="3" placeholder="Resumen de lo tratado (Mínimo 20 caracteres)..." required minlength="20"></textarea>
+                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de los puntos tratados (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
                             </div>
                         </div>
-
-                        <div class="flex justify-end gap-4">
-                            <button type="submit" class="btn-primary-action px-20 py-5 w-full md:w-auto" :disabled="loading || !selectedCliente">
-                                <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
-                                {{ loading ? 'Sincronizando...' : 'Postear Seguimiento' }}
-                            </button>
-                        </div>
                     </div>
+                </div>
+
+                <!-- BOTONES DE ACCIÓN -->
+                <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8">
+                    <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest" :disabled="loading">Cancelar</button>
+                    <button type="submit" class="btn-primary px-20 py-4" :disabled="loading || !selectedCliente || gettingLocation">
+                        <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
+                        {{ loading ? 'Sincronizando...' : 'Postear Seguimiento' }}
+                    </button>
                 </div>
             </form>
         </div>
 
-        <!-- MODAL ÉXITO -->
+        <!-- MODAL DE ÉXITO DINÁMICO -->
         <Teleport to="body">
             <Transition name="modal-fade">
                 <div v-if="showSuccessModal" class="modal-overlay-custom">
                     <div class="modal-content-success animate-scale-in">
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
-                        <h2 class="modal-title-success">¡Seguimiento Registrado!</h2>
-                        <p class="modal-text-success">La bitácora ha sido almacenada. El plantel se mantiene como <strong>{{ savedClientType }}</strong> activo.</p>
+                        <h2 class="modal-title-success">¡Seguimiento Exitoso!</h2>
+                        <p class="modal-text-success">La bitácora se guardó. El plantel ahora figura como <strong>{{ savedClientType }}</strong> activo.</p>
                         <button @click="goToHistory" class="btn-primary-action w-full mt-8 bg-slate-900 border-none shadow-none text-white">Regresar al Historial</button>
                     </div>
                 </div>
@@ -369,8 +391,17 @@ let bookTimer = null;
 let clientTimer = null;
 
 const form = reactive({
-    plantel: { name: '', rfc: '', niveles: [], direccion: '', estado_id: '', telefono: '', email: '', director: '', latitud: null, longitud: null },
-    visita: { fecha: new Date().toISOString().split('T')[0], persona_entrevistada: '', cargo: 'Director/Coordinador', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '', proxima_accion: 'visita' }
+    plantel: { 
+        name: '', rfc: '', niveles: [], direccion: '', 
+        estado_id: '', telefono: '', email: '', director: '', 
+        latitud: null, longitud: null 
+    },
+    visita: { 
+        fecha: new Date().toISOString().split('T')[0], 
+        persona_entrevistada: '', cargo: 'Director/Coordinador', 
+        comentarios: '', resultado_visita: 'seguimiento', 
+        proxima_visita: '', proxima_accion: 'visita' 
+    }
 });
 
 const seriesFiltradas = computed(() => {
@@ -384,15 +415,16 @@ const getLocation = () => {
     if (!navigator.geolocation) return alert("Navegador no soporta GPS.");
     gettingLocation.value = true;
     navigator.geolocation.getCurrentPosition(
-        (p) => { form.plantel.latitud = p.coords.latitude; form.plantel.longitud = p.coords.longitude; gettingLocation.value = false; },
+        (p) => { 
+            form.plantel.latitud = p.coords.latitude; 
+            form.plantel.longitud = p.coords.longitude; 
+            gettingLocation.value = false; 
+        },
         () => { gettingLocation.value = false; alert("Permiso de GPS denegado."); },
         { enableHighAccuracy: true }
     );
 };
 
-/**
- * BUSCADOR DE PROSPECTOS/CLIENTES
- */
 const searchProspectos = () => {
     if (searchQuery.value.length < 3) { clientesSuggestions.value = []; return; }
     if (clientTimer) clearTimeout(clientTimer);
@@ -409,20 +441,18 @@ const selectProspecto = (c) => {
     searchQuery.value = c.name;
     clientesSuggestions.value = [];
     
-    // Mapeo de datos al formulario
+    // REGLA: Solo Nombre y RFC. Todo lo demás se vacía para reciclar el formulario diseño-idéntico.
     form.plantel.name = c.name;
     form.plantel.rfc = c.rfc || '';
-    form.plantel.direccion = c.direccion || '';
-    form.plantel.estado_id = c.estado_id || '';
-    form.plantel.telefono = c.telefono || '';
-    form.plantel.email = c.email || '';
-    form.plantel.director = c.contacto || '';
     
-    // Procesar niveles (si vienen como string separados por coma)
-    if (c.nivel_educativo) {
-        const nombres = c.nivel_educativo.split(',').map(n => n.trim());
-        form.plantel.niveles = nivelesCatalog.value.filter(niv => nombres.includes(niv.nombre)).map(niv => niv.id);
-    }
+    form.plantel.direccion = '';
+    form.plantel.estado_id = '';
+    form.plantel.telefono = '';
+    form.plantel.email = '';
+    form.plantel.director = '';
+    form.plantel.niveles = [];
+    form.plantel.latitud = c.latitud || null;
+    form.plantel.longitud = c.longitud || null;
 
     fetchHistorial(c.id);
 };
@@ -468,7 +498,10 @@ const addMaterial = (book, type) => {
 
     if (type === 'interest') {
         if (!selectedInterestBooks.value.find(b => b.id === book.id)) {
-            selectedInterestBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: serieNombre, original_type: book.type, tipo: book.type === 'digital' ? 'digital' : 'fisico' });
+            selectedInterestBooks.value.push({ 
+                id: book.id, titulo: book.titulo, serie_nombre: serieNombre, 
+                original_type: book.type, tipo: book.type === 'digital' ? 'digital' : 'fisico' 
+            });
         }
         interestInput.titulo = ''; interestSuggestions.value = [];
     } else {
@@ -482,7 +515,7 @@ const addMaterial = (book, type) => {
 const handleSubmit = async () => {
     if (!selectedCliente.value) return;
     if (form.plantel.niveles.length === 0) {
-        errorMessage.value = "Selecciona niveles educativos.";
+        errorMessage.value = "Selecciona niveles educativos para completar el expediente del plantel.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
     }
@@ -501,7 +534,6 @@ const handleSubmit = async () => {
             cliente_id: selectedCliente.value.id,
             plantel: { ...form.plantel, niveles: nivelNombres }, 
             visita: { ...form.visita, libros_interes: materiales },
-            // Mantenemos compatibilidad con el endpoint de seguimiento
             fecha: form.visita.fecha,
             persona_entrevistada: form.visita.persona_entrevistada,
             cargo: form.visita.cargo,
@@ -515,7 +547,7 @@ const handleSubmit = async () => {
         await axios.post('visitas/seguimiento', payload);
         showSuccessModal.value = true;
     } catch (err) {
-        errorMessage.value = err.response?.data?.message || "Error al guardar el seguimiento.";
+        errorMessage.value = err.response?.data?.message || "Error al procesar el seguimiento.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally { loading.value = false; }
 };
@@ -529,16 +561,12 @@ const verificarPrecarga = async () => {
     try {
         const res = await axios.get(`/visitas/${idParam}`);
         const v = res.data;
-        // Hidratamos cliente desde la visita
         if (v.cliente) selectProspecto(v.cliente);
         else {
             selectedCliente.value = { id: v.cliente_id, name: v.nombre_plantel };
             searchQuery.value = v.nombre_plantel;
-            form.plantel.rfc = v.rfc_plantel;
-            form.plantel.direccion = v.direccion_plantel;
-            form.plantel.director = v.director_plantel;
-            form.plantel.email = v.email_plantel;
-            form.plantel.telefono = v.telefono_plantel;
+            form.plantel.name = v.nombre_plantel;
+            form.plantel.rfc = v.rfc_plantel || '';
             fetchHistorial(v.cliente_id);
         }
     } catch (e) { console.error(e); } finally { loadingPrecarga.value = false; }
@@ -589,6 +617,8 @@ onMounted(async () => {
 .btn-primary-action { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary-action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
+.btn-primary-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2); }
+
 .autocomplete-list { position: absolute; z-index: 2000; width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.2); max-height: 250px; overflow-y: auto; list-style: none; padding: 10px; margin: 8px 0 0; }
 .autocomplete-list li { padding: 12px 16px; cursor: pointer; border-radius: 12px; border-bottom: 1px solid #f8fafc; transition: all 0.2s; }
 
@@ -621,4 +651,7 @@ onMounted(async () => {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
+.btn-primary { background: linear-gradient(135deg, #cb7e81 0%, #e96a90 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
+
 </style>

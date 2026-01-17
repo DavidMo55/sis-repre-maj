@@ -51,13 +51,13 @@
                                         <label class="label-mini">Concepto</label>
                                         <select v-model="tempSub.concepto" class="form-input text-sm font-bold w-full">
                                             <option value="" disabled>Seleccione...</option>
-                                            <option value="Peaje y gasolina">⛽ Gasolina</option>
-                                            <option value="Peaje">🛣️ Peaje</option>
-                                            <option value="Alimentación">🍽️ Alimentación</option>
-                                            <option value="Hospedaje">🏨 Hospedaje</option>
-                                            <option value="Mantenimiento de vehículo">🔧 Mantenimiento</option>
-                                            <option value="Papelería y artículos">📁 Papelería</option>
-                                            <option value="Otros">✨ Otros (Especificar)</option>
+                                            <option value="Peaje y gasolina">Gasolina</option>
+                                            <option value="Peaje">Peaje</option>
+                                            <option value="Alimentación">Alimentación</option>
+                                            <option value="Hospedaje">Hospedaje</option>
+                                            <option value="Mantenimiento de vehículo">Mantenimiento</option>
+                                            <option value="Papelería y artículos">Papelería</option>
+                                            <option value="Otros">Otros (Especificar)</option>
                                         </select>
                                     </div>
 
