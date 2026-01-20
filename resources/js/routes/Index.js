@@ -11,7 +11,6 @@ import GastosDeailView from '@/views/GastosDeailView.vue';
 import VisistasIndexView from '@/views/VisitasIndesView.vue';
 import PrimerasVisitasView from '@/views/PrimeraVisitaView.vue';
 import DetallesPrimerVisita from '@/views/PrimeraVisitaDetailView.vue'
-import SeguimientoVisita from '../views/SeguimientoVisitaView.vue';
 import SeguimientoID from '../views/VisitaIDView.vue';
 import GastosCreateView from '../views/GastosCreateView.vue';
 import CapacitacionesIndexView from '../views/CapacitacionesIndexView.vue';
@@ -86,11 +85,7 @@ const routes = [
                 name: 'VisitaDetalle',
                 component: DetallesPrimerVisita
             },
-            {
-                path: 'visita-seguimiento',
-                name: 'VisitaSeguimiento',
-                component: SeguimientoVisita
-            },
+            
             {
                 path: 'seguimiento/:id',
                 name: 'SeguimientoID',

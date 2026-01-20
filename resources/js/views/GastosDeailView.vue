@@ -62,64 +62,78 @@
                             </div>
                             <h2 class="text-lg font-black text-slate-800 uppercase tracking-tight">Desglose de Conceptos y Archivos</h2>
                         </div>
-                        <button @click="showUploadModal = true" class="btn-primary-action !py-2.5 !px-6 !text-[10px] shadow-md">
-                            <i class="fas fa-cloud-upload-alt mr-1"></i> Gestionar Comprobantes
-                        </button>
+                        
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm border-collapse">
-                            <thead class="bg-slate-50 text-slate-400 uppercase text-[9px] font-black tracking-[0.2em] border-b border-slate-100">
+                        <div class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
+                        <table class="min-width-full divide-y divide-gray-200">
+                            <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-8 py-5 text-left w-16">#</th>
-                                    <th class="px-6 py-5 text-left">Concepto / Rubro</th>
-                                    <th class="px-6 py-5 text-center">Documento Probatorio</th>
-                                    <th class="px-6 py-5 text-center">Estatus Fiscal</th>
-                                    <th class="px-6 py-5 text-right">Monto</th>
+                                    <th class="table-header w-16 text-center">#</th>
+                                    <th class="table-header">Concepto / Rubro</th>
+                                    <th class="table-header text-center">Documento Probatorio</th>
+                                    <th class="table-header text-center">Estatus Fiscal</th>
+                                    <th class="table-header text-right">Monto</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-slate-50">
-                                <tr v-for="(sub, idx) in gasto.detalles" :key="idx" class="hover:bg-slate-50/50 transition-colors group">
-                                    <td class="px-8 py-6 font-black text-slate-300">{{ idx + 1 }}</td>
-                                    <td class="px-6 py-6">
-                                        <p class="font-black text-slate-800 text-sm uppercase leading-tight">{{ sub.concepto }}</p>
-                                        <p v-if="sub.descripcion" class="text-[10px] text-slate-400 mt-1 italic">{{ sub.descripcion }}</p>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                                <tr v-for="(sub, idx) in gasto.detalles" :key="idx" class="hover:bg-gray-50 transition-colors group">
+                                    <td class="table-cell text-center font-black text-slate-300">
+                                        {{ idx + 1 }}
                                     </td>
-                                    <td class="px-6 py-6 text-center">
-                                        <!-- Enlace directo al comprobante si existe -->
+
+                                    <td class="table-cell">
+                                        <p class="font-black text-slate-800 text-sm uppercase leading-tight">
+                                            {{ sub.concept }}
+                                        </p>
+                                        <p v-if="sub.descripcion" class="text-[10px] text-slate-400 mt-1 italic">
+                                            {{ sub.descripcion }}
+                                        </p>
+                                    </td>
+
+                                    <td class="table-cell text-center">
                                         <div v-if="gasto.comprobantes && gasto.comprobantes[idx]" class="inline-flex items-center">
                                             <a :href="gasto.comprobantes[idx].public_url" 
-                                               target="_blank" 
-                                               class="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-slate-600 hover:border-red-600 hover:text-red-700 hover:shadow-md transition-all">
-                                                <i class="fas" :class="getFileIcon(gasto.comprobantes[idx].extension)"></i>
-                                                Ver Archivo
+                                            target="_blank" 
+                                            class="btn-file-view">
+                                                <i class="fas mr-2" :class="getFileIcon(gasto.comprobantes[idx].extension)"></i>
+                                                VER ARCHIVO
                                             </a>
                                         </div>
-                                        <!-- Botón de acción para subir si no existe -->
                                         <button v-else 
                                             @click="showUploadModal = true"
-                                            class="flex items-center gap-2 bg-red-50 border border-red-100 px-4 py-2 rounded-xl text-[10px] font-black uppercase text-red-600 hover:bg-red-600 hover:text-white transition-all mx-auto shadow-sm"
+                                            class="btn-file-upload"
                                         >
-                                            <i class="fas fa-plus-circle"></i>
-                                            Subir Comprobante
+                                            <i class="fas fa-plus-circle mr-2"></i>
+                                            SUBIR COMPROBANTE
                                         </button>
                                     </td>
-                                    <td class="px-6 py-6 text-center">
-                                        <span v-if="sub.es_facturado" class="status-badge bg-green-100 text-green-700 border border-green-200">Facturado</span>
-                                        <span v-else class="status-badge bg-slate-100 text-slate-400 border border-slate-200">Sin Factura</span>
+
+                                    <td class="table-cell text-center">
+                                        <span :class="sub.es_facturado ? 'badge-tax-success' : 'badge-tax-none'">
+                                            {{ sub.es_facturado ? 'FACTURADO' : 'SIN FACTURA' }}
+                                        </span>
                                     </td>
-                                    <td class="px-6 py-6 text-right font-black text-red-700 text-base">
+
+                                    <td class="table-cell text-right font-black text-red-700 text-base">
                                         {{ formatCurrency(sub.monto) }}
                                     </td>
                                 </tr>
                             </tbody>
-                            <tfoot class="bg-slate-900 text-white">
+                            
+                            <tfoot class="bg-slate-900">
                                 <tr>
-                                    <td colspan="4" class="px-8 py-6 text-right font-black uppercase text-[11px] tracking-[0.2em] text-slate-400">Total Acumulado del Paquete:</td>
-                                    <td class="px-6 py-6 text-right font-black text-2xl text-red-400">{{ formatCurrency(gasto.monto) }}</td>
+                                    <td colspan="4" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+                                        Total Acumulado del Paquete:
+                                    </td>
+                                    <td class="px-6 py-6 text-right font-black text-2xl text-red-400">
+                                        {{ formatCurrency(gasto.monto) }}
+                                    </td>
                                 </tr>
                             </tfoot>
                         </table>
+                    </div>
                     </div>
                 </div>
 
@@ -239,4 +253,99 @@ onMounted(fetchGastoDetail);
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.table-header {
+    padding: 14px 16px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+.table-cell {
+    padding: 16px;
+    vertical-align: middle;
+}
+
+/* Botón Ver Archivo */
+.btn-file-view {
+    display: inline-flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 900;
+    color: #475569;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn-file-view:hover {
+    border-color: #dc2626;
+    color: #b91c1c;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Botón Subir Archivo */
+.btn-file-upload {
+    display: inline-flex;
+    align-items: center;
+    background-color: #fef2f2;
+    border: 1px solid #fee2e2;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 900;
+    color: #dc2626;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.btn-file-upload:hover {
+    background-color: #dc2626;
+    color: white;
+}
+
+/* Badges Fiscales */
+.badge-tax-success {
+    background-color: #dcfce7;
+    color: #15803d;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.badge-tax-none {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+/* Footer Especial */
+tfoot tr td {
+    border-top: 2px solid #1e293b;
+}
+
+/* Auxiliares */
+.w-16 { width: 4rem; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
 </style>

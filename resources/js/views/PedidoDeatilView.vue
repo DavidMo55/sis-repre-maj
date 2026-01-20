@@ -187,55 +187,73 @@
                     </div>
                     
                     <div class="table-responsive shadow-premium border border-slate-200 rounded-[2rem] overflow-hidden bg-white">
-                        <table class="w-full text-sm">
-                            <thead class="bg-red-800 text-white hidden md:table-header-group">
-                                <tr>
-                                    <th class="table-header-red text-left">Material / Libro</th>
-                                    <th class="table-header-red text-center">Formato</th>
-                                    <th class="table-header-red text-center">Cant.</th>
-                                    <th class="table-header-red text-right">Unitario</th>
-                                    <th class="table-header-red text-right">Total</th>
-                                    <th class="table-header-red text-center">Adjunto</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 block md:table-row-group">
-                                <tr v-for="detalle in pedido.detalles" :key="detalle.id" class="hover:bg-slate-50 transition-colors block md:table-row p-4 md:p-0 relative">
-                                    <td class="px-6 py-5 block md:table-cell">
-                                        <p class="font-black text-slate-800 text-sm uppercase leading-tight">{{ detalle.libro?.titulo || 'Material no encontrado' }}</p>
-                                        <p class="text-[9px] font-mono text-slate-400 mt-1 uppercase">ISBN: {{ detalle.libro?.ISBN || 'N/A' }}</p>
-                                    </td>
-                                    <td class="px-6 py-5 text-center block md:table-cell">
-                                        <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2">Formato:</span>
-                                        <span class="text-[10px] font-black text-slate-500 uppercase bg-slate-100 px-3 py-1 rounded-full border border-slate-200">{{ detalle.tipo_licencia }}</span>
-                                    </td>
-                                    <td class="px-6 py-5 text-center block md:table-cell font-black text-red-700 text-base">
-                                        <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2">Cant:</span>
-                                        {{ detalle.cantidad }}
-                                    </td>
-                                    <td class="px-6 py-5 text-right block md:table-cell font-mono text-xs text-slate-500">
-                                        <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2">Precio:</span>
-                                        {{ formatCurrency(detalle.precio_unitario) }}
-                                    </td>
-                                    <td class="px-6 py-5 text-right block md:table-cell font-black text-slate-800 text-[14px]">
-                                        <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2">Subtotal:</span>
-                                        {{ formatCurrency(detalle.costo_total) }}
-                                    </td>
-                                    <td class="px-6 py-5 text-center block md:table-cell">
-                                        <a v-if="detalle.archivo_path" :href="detalle.archivo_url" target="_blank" class="text-red-600 hover:text-red-800 transition-colors">
-                                            <i class="fas fa-file-pdf fa-lg"></i>
-                                        </a>
-                                        <span v-else class="text-slate-200 text-[10px] italic">--</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                            <tfoot class="bg-slate-50 border-t-2 border-slate-200 hidden md:table-footer-group">
-                                <tr>
-                                    <td colspan="4" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-widest text-slate-400">Total Acumulado:</td>
-                                    <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none">{{ totalOrderCost }}</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                       <div class="table-responsive table-shadow-lg mt-6 border rounded-xl overflow-hidden shadow-sm">
+    <table class="min-width-full divide-y divide-gray-200">
+        <thead class="bg-red-800 text-white hidden md:table-header-group">
+            <tr>
+                <th class="table-header-red text-left">Material / Libro</th>
+                <th class="table-header-red text-center">Formato</th>
+                <th class="table-header-red text-center">Cant.</th>
+                <th class="table-header-red text-right">Unitario</th>
+                <th class="table-header-red text-right">Total</th>
+                <th class="table-header-red text-center">Adjunto</th>
+            </tr>
+        </thead>
+
+        <tbody class="bg-white divide-y divide-slate-100 block md:table-row-group">
+            <tr v-for="detalle in pedido.detalles" :key="detalle.id" 
+                class="hover:bg-slate-50 transition-colors block md:table-row p-5 md:p-0 relative border-b md:border-none">
+                
+                <td class="table-cell block md:table-cell">
+                    <p class="font-black text-slate-800 text-sm uppercase leading-tight">
+                        {{ detalle.libro?.titulo || 'Material no encontrado' }}
+                    </p>
+                    <p class="text-[9px] font-mono text-slate-400 mt-1 uppercase tracking-widest">
+                        ISBN: {{ detalle.libro?.ISBN || 'N/A' }}
+                    </p>
+                </td>
+
+                <td class="table-cell text-center block md:table-cell">
+                    <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2 tracking-tighter">Formato:</span>
+                    <span class="badge-format">{{ detalle.tipo_licencia }}</span>
+                </td>
+
+                <td class="table-cell text-center block md:table-cell font-black text-red-700 text-base">
+                    <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2 tracking-tighter">Cant:</span>
+                    {{ detalle.cantidad }}
+                </td>
+
+                <td class="table-cell text-right block md:table-cell font-mono text-[11px] text-slate-500">
+                    <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2 tracking-tighter">Precio:</span>
+                    {{ formatCurrency(detalle.precio_unitario) }}
+                </td>
+
+                <td class="table-cell text-right block md:table-cell font-black text-slate-800 text-[14px]">
+                    <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2 tracking-tighter">Subtotal:</span>
+                    {{ formatCurrency(detalle.costo_total) }}
+                </td>
+
+                <td class="table-cell text-center block md:table-cell">
+                    <span class="md:hidden inline-block text-[9px] font-black text-slate-400 uppercase mr-2 tracking-tighter">Adjunto:</span>
+                    <a v-if="detalle.archivo_path" :href="detalle.archivo_url" target="_blank" class="link-pdf-icon">
+                        <i class="fas fa-file-pdf fa-lg"></i>
+                    </a>
+                    <span v-else class="text-slate-200 text-[10px] italic">--</span>
+                </td>
+            </tr>
+        </tbody>
+
+        <tfoot class="bg-slate-50 border-t-2 border-slate-200 hidden md:table-footer-group">
+            <tr>
+                <td colspan="4" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">Total Acumulado del Pedido:</td>
+                <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none">
+                    {{ formatCurrency(totalOrderCost) }}
+                </td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
                     </div>
                 </div>
 
@@ -352,10 +370,74 @@ onMounted(() => fetchPedidoDetail());
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    background-color: #a93339;
-    color: white;
+    background-color: #f0f0f0;
+    color: rgb(94, 94, 94);
+}
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
 }
 
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Cabecera Roja Especial */
+.table-header-red {
+    padding: 16px 24px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #676767;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.table-cell {
+    padding: 16px 24px;
+    vertical-align: middle;
+}
+
+/* Badge de Formato */
+.badge-format {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 900;
+    color: #64748b; /* Slate-500 */
+    text-transform: uppercase;
+    background-color: #f1f5f9; /* Slate-100 */
+    padding: 4px 12px;
+    border-radius: 9999px;
+    border: 1px solid #e2e8f0;
+}
+
+/* Icono PDF */
+.link-pdf-icon {
+    color: #dc2626; /* Red-600 */
+    transition: all 0.2s;
+}
+
+.link-pdf-icon:hover {
+    color: #991b1b; /* Red-800 */
+    transform: scale(1.1);
+}
+
+/* Sombras y Helpers */
+.table-shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+
+/* Responsive labels para Mobile */
+@media (max-width: 767px) {
+    .table-cell {
+        padding: 8px 0;
+    }
+}
 .btn-icon-action {
     width: 34px;
     height: 34px;

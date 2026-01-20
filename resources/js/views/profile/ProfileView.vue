@@ -158,40 +158,95 @@
 
         <!-- SECCIÓN: GESTIONAR DELEGADOS -->
         <section v-if="activeSection === 'delegates'" class="form-card shadow-premium animate-slide-up">
-          <div class="flex justify-between items-center mb-8">
-            <h2 class="form-title text-purple-800 border-purple-700">Gestionar Delegados</h2>
-            <button v-if="!showAddDelegate" @click="showAddDelegate = true" class="btn-add-circle"><i class="fas fa-plus"></i></button>
-          </div>
+    <div class="flex justify-between items-center mb-8">
+        <h2 class="form-title text-purple-800 border-purple-700">Gestionar Delegados</h2>
+        <button v-if="!showAddDelegate" @click="showAddDelegate = true" class="btn-add-circle">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
 
-          <div v-if="showAddDelegate" class="bg-red-50 p-6 rounded-3xl border-2 border-red-100 mb-8 animate-fade-in shadow-inner">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div><label class="text-[10px] font-black uppercase mb-2 block text-red-800">Usuario Delegado</label><input v-model="newDelegate.username" type="text" class="form-input text-sm"></div>
-                <div><label class="text-[10px] font-black uppercase mb-2 block text-red-800">Contraseña Temporal</label><input v-model="newDelegate.password" type="password" class="form-input text-sm"></div>
-                <div class="flex gap-2">
-                  <button @click="addDelegate" class="btn-save-profile py-3 px-6 flex-1 text-sm">Crear Cuenta</button>
-                  <button @click="showAddDelegate = false" class="bg-white text-slate-400 p-2 rounded-xl border-2 hover:bg-slate-50 transition-colors">
-                    <i class="fas fa-times"></i>
-                  </button>
-                </div>
-              </div>
-          </div>
-
-          <div v-if="delegates.length === 0" class="empty-delegates text-center py-20 border-2 border-dashed border-slate-200 rounded-[2.5rem] bg-slate-50/50">
-            <i class="fas fa-user-shield text-4xl text-slate-200 mb-4"></i>
-            <p class="text-slate-400 font-bold italic">No hay cuentas de delegados autorizadas.</p>
-          </div>
-          
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div v-for="delegate in delegates" :key="delegate.id" class="delegate-item p-5 bg-white border-2 border-slate-50 rounded-2xl flex items-center justify-between group hover:border-red-100 transition-all">
-              <div class="flex items-center gap-4">
-                <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-black uppercase">{{ delegate.name.charAt(0) }}</div>
-                <div><p class="text-sm font-black text-slate-800">{{ delegate.name }}</p><p class="text-[10px] text-slate-400 uppercase tracking-tighter font-bold">Delegado Autorizado</p></div>
-              </div>
-              <button @click="confirmRemoveDelegate(delegate)" class="text-slate-300 hover:text-red-600 p-3 transition-colors" title="Revocar acceso"><i class="fas fa-trash-alt"></i></button>
+    <div v-if="showAddDelegate" class="bg-red-50 p-6 rounded-3xl border-2 border-red-100 mb-8 animate-fade-in shadow-inner">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+                <label class="text-[10px] font-black uppercase mb-2 block text-red-800">Usuario Delegado</label>
+                <input v-model="newDelegate.username" type="text" class="form-input text-sm" placeholder="Ej. juan.perez">
             </div>
-          </div>
-        </section>
-      </main>
+            <div>
+                <label class="text-[10px] font-black uppercase mb-2 block text-red-800">Contraseña Temporal</label>
+                <input v-model="newDelegate.password" type="password" class="form-input text-sm" placeholder="••••••••">
+            </div>
+            
+            <div class="flex gap-2">
+                <button @click="addDelegate" class="btn-save-profile py-3 px-6 flex-1 text-sm">Crear Cuenta</button>
+                <br><br>
+                <button @click="showAddDelegate = false" class="btn-secondary bg-white text-slate-400 p-2 rounded-xl border-2 hover:bg-slate-50 transition-colors">
+                  
+                    <i class="fas fa-times"></i>Quitar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="delegates.length === 0" class="empty-delegates text-center py-20 border-2 border-dashed border-slate-200 rounded-[2.5rem] bg-slate-50/50">
+        <i class="fas fa-user-shield text-4xl text-slate-200 mb-4"></i>
+        <p class="text-slate-400 font-bold italic">No hay cuentas de delegados autorizadas.</p>
+    </div>
+    
+    <div v-else class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm">
+        <table class="min-width-full divide-y divide-gray-200">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="table-header w-16 text-center">Inic.</th>
+                    <th class="table-header">Nombre de Usuario</th>
+                    <th class="table-header">Rol / Permisos</th>
+                    <th class="table-header text-center">Estado</th>
+                    <th class="px-6 py-3"></th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+                <tr v-for="delegate in delegates" :key="delegate.id" class="hover:bg-gray-50 transition-colors">
+                    <td class="table-cell">
+                        <div class="w-10 h-10 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center font-black text-xs mx-auto border border-slate-200">
+                            {{ delegate.name.charAt(0).toUpperCase() }}
+                        </div>
+                    </td>
+
+                    <td class="table-cell">
+                        <div class="text-sm font-black text-slate-800 uppercase leading-tight">
+                            {{ delegate.name }}
+                        </div>
+                        <div class="text-[9px] text-slate-400 font-bold mt-1 tracking-widest">
+                            ID: #00{{ delegate.id }}
+                        </div>
+                    </td>
+
+                    <td class="table-cell">
+                        <span class="text-[10px] font-black text-purple-700 bg-purple-50 px-3 py-1 rounded-lg border border-purple-100 uppercase tracking-tighter">
+                            Delegado Autorizado
+                        </span>
+                    </td>
+
+                    <td class="table-cell text-center">
+                        <span class="status-badge-sm">
+                            <i class="fas fa-circle text-[6px] text-green-500 mr-2"></i> ACTIVO
+                        </span>
+                    </td>
+
+                    <td class="table-cell text-right">
+                        <button @click="confirmRemoveDelegate(delegate)" 
+                                class="btn-delete-delegate" 
+                                title="Revocar acceso">
+                            <i class="fas fa-trash-alt"></i>
+                            <span class="hidden md:inline ml-1">Revocar</span>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+      </main>    
     </div>
 
     <!-- MODAL DE SISTEMA (OVERLAY TIPO PEDIDOS) -->
@@ -532,4 +587,97 @@ onMounted(fetchInitialData)
 
 .toast-enter-active, .toast-leave-active { transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
 .toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, 100%); }
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Cabeceras */
+.table-header {
+    padding: 14px 16px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Celdas */
+.table-cell {
+    padding: 12px 16px;
+    vertical-align: middle;
+}
+
+/* Badge de Estatus Sutil */
+.status-badge-sm {
+    font-size: 9px;
+    font-weight: 800;
+    color: #1e293b;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Botón de Eliminación */
+.btn-delete-delegate {
+    background: none;
+    border: none;
+    color: #cbd5e1; /* Slate-300 */
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 8px 12px;
+}
+
+.btn-delete-delegate:hover {
+    color: #dc2626; /* Red-600 */
+    background-color: #fef2f2;
+    border-radius: 10px;
+}
+
+/* Estilos de botones de acción superior (asumiendo que ya tienes algunos) */
+.btn-add-circle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #b91c1c;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.btn-add-circle:hover {
+    transform: rotate(90deg);
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #f1f5f9;
+    border-radius: 12px;
+    transition: all 0.3s;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #f87171;
+    background: white;
+}
+
+.table-shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.text-right { text-align: right; }
+.text-center { text-align: center; }
 </style>

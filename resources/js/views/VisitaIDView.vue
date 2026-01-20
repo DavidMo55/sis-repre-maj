@@ -32,96 +32,9 @@
                     
                     <!-- BLOQUE 1: IDENTIFICACIÓN Y DATOS DEL PLANTEL -->
                     <div class="form-section shadow-premium border-t-4 border-t-red-700">
-                        <div class="section-title">
-                            <i class="fas fa-school text-red-700"></i> 1. Identidad del Plantel
-                        </div>
-                        
-                        <!-- Buscador (Solo si no hay precarga) -->
-                        <div v-if="!route.params.id" class="form-group relative mb-6">
-                            <label class="label-style">Buscar Plantel en Seguimiento *</label>
-                            <div class="relative">
-                                <input v-model="searchQuery" type="text" class="form-input pl-10 font-bold" placeholder="Escribe nombre del plantel..." @input="searchProspectos" autocomplete="off">
-                                <i class="fas fa-university absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            </div>
-                            <ul v-if="clientesSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
-                                <li v-for="v in clientesSuggestions" :key="v.id" @click="selectProspecto(v)" class="hover:bg-red-50 transition-colors border-b last:border-0 border-slate-50">
-                                    <div class="flex justify-between items-start">
-                                        <div class="text-xs font-black text-slate-800 uppercase line-clamp-1">{{ v.name }}</div>
-                                        <span class="text-[7px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-black uppercase">{{ v.tipo }}</span>
-                                    </div>
-                                </li>
-                            </ul>
-                        </div>
+                       
 
-                        <div class="form-group mb-6">
-                            <label class="label-style">Nombre del Plantel *</label>
-                            <input v-model="form.plantel.name" type="text" class="form-input font-bold" placeholder="Confirmar nombre" disabled required minlength="5" :disabled="loading">
-                        </div>
-
-                        <div class="form-group mb-6">
-                            <label class="label-style">RFC del Plantel (Obligatorio) *</label>
-                            <input v-model="form.plantel.rfc" type="text" class="form-input uppercase font-mono border-red-100 font-black text-red-900" disabled="" placeholder="RFC para facturación" required minlength="12" maxlength="13" :disabled="loading">
-                        </div>
-
-                        <!-- GPS -->
-                        <div class="bg-blue-50 p-6 rounded-[2rem] border border-blue-200 mb-6 shadow-sm">
-                            <div class="flex items-center justify-between mb-4">
-                                <label class="text-[10px] font-black text-blue-700 uppercase tracking-[0.2em]">
-                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica (GPS)
-                                </label>
-                                <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase">✓ Actualizada</span>
-                            </div>
-                            <button type="button" @click="getLocation" class="btn-primary bg-blue-600 border-none w-full py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 transition-all" :disabled="gettingLocation || loading">
-                                <i class="fas" :class="gettingLocation ? 'fa-spinner fa-spin' : 'fa-crosshairs'"></i>
-                                <span class="font-black uppercase tracking-widest text-[11px]">{{ form.plantel.latitud ? 'Actualizar Coordenadas GPS' : 'Capturar Ubicación Actual' }}</span>
-                            </button>
-                        </div>
-
-                        <!-- Niveles -->
-                        <div class="form-group mb-6">
-                            <label class="label-style">Niveles Educativos *</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <label v-for="nivel in nivelesCatalog" :key="nivel.id" 
-                                    class="flex items-center gap-3 p-3 border-2 rounded-2xl cursor-pointer hover:border-red-200 transition-all shadow-sm bg-white" 
-                                    :class="{'border-red-600 bg-red-50/30': form.plantel.niveles.includes(nivel.id), 'border-slate-50': !form.plantel.niveles.includes(nivel.id)}"
-                                >
-                                    <input type="checkbox" :value="nivel.id" v-model="form.plantel.niveles" class="w-4 h-4 accent-red-600">
-                                    <span class="text-[10px] font-black uppercase text-slate-700 leading-none">{{ nivel.nombre }}</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="form-group mb-6">
-                            <label class="label-style">Estado / Región *</label>
-                            <select v-model="form.plantel.estado_id" class="form-input font-bold" required :disabled="loading">
-                                <option value="">Seleccionar Estado...</option>
-                                <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group mb-6">
-                            <label class="label-style">Dirección Completa *</label>
-                            <textarea v-model="form.plantel.direccion" class="form-input font-medium" rows="2" placeholder="Calle, número, colonia, CP..." required minlength="10" :disabled="loading"></textarea>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="form-group">
-                                <label class="label-style">Celular / Teléfono *</label>
-                                <input v-model="form.plantel.telefono" type="tel" class="form-input font-bold" required minlength="10" :disabled="loading">
-                            </div>
-                            <div class="form-group">
-                                <label class="label-style">Correo Electrónico *</label>
-                                <input v-model="form.plantel.email" type="email" class="form-input font-bold" required :disabled="loading">
-                            </div>
-                        </div>
-
-                        <div class="form-group mt-6">
-                            <label class="label-style">Nombre del Director / Coordinador *</label>
-                            <input v-model="form.plantel.director" type="text" class="form-input font-bold" required minlength="3" :disabled="loading">
-                        </div>
-                            </div>
-                            <div class="form-section shadow-premium border-t-4 border-t-slate-800">
-                        <!-- 2. Historial de Visitas (Inline para seguimiento) -->
+                        <!-- Historial de Visitas lateral -->
                         <div v-if="selectedCliente" class="mt-8 pt-8 border-t border-slate-100">
                             <div class="section-title !mb-4">
                                 <i class="fas fa-history text-slate-800"></i> Historial Reciente
@@ -184,7 +97,7 @@
                                         </select>
                                     </div>
                                     <div class="form-group relative">
-                                        <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Buscar Libro</label>
+                                        <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Buscar y Añadir Libro</label>
                                         <div class="relative">
                                             <input v-model="interestInput.titulo" type="text" class="form-input pr-10 font-bold" placeholder="Título o ISBN..." @input="searchBooks($event, 'interest')" autocomplete="off">
                                             <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -192,48 +105,55 @@
                                         <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
                                             <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 flex justify-between items-center">
                                                 <span>{{ b.titulo }}</span>
-                                                <span class="text-[7px] bg-slate-100 px-1.5 py-0.5 rounded">{{ b.type }}</span>
+                                                <span class="text-[7px] bg-slate-100 px-1.5 rounded">{{ b.type }}</span>
                                             </li>
                                         </ul>
                                     </div>
                                 </div>
                                 
                                 <div v-if="selectedInterestBooks.length" class="table-modern-wrapper mt-6">
-                                    <table class="table-modern">
-                                        <thead>
-                                            <tr>
-                                                <th>Material / Serie</th>
-                                                <th class="text-center w-36">Formato</th>
-                                                <th class="w-12"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="(item, idx) in selectedInterestBooks" :key="idx">
-                                                <td>
-                                                    <p class="font-black text-slate-800 uppercase text-[11px] leading-tight">{{ item.titulo }}</p>
-                                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{{ item.serie_nombre }}</span>
-                                                </td>
-                                                <td class="text-center">
-                                                    <select v-model="item.tipo" class="form-input py-1 px-2 text-[10px] font-black uppercase bg-slate-50 border-slate-100 h-auto">
-                                                        <option v-if="item.original_type === 'digital'" value="digital">Digital</option>
-                                                        <template v-else>
-                                                            <option value="fisico">Físico</option>
-                                                            <option value="paquete">Paquete</option>
-                                                            <option value="por_revisar">Por Revisar</option>
-                                                        </template>
-                                                    </select>
-                                                </td>
-                                                <td class="text-center">
-                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-slate-300 hover:text-red-600 transition-colors">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                   <div class="table-responsive table-shadow-lg mt-6 border rounded-xl overflow-hidden shadow-sm">
+                                <table class="min-width-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="table-header">Material / Serie</th>
+                                            <th class="table-header text-center w-36">Formato</th>
+                                            <th class="px-6 py-3 w-12"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-100">
+                                        <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-gray-50 transition-colors">
+                                            <td class="table-cell">
+                                                <div class="text-xs font-black text-slate-800 uppercase leading-tight">
+                                                    {{ item.titulo }}
+                                                </div>
+                                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">
+                                                    {{ item.serie_nombre }}
+                                                </div>
+                                            </td>
+                                            <td class="table-cell text-center">
+                                                <select v-model="item.tipo" class="select-table">
+                                                    <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
+                                                    <template v-else>
+                                                        <option value="fisico">FÍSICO</option>
+                                                        <option value="paquete">PAQUETE</option>
+                                                        <option value="por_revisar">POR REVISAR</option>
+                                                    </template>
+                                                </select>
+                                            </td>
+                                            <td class="table-cell text-center">
+                                                <button type="button" @click="selectedInterestBooks.splice(idx, 1)" 
+                                                        class="btn-icon-delete-simple">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                                 </div>
                                 <div v-else class="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50">
-                                    <p class="text-[10px] font-bold text-slate-300 uppercase italic">Añade libros de interés para seguimiento</p>
+                                    <p class="text-[10px] font-bold text-slate-300 uppercase italic">Sin libros añadidos</p>
                                 </div>
                             </div>
                         </div>
@@ -257,35 +177,45 @@
                                 </div>
                                 
                                 <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6">
-                                    <table class="table-modern variant-red">
-                                        <thead>
+                                    <div class="table-responsive table-shadow-lg mt-6 border rounded-xl overflow-hidden shadow-sm">
+                                    <table class="min-width-full divide-y divide-gray-200">
+                                        <thead class="bg-red-50">
                                             <tr>
-                                                <th>Muestra Física</th>
-                                                <th class="text-center w-32">Cantidad</th>
-                                                <th class="w-16"></th>
+                                                <th class="table-header text-red-900/60">Muestra Física</th>
+                                                <th class="table-header text-center w-32">Cantidad</th>
+                                                <th class="px-6 py-3 w-16"></th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx">
-                                                <td>
-                                                    <p class="font-black text-slate-800 uppercase text-[11px] leading-tight">{{ item.titulo }}</p>
-                                                    <span class="text-[8px] font-black text-red-400 uppercase tracking-widest">Inventario de Promoción</span>
+                                        <tbody class="bg-white divide-y divide-red-50">
+                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors">
+                                                <td class="table-cell">
+                                                    <div class="text-xs font-black text-slate-800 uppercase leading-tight">
+                                                        {{ item.titulo }}
+                                                    </div>
+                                                    <div class="text-[8px] font-black text-red-400 uppercase tracking-widest mt-1">
+                                                        Inventario de Promoción
+                                                    </div>
                                                 </td>
-                                                <td>
+                                                <td class="table-cell text-center">
                                                     <div class="flex justify-center">
-                                                        <div class="quantity-control">
-                                                            <input v-model.number="item.cantidad" type="number" min="1" class="form-input py-1.5 px-1 text-center font-black" />
+                                                        <div class="quantity-control-wrapper">
+                                                            <input v-model.number="item.cantidad" 
+                                                                type="number" 
+                                                                min="1" 
+                                                                class="input-table text-center" />
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td class="text-right">
-                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary text-slate-300 hover:text-red-600 transition-colors">
+                                                <td class="table-cell text-right">
+                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" 
+                                                            class="btn-icon-delete">
                                                         <i class="fas fa-trash-alt"></i> Quitar
                                                     </button>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
+                                </div>
                                 </div>
                                 <div v-else class="text-center py-8 border-2 border-dashed border-red-100 rounded-3xl bg-white/50">
                                     <p class="text-[10px] font-black text-red-300 uppercase tracking-widest">No se dejaron muestras hoy</p>
@@ -326,7 +256,7 @@
                 <!-- BOTONES DE ACCIÓN -->
                 <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8">
                     <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest" :disabled="loading">Cancelar</button>
-                    <button type="submit" class="btn-primary px-20 py-4" :disabled="loading || !selectedCliente || gettingLocation">
+                    <button type="submit" class="btn-primary-action px-20 py-4" :disabled="loading || !selectedCliente || gettingLocation">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
                         {{ loading ? 'Sincronizando...' : 'Postear Seguimiento' }}
                     </button>
@@ -436,21 +366,33 @@ const searchProspectos = () => {
     }, 400);
 };
 
+/**
+ * REGLA ACTUALIZADA: Rellenar todos los campos de identidad del plantel
+ */
 const selectProspecto = (c) => {
     selectedCliente.value = c;
     searchQuery.value = c.name;
     clientesSuggestions.value = [];
     
-    // REGLA: Solo Nombre y RFC. Todo lo demás se vacía para reciclar el formulario diseño-idéntico.
+    // Mapeo completo de datos desde el objeto cliente
     form.plantel.name = c.name;
     form.plantel.rfc = c.rfc || '';
+    form.plantel.direccion = c.direccion || '';
+    form.plantel.estado_id = c.estado_id || '';
+    form.plantel.telefono = c.telefono || '';
+    form.plantel.email = c.email || '';
+    form.plantel.director = c.contacto || '';
     
-    form.plantel.direccion = '';
-    form.plantel.estado_id = '';
-    form.plantel.telefono = '';
-    form.plantel.email = '';
-    form.plantel.director = '';
-    form.plantel.niveles = [];
+    // Procesar niveles educativos (mapeo de nombres a IDs del catálogo)
+    if (c.nivel_educativo) {
+        const nombres = c.nivel_educativo.split(',').map(n => n.trim());
+        form.plantel.niveles = nivelesCatalog.value
+            .filter(niv => nombres.includes(niv.nombre))
+            .map(niv => niv.id);
+    } else {
+        form.plantel.niveles = [];
+    }
+    
     form.plantel.latitud = c.latitud || null;
     form.plantel.longitud = c.longitud || null;
 
@@ -547,7 +489,7 @@ const handleSubmit = async () => {
         await axios.post('visitas/seguimiento', payload);
         showSuccessModal.value = true;
     } catch (err) {
-        errorMessage.value = err.response?.data?.message || "Error al procesar el seguimiento.";
+        errorMessage.value = err.response?.data?.message || "Error al guardar el seguimiento.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally { loading.value = false; }
 };
@@ -563,10 +505,26 @@ const verificarPrecarga = async () => {
         const v = res.data;
         if (v.cliente) selectProspecto(v.cliente);
         else {
+            // Hidratación completa desde campos snapshot si no hay objeto cliente
             selectedCliente.value = { id: v.cliente_id, name: v.nombre_plantel };
             searchQuery.value = v.nombre_plantel;
             form.plantel.name = v.nombre_plantel;
             form.plantel.rfc = v.rfc_plantel || '';
+            form.plantel.direccion = v.direccion_plantel || '';
+            form.plantel.estado_id = v.estado_id || '';
+            form.plantel.telefono = v.telefono_plantel || '';
+            form.plantel.email = v.email_plantel || '';
+            form.plantel.director = v.director_plantel || '';
+            form.plantel.latitud = v.latitud || null;
+            form.plantel.longitud = v.longitud || null;
+
+            if (v.nivel_educativo_plantel) {
+                const nombres = v.nivel_educativo_plantel.split(',').map(n => n.trim());
+                form.plantel.niveles = nivelesCatalog.value
+                    .filter(niv => nombres.includes(niv.nombre))
+                    .map(niv => niv.id);
+            }
+
             fetchHistorial(v.cliente_id);
         }
     } catch (e) { console.error(e); } finally { loadingPrecarga.value = false; }
@@ -626,14 +584,102 @@ onMounted(async () => {
 .modal-content-success { background: white; padding: 45px; border-radius: 40px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #f1f5f9; }
 .success-icon-wrapper { width: 80px; height: 80px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; border: 4px solid white; }
 
-.table-modern-wrapper { @apply bg-transparent border-none shadow-none overflow-visible; }
-.table-modern { @apply w-full; border-collapse: separate; border-spacing: 0 8px; }
-.table-modern thead th { @apply px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 border-none; }
-.table-modern tbody td { @apply bg-white py-3 px-4 border-y border-slate-100 transition-all; }
-.table-modern tbody td:first-child { @apply rounded-l-[1.2rem] border-l border-slate-100; }
-.table-modern tbody td:last-child { @apply rounded-r-[1.2rem] border-r border-slate-100; }
-.table-modern tbody tr:hover td { @apply bg-blue-50/50 border-blue-100 transform -translate-y-0.5 shadow-md; }
-.table-modern.variant-red tbody tr:hover td { @apply bg-red-50/50 border-red-100; }
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.table-header {
+    padding: 14px 16px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table-cell {
+    padding: 12px 16px;
+    vertical-align: middle;
+}
+
+/* Inputs y Selects dentro de la Tabla */
+.input-table, .select-table {
+    background-color: #f8fafc; /* Slate-50 */
+    border: 1px solid #e2e8f0; /* Slate-200 */
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 900;
+    color: #1e293b;
+    padding: 6px 8px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.input-table:focus, .select-table:focus {
+    outline: none;
+    border-color: #f87171; /* Rojo suave */
+    background-color: #fff;
+    box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.1);
+}
+
+.quantity-control-wrapper {
+    max-width: 80px;
+}
+
+.input-table {
+    width: 100%;
+}
+
+.select-table {
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Botones de Acción */
+.btn-icon-delete {
+    background: none;
+    border: none;
+    color: #cbd5e1; /* Slate-300 */
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-icon-delete:hover {
+    color: #dc2626; /* Red-600 */
+}
+
+.btn-icon-delete-simple {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.btn-icon-delete-simple:hover {
+    color: #dc2626;
+}
+
+/* Clases de utilidad */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.w-32 { width: 8rem; }
+.w-36 { width: 9rem; }
+.w-12 { width: 3rem; }
+.w-16 { width: 4rem; }
 
 .quantity-control input { @apply w-16 text-center font-black text-red-600 bg-red-50/50 border-2 border-red-100 py-1.5 rounded-xl focus:border-red-400 focus:bg-white outline-none text-sm; }
 
@@ -651,7 +697,4 @@ onMounted(async () => {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
-.btn-primary { background: linear-gradient(135deg, #cb7e81 0%, #e96a90 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; }
-.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
-
 </style>

@@ -79,46 +79,61 @@
             </div>
 
             <div v-else class="table-responsive table-shadow-lg mt-8">
-                <table class="min-width-full divide-y-gray-200">
-                    <thead class="bg-light-gray">
-                        <tr>
-                            <th class="table-header">Fecha</th>
-                            <th class="table-header">Concepto</th>
-                            <th class="table-header text-right">Monto</th>
-                            <th class="table-header text-center">Facturado</th>
-                            <th class="table-header text-center">Estado</th>
-                            <th class="px-6 py-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y-gray-200">
-                        <tr 
-                            v-for="gasto in filteredGastos" 
-                            :key="gasto.id"
-                            :class="{'missing-comprobante-row': !gasto.comprobantes.length, 'completed-row': gasto.comprobantes.length}"
-                        >
-                            <td class="table-cell table-cell-bold">{{ formatDate(gasto.fecha) }}</td>
-                            <td class="table-cell text-medium-gray">{{ gasto.concepto }}</td>
-                            <td class="table-cell table-cell-bold text-right">{{ formatCurrency(gasto.monto) }}</td>
-                            <td class="table-cell text-center">
-                                <span v-if="gasto.facturado" class="text-green-600 font-bold">SÍ</span>
-                                <span v-else class="text-gray-400">NO</span>
-                            </td>
-                            <td class="table-cell text-center">
-                                <span :class="getComprobanteClass(gasto.comprobantes.length)">
-                                    <i :class="gasto.comprobantes.length ? 'fas fa-check-circle' : 'fas fa-clock'"></i>
-                                    {{ gasto.comprobantes.length ? 'COMPLETADO' : 'PENDIENTE' }}
-                                </span>
-                            </td>
-                           <td class="table-cell-action">
-                                
-                                
-                                <button @click="viewDetails(gasto)" class="text-red-link font-bold ml-4">
-                                    <i class="fas fa-eye"></i> Ver Detalle
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
+    <table class="min-width-full divide-y divide-gray-200">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="table-header">Fecha</th>
+                <th class="table-header">Concepto</th>
+                <th class="table-header text-right">Monto</th>
+                <th class="table-header text-center">Facturado</th>
+                <th class="table-header text-center">Estado</th>
+                <th class="px-6 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-100">
+            <tr v-for="gasto in filteredGastos" :key="gasto.id" 
+                class="hover:bg-gray-50 transition-colors"
+                :class="{'bg-red-50/30': !gasto.comprobantes.length}">
+                
+                <td class="table-cell table-cell-bold text-gray-700">
+                    {{ formatDate(gasto.fecha) }}
+                </td>
+
+                <td class="table-cell">
+                    <div class="text-sm font-medium text-gray-800 text-truncate max-w-concepto" :title="gasto.concepto">
+                        {{ gasto.concepto }}
+                    </div>
+                </td>
+
+                <td class="table-cell table-cell-bold text-right text-gray-900">
+                    {{ formatCurrency(gasto.monto) }}
+                </td>
+
+                <td class="table-cell text-center">
+                    <span v-if="gasto.facturado" class="text-green-600 font-bold text-xs">
+                        <i class="fas fa-file-invoice mr-1"></i> SÍ
+                    </span>
+                    <span v-else class="text-gray-400 text-xs font-bold">NO</span>
+                </td>
+
+                <td class="table-cell text-center">
+                    <span class="status-badge" 
+                          :class="gasto.comprobantes.length ? 'badge-completed' : 'badge-pending'">
+                        <i :class="gasto.comprobantes.length ? 'fas fa-check-circle' : 'fas fa-clock'" class="mr-1"></i>
+                        {{ gasto.comprobantes.length ? 'COMPLETADO' : 'PENDIENTE' }}
+                    </span>
+                </td>
+
+                <td class="table-cell text-right">
+                    <button @click="viewDetails(gasto)" class="text-red-link">
+                        <i class="fas fa-eye"></i> Ver Detalle
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
             </div>
             
         </div>
@@ -316,4 +331,96 @@ onMounted(() => {
 
 .gap-1 { gap: 4px; }
 .gap-2 { gap: 8px; }
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background: white;
+}
+
+table {
+    table-layout: fixed; /* Mantiene el control de los anchos */
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Cabeceras */
+.table-header {
+    padding: 14px 16px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    text-align: left;
+    letter-spacing: 0.025em;
+}
+
+/* Celdas */
+.table-cell {
+    padding: 16px;
+    font-size: 0.85rem;
+    vertical-align: middle;
+}
+
+.table-cell-bold {
+    font-weight: 700;
+}
+
+/* Truncado de texto para el concepto */
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.max-w-concepto {
+    max-width: 250px;
+}
+
+/* Badges de Estado */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.badge-completed {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.badge-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+/* Botón de Acción */
+.text-red-link {
+    color: #b91c1c;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 700;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.text-red-link:hover {
+    color: #7f1d1d;
+    text-decoration: underline;
+}
+
+/* Sombras y Bordes Modernos */
+.table-shadow-lg {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.text-right { text-align: right; }
+.text-center { text-align: center; }
 </style>

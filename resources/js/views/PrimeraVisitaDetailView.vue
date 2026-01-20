@@ -201,97 +201,97 @@
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <!-- APARTADO A: INTERÉS -->
-                        <div class="info-card !p-0 overflow-hidden border border-slate-200 shadow-premium bg-white">
+                        <div class="info-card bg1 !p-0 overflow-hidden border border-slate-200 shadow-premium bg-white">
                             <div class="p-6 bg-slate-800 text-white flex justify-between items-center">
                                 <div class="flex items-center gap-3">
                                     <i class="fas fa-star text-yellow-400"></i>
                                     <h3 class="text-[11px] font-black uppercase tracking-widest">Libros de Interés</h3>
                                 </div>
                             </div>
-                            <div class="table-responsive items-center">
-                                <table class="w-full text-sm items-center  border-collapse">
-                                    <thead class="bg-slate-50 border-b border-slate-100">
-                                        <tr class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
-                                            <th class="px-8 py-5 text-left">Material</th>
-                                            <th class="px-8 py-5 text-left"> </th>
-                                            <th class="px-8 py-5 text-left">     </th>
-                                            <th class="px-8 py-5 text-right ">Formato Solicitado</th>
+                            <div class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
+                                <table class="min-width-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="table-header">Material</th>
+                                            <th class="table-header"></th>
+                                            <th class="table-header"></th>
+                                            <th class="table-header text-right">Formato Solicitado</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-slate-50">
-                                        <tr v-for="(libro, idx) in materialesInteres" :key="idx" class="hover:bg-slate-50/80 transition-colors">
-                                            <td class="px-8 py-6">
-                                                <p class="font-black text-slate-800 text-[13px] uppercase leading-tight">{{ libro.titulo }}</p>
-                                                <p class="text-[10px] text-slate-400 font-bold mt-1">SERIE: {{ libro.serie_nombre || 'N/A' }}</p>
+                                    <tbody class="bg-white divide-y divide-gray-100">
+                                        <tr v-for="(libro, idx) in materialesInteres" :key="idx" class="hover:bg-gray-50 transition-colors">
+                                            <td class="table-cell">
+                                                <div class="text-sm font-bold text-gray-800 uppercase leading-tight text-truncate max-w-titulo" :title="libro.titulo">
+                                                    {{ libro.titulo }}
+                                                </div>
+                                                <div class="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-tighter">
+                                                    SERIE: {{ libro.serie_nombre || 'N/A' }}
+                                                </div>
                                             </td>
-                                            <td class="px-8 py-6">
-
-
-                                            </td>
-                                            <td class="px-8 py-6">
-
-
-                                            </td>
-                                            
-                                            <td class="px-8 py-6 text-center">
-                                                <span class="text-[10px] text-right  font-black text-blue-700 bg-blue-50 px-4 py-1.5 rounded-xl border border-blue-100 uppercase tracking-widest">  {{ libro.tipo || 'Físico' }}</span>
+                                            <td class="table-cell"></td>
+                                            <td class="table-cell"></td>
+                                            <td class="table-cell text-right">
+                                                <span class="type-badge badge-blue-outline">
+                                                    {{ libro.tipo || 'Físico' }}
+                                                </span>
                                             </td>
                                         </tr>
                                         <tr v-if="!materialesInteres.length">
-                                            <td colspan="2" class="px-8 py-16 text-center">
-                                                <i class="fas fa-box-open text-slate-100 text-5xl mb-4"></i>
-                                                <p class="text-slate-300 font-black uppercase text-[11px] tracking-widest italic">Sin registros de prospección</p>
+                                            <td colspan="4" class="px-8 py-16 text-center">
+                                                <i class="fas fa-box-open text-gray-200 text-5xl mb-4 block"></i>
+                                                <p class="text-gray-400 font-bold uppercase text-[11px] tracking-widest italic">Sin registros de prospección</p>
                                             </td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-
+<br>
                         <!-- APARTADO B: PROMOCIÓN -->
-                        <div class="info-card !p-0 overflow-hidden border border-red-100 shadow-premium bg-white">
+                        <div class="info-card bg2 !p-0 overflow-hidden border border-red-100 shadow-premium bg-white">
                             <div class="p-6 bg-red-900 text-white flex justify-between items-center">
                                 <div class="flex items-center gap-3">
                                     <i class="fas fa-box-open text-red-300"></i>
                                     <h3 class="text-[11px] font-black uppercase tracking-widest"> Muestras Entregadas</h3>
                                 </div>
                             </div>
-                            <div class="table-responsive">
-                                <table class="w-full text-sm border-collapse">
-                                    <thead class="bg-red-50 border-b border-red-100">
-                                        <tr class="text-[10px] font-black text-red-300 uppercase tracking-[0.15em]">
-                                            <th class="px-8 py-5 text-left">Título / Muestra Física</th>
-                                            <th class="px-8 py-5 text-left"></th>
-                                            <th class="px-8 py-5 text-center">Cantidad</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-red-50">
-                                        <tr v-for="(libro, idx) in materialesEntregados" :key="idx" class="hover:bg-red-50/50 transition-colors">
-                                            <td class="px-8 py-6">
-                                                <p class="font-black text-red-900 text-[13px] uppercase leading-tight">{{ libro.titulo }}</p>
-                                            </td>
-                                            <td class="px-8 py-6">
-                                            </td>
-                                            <td class="px-8 py-6">
-                                            </td>
-                                            <td class="px-8 py-6 text-center">
+                            <div class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
+                            <table class="min-width-full divide-y divide-gray-200">
+                                <thead class="bg-red-50">
+                                    <tr>
+                                        <th class="table-header text-red-900/60">Título / Muestra Física</th>
+                                        <th class="table-header"></th>
+                                        <th class="table-header text-center">Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-red-50">
+                                    <tr v-for="(libro, idx) in materialesEntregados" :key="idx" class="hover:bg-red-50/30 transition-colors">
+                                        <td class="table-cell">
+                                            <div class="text-sm font-black text-red-900 uppercase leading-tight">
+                                                {{ libro.titulo }}
+                                            </div>
+                                        </td>
+                                        <td class="table-cell"></td>
+                                        <td class="table-cell text-center">
+                                            <div class="flex flex-col items-center">
                                                 <span class="text-2xl font-black text-red-700 tracking-tighter">{{ libro.cantidad || '1' }}</span>
-                                            </td>
-                                        </tr>
-                                         
-                                        <tr v-if="!materialesEntregados.length">
-                                            <td colspan="2" class="px-8 py-16 text-center">
-                                                <i class="fas fa-folder-open text-red-50 text-5xl mb-4"></i>
-                                                <p class="text-red-100 font-black uppercase text-[11px] tracking-widest italic">No se entregaron muestras físicas</p>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                                                <span class="text-[9px] text-red-300 font-bold uppercase">Unidades</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="!materialesEntregados.length">
+                                        <td colspan="3" class="px-8 py-16 text-center">
+                                            <i class="fas fa-folder-open text-red-100 text-5xl mb-4 block"></i>
+                                            <p class="text-red-200 font-bold uppercase text-[11px] tracking-widest italic">No se entregaron muestras físicas</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         </div>
                     </div>
                 </div>
-
+<br>
                 <!-- OBSERVACIONES FINALES -->
                 <div v-if="visita.comentarios" class="info-card border-none bg-amber-50 p-10 rounded-[3rem] border border-amber-200 shadow-sm">
                     <h3 class="text-[11px] font-black text-amber-700 uppercase mb-4 tracking-[0.3em] flex items-center gap-2">
@@ -430,4 +430,80 @@ th {
 .btn-primary { background: linear-gradient(135deg, #cb7e81 0%, #e96a90 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Cabeceras */
+.table-header {
+    padding: 16px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Celdas */
+.table-cell {
+    padding: 16px 20px;
+    vertical-align: middle;
+}
+
+/* Badges de Formato */
+.type-badge {
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-block;
+}
+
+.badge-blue-outline {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #dbeafe;
+}
+
+/* Truncado de Texto */
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.max-w-titulo {
+    max-width: 300px;
+}
+
+/* Efectos y Sombras */
+.table-shadow-lg {
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+}
+
+.transition-colors {
+    transition: background-color 0.2s ease;
+}
+
+/* Alineaciones */
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+
+.bg1{
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+.bg2{
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
 </style>

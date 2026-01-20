@@ -161,35 +161,45 @@
                                     </div>
                                 </div>
                                 <div v-if="selectedInterestBooks.length" class="table-container mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                    <table class="w-full text-sm border-collapse">
-                                        <thead class="bg-slate-100 text-slate-500 uppercase text-[9px] font-black tracking-widest">
-                                            <tr>
-                                                <th class="px-4 py-4 text-left">Título / Serie</th>
-                                                <th class="px-4 py-4 text-center w-32">Tipo</th>
-                                                <th class="px-4 py-4 text-center w-12"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-slate-50">
-                                            <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-slate-50/50 transition-colors group">
-                                                <td class="px-4 py-4">
-                                                    <p class="font-bold text-slate-800 uppercase text-[11px] leading-tight">{{ item.titulo }}</p>
-                                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{{ item.serie_nombre }}</span>
-                                                </td>
-                                                <td class="px-4 py-4">
-                                                    <select v-model="item.tipo" class="form-input py-1 px-2 text-[10px] font-black uppercase bg-slate-50 border-slate-100 h-auto">
-                                                        <option value="fisico">Físico</option>
-                                                        <option value="digital">Digital</option>
-                                                        <option value="paquete">Paquete</option>
-                                                    </select>
-                                                </td>
-                                                <td class="px-4 py-4 text-center">
-                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary text-slate-300 hover:text-red-600 transition-colors">
-                                                        <i class="fas fa-trash-alt"></i> Quitar
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                                     <div class="table-responsive table-shadow-lg mt-6 border rounded-xl overflow-hidden shadow-sm">
+                                <table class="min-width-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="table-header">Material / Serie</th>
+                                            <th class="table-header text-center w-36">Formato</th>
+                                            <th class="px-6 py-3 w-12"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-100">
+                                        <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-gray-50 transition-colors">
+                                            <td class="table-cell">
+                                                <div class="text-xs font-black text-slate-800 uppercase leading-tight">
+                                                    {{ item.titulo }}
+                                                </div>
+                                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">
+                                                    {{ item.serie_nombre }}
+                                                </div>
+                                            </td>
+                                            <td class="table-cell text-center">
+                                                <select v-model="item.tipo" class="select-table">
+                                                    <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
+                                                    <template v-else>
+                                                        <option value="fisico">FÍSICO</option>
+                                                        <option value="paquete">PAQUETE</option>
+                                                        <option value="por_revisar">POR REVISAR</option>
+                                                    </template>
+                                                </select>
+                                            </td>
+                                            <td class="table-cell text-center">
+                                                <button type="button" @click="selectedInterestBooks.splice(idx, 1)" 
+                                                        class="btn-icon-delete-simple">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                                 </div>
                                 <div v-else class="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50">
                                     <p class="text-[10px] font-bold text-slate-300 uppercase italic">Sin libros de interés agregados</p>
@@ -223,43 +233,45 @@
                                 </div>
                                 
                                 <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6">
-                                    <table class="table-modern variant-red">
-                                        <thead>
+                                    <div class="table-responsive table-shadow-lg mt-6 border rounded-xl overflow-hidden shadow-sm">
+                                    <table class="min-width-full divide-y divide-gray-200">
+                                        <thead class="bg-red-50">
                                             <tr>
-                                                <th><i class="fas fa-box mr-2"></i>Material a Entregar</th>
-                                                <th class="text-center w-32">Cantidad</th>
-                                                <th class="w-16"></th>
+                                                <th class="table-header text-red-900/60">Muestra Física</th>
+                                                <th class="table-header text-center w-32">Cantidad</th>
+                                                <th class="px-6 py-3 w-16"></th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx">
-                                                <td>
-                                                    <div class="flex items-center gap-3">
-                                                        <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center text-red-500 text-xs">
-                                                            <i class="fas fa-box"></i>
-                                                        </div>
-                                                        <div class="flex flex-col">
-                                                            <span class="book-title">{{ item.titulo }}</span>
-                                                        </div>
+                                        <tbody class="bg-white divide-y divide-red-50">
+                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors">
+                                                <td class="table-cell">
+                                                    <div class="text-xs font-black text-slate-800 uppercase leading-tight">
+                                                        {{ item.titulo }}
+                                                    </div>
+                                                    <div class="text-[8px] font-black text-red-400 uppercase tracking-widest mt-1">
+                                                        Inventario de Promoción
                                                     </div>
                                                 </td>
-                                                <td>
+                                                <td class="table-cell text-center">
                                                     <div class="flex justify-center">
-                                                        <div class="quantity-control w-2">
-                                                            <input v-model.number="item.cantidad" type="number" min="1" class="form-input py-1 px-1 text-[10px] font-black uppercase bg-slate-50 border-slate-100 h-10 text-center" />
+                                                        <div class="quantity-control-wrapper">
+                                                            <input v-model.number="item.cantidad" 
+                                                                type="number" 
+                                                                min="1" 
+                                                                class="input-table text-center" />
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td>
-                                                    <div class="flex justify-end">
-                                                        <button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary text-slate-300 hover:text-red-600 transition-colors">
-                                                            <i class="fas fa-trash-alt "></i> Quitar
-                                                        </button>
-                                                    </div>
+                                                <td class="table-cell text-right">
+                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" 
+                                                            class="btn-icon-delete">
+                                                        <i class="fas fa-trash-alt"></i> Quitar
+                                                    </button>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
+                                </div>
                                 </div>
 
                                 <div v-else class="text-center py-8 border-2 border-dashed border-red-100 rounded-3xl bg-white/50">
@@ -540,16 +552,102 @@ onMounted(fetchInitialData);
 
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
 
-.table-modern-wrapper { @apply bg-transparent border-none shadow-none overflow-visible; }
-.table-modern { @apply w-full; border-collapse: separate; border-spacing: 0 10px; }
-.table-modern thead th { @apply px-6 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 border-none; }
-.table-modern tbody tr { @apply shadow-sm transition-all duration-300; }
-.table-modern tbody td { @apply bg-white py-4 px-6 border-y border-slate-100 transition-all; }
-.table-modern tbody td:first-child { @apply rounded-l-[1.5rem] border-l border-slate-100; }
-.table-modern tbody td:last-child { @apply rounded-r-[1.5rem] border-r border-slate-100; }
-.table-modern tbody tr:hover td { @apply bg-blue-50/50 border-blue-100 transform -translate-y-0.5 shadow-md; }
-.table-modern.variant-red tbody tr:hover td { @apply bg-red-50/50 border-red-100; }
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+}
 
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.table-header {
+    padding: 14px 16px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table-cell {
+    padding: 12px 16px;
+    vertical-align: middle;
+}
+
+/* Inputs y Selects dentro de la Tabla */
+.input-table, .select-table {
+    background-color: #f8fafc; /* Slate-50 */
+    border: 1px solid #e2e8f0; /* Slate-200 */
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 900;
+    color: #1e293b;
+    padding: 6px 8px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.input-table:focus, .select-table:focus {
+    outline: none;
+    border-color: #f87171; /* Rojo suave */
+    background-color: #fff;
+    box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.1);
+}
+
+.quantity-control-wrapper {
+    max-width: 80px;
+}
+
+.input-table {
+    width: 100%;
+}
+
+.select-table {
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Botones de Acción */
+.btn-icon-delete {
+    background: none;
+    border: none;
+    color: #cbd5e1; /* Slate-300 */
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-icon-delete:hover {
+    color: #dc2626; /* Red-600 */
+}
+
+.btn-icon-delete-simple {
+    background: none;
+    border: none;
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.btn-icon-delete-simple:hover {
+    color: #dc2626;
+}
+
+/* Clases de utilidad */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.w-32 { width: 8rem; }
+.w-36 { width: 9rem; }
+.w-12 { width: 3rem; }
+.w-16 { width: 4rem; }
 .quantity-control input {
     @apply w-20 text-center font-black text-red-600 bg-red-50/50 border-2 border-red-100 
             py-2 rounded-xl focus:border-red-400 focus:bg-white outline-none;

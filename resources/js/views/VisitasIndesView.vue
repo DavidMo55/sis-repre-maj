@@ -82,7 +82,7 @@
                     </button>
                 </div>
             </div>
-
+            <br><br>
             <div v-if="loading" class="loading-state py-10 mt-8 text-center">
                 <i class="fas fa-spinner fa-spin text-3xl mb-2 text-red-600"></i>
                 <p class="text-gray-500 font-medium">Consultando registros...</p>
@@ -92,8 +92,9 @@
                 <i class="fas fa-info-circle mb-3 text-3xl text-gray-300"></i>
                 <p class="text-gray-500 font-medium">No se encontraron visitas que coincidan con los filtros aplicados.</p>
             </div>
-
+            
             <div v-else class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
+                
                 <table class="min-width-full divide-y divide-gray-200">
                     <thead class="bg-gray-100">
                         <tr>
@@ -264,6 +265,7 @@ onMounted(fetchVisitas);
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    background-color: white;
 }
 
 table {
