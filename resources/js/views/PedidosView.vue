@@ -257,48 +257,82 @@
 
                     <!-- TABLA DE CARRITO -->
                     <div class="mt-6 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-900 text-white">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-[9px] font-black uppercase tracking-widest">Material</th>
-                                    <th class="px-6 py-4 text-center text-[9px] font-black uppercase tracking-widest">Tipo</th>
-                                    <th class="px-6 py-4 text-center text-[9px] font-black uppercase tracking-widest">Cant.</th>
-                                    <th class="px-6 py-4 text-right text-[9px] font-black uppercase tracking-widest">Total</th>
-                                    <th class="px-6 py-4"></th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-slate-50">
-                                    <td class="px-6 py-4">
-                                        <div class="font-bold text-slate-800">{{ item.bookName }}</div>
-                                        <div class="text-[9px] text-slate-400 uppercase font-black">{{ item.sub_type }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 text-center">
-                                        <span :class="item.tipo_material === 'promocion' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'" class="px-3 py-1 rounded-full text-[9px] font-black uppercase">
-                                            {{ item.tipo_material }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-center font-black text-red-800">{{ item.quantity }}</td>
-                                    <td class="px-6 py-4 text-right font-black text-slate-700">{{ formatCurrency(item.totalCost) }}</td>
-                                    <td class="px-6 py-4 text-center">
-                                        <button type="button" @click="orderForm.orderItems.splice(index, 1)" class="text-slate-300 hover:text-red-600">
-                                            <i class="fas fa-trash-alt"></i>Cancelar
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr v-if="!orderForm.orderItems.length">
-                                    <td colspan="5" class="px-6 py-12 text-center text-slate-400 italic font-bold uppercase tracking-widest text-[10px]">Sin ítems en la orden</td>
-                                </tr>
-                            </tbody>
-                            <tfoot v-if="orderForm.orderItems.length" class="bg-slate-50 font-black">
-                                <tr>
-                                    <td colspan="2" class="px-6 py-5 text-right text-[10px] uppercase text-slate-400 tracking-widest">Inversión Total del Pedido:</td>
-                                    <td class="px-6 py-5 text-center text-red-700 text-lg">{{ totalUnits }}</td>
-                                    <td class="px-6 py-5 text-right text-2xl text-red-700">{{ formatCurrency(orderTotal) }}</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <div class="table-responsive table-shadow-lg mt-6 border rounded-xl overflow-hidden shadow-sm">
+                            <table class="min-width-full divide-y divide-gray-200">
+                                <thead class="bg-slate-900 text-white">
+                                    <tr>
+                                        <th class="table-header-dark text-left">Material</th>
+                                        <th class="table-header-dark text-center">Tipo</th>
+                                        <th class="table-header-dark text-center">Cant.</th>
+                                        <th class="table-header-dark text-right">Total</th>
+                                        <th class="table-header-dark"></th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="bg-white divide-y divide-slate-100">
+                                    <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-slate-50 transition-colors">
+                                        <td class="table-cell">
+                                            <div class="font-black text-slate-800 text-sm uppercase leading-tight">
+                                                {{ item.bookName }}
+                                            </div>
+                                            <div class="text-[9px] text-slate-400 uppercase font-black tracking-widest mt-1">
+                                                {{ item.sub_type }}
+                                            </div>
+                                        </td>
+
+                                        <td class="table-cell text-center">
+                                            <span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">
+                                                {{ item.tipo_material.toUpperCase() }}
+                                            </span>
+                                        </td>
+
+                                        <td class="table-cell text-center font-black text-red-800 text-base">
+                                            {{ item.quantity }}
+                                        </td>
+
+                                        <td class="table-cell text-right font-black text-slate-700 text-sm">
+                                            {{ formatCurrency(item.totalCost) }}
+                                        </td>
+
+                                        <td class="table-cell text-center">
+                                            <button type="button" 
+                                                    @click="orderForm.orderItems.splice(index, 1)" 
+                                                    class="btn-delete-item">
+                                                <i class="fas fa-trash-alt mr-1"></i> Cancelar
+                                            </button>
+                                        </td>
+                                    </tr>
+
+                                    <tr v-if="!orderForm.orderItems.length">
+                                        <td colspan="5" class="px-6 py-16 text-center">
+                                            <div class="flex flex-col items-center">
+                                                <i class="fas fa-shopping-cart text-slate-100 text-5xl mb-4"></i>
+                                                <p class="text-slate-300 font-black uppercase text-[10px] tracking-[0.2em] italic">
+                                                    Sin ítems en la orden
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+
+                                <tfoot v-if="orderForm.orderItems.length" class="bg-slate-50 border-t-2 border-slate-200">
+                                    <tr>
+                                        <td colspan="2" class="px-8 py-6 text-right font-black text-[10px] uppercase text-slate-400 tracking-[0.2em]">
+                                            Inversión Total del Pedido:
+                                        </td>
+                                        <td class="px-6 py-6 text-center font-black text-red-700 text-xl border-x border-slate-200/50">
+                                            <span class="text-[9px] block text-slate-400 font-bold mb-1">UNIDADES</span>
+                                            {{ totalUnits }}
+                                        </td>
+                                        <td class="px-6 py-6 text-right font-black text-2xl text-red-700">
+                                            <span class="text-[9px] block text-slate-400 font-bold mb-1">MONTO TOTAL</span>
+                                            {{ formatCurrency(orderTotal) }}
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -394,7 +428,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed, onMounted } from 'vue';
+import { reactive, ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios';
 
@@ -416,22 +450,9 @@ const orderForm = reactive({
     clientName: '',
     receiverType: 'cliente',
     receiver: { 
-        persona_recibe: '', 
-        rfc: '', 
-        regimen_fiscal: '',
-        telefono: '', 
-        correo: '', 
-        cp: '',
-        estado: '',
-        municipio: '',
-        colonia: '',
-        calle_num: '' 
+        persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' 
     },
-    logistics: { 
-        deliveryOption: 'paqueteria', 
-        paqueteria_nombre: '',
-        comentarios_logistica: '' 
-    },
+    logistics: { deliveryOption: 'paqueteria', paqueteria_nombre: '', comentarios_logistica: '' },
     comments: '',
     orderItems: [], 
 });
@@ -439,12 +460,22 @@ const orderForm = reactive({
 const currentOrderItem = reactive({
     bookId: null,
     bookName: '',
-    tipo_material: 'venta',
+    tipo_material: 'venta', // Venta por defecto
     category: '', 
     sub_type: '', 
     quantity: 1,
     price: 0,
     bookSuggestions: [],
+});
+
+/**
+ * REGLA DE NEGOCIO: Limpiar búsqueda al cambiar entre Promo y Venta
+ */
+watch(() => currentOrderItem.tipo_material, () => {
+    currentOrderItem.bookName = '';
+    currentOrderItem.bookId = null;
+    currentOrderItem.bookSuggestions = [];
+    currentOrderItem.sub_type = '';
 });
 
 const availableSubTypes = computed(() => {
@@ -459,67 +490,34 @@ const availableSubTypes = computed(() => {
 });
 
 /**
- * BÚSQUEDA DE DIRECCIÓN POR CP (VIA PROXY BACKEND)
+ * BÚSQUEDA DE DIRECCIÓN POR CP
  */
 const handleCPInput = () => {
     const cp = orderForm.receiver.cp;
-    if (cp && cp.length === 5) {
-        fetchAddressByCP(cp);
-    } else {
-        resetAddress();
-    }
+    if (cp && cp.length === 5) fetchAddressByCP(cp);
+    else resetAddress();
 };
 
 const fetchAddressByCP = async (cp, preserveColonia = false) => {
     searchingCP.value = true;
-    
-    // Si NO estamos preservando, reseteamos colonia. Si estamos preservando (desde carga de cliente), mantenemos.
-    if (!preserveColonia) {
-        orderForm.receiver.colonia = '';
-    }
+    if (!preserveColonia) orderForm.receiver.colonia = '';
     colonias.value = [];
-    
     try {
-        const res = await axios.get(`/proxy/dipomex`, {
-            params: { cp: cp }
-        });
-
-        console.log("Respuesta Dipomex (Proxy):", res.data);
-
+        const res = await axios.get(`/proxy/dipomex`, { params: { cp: cp } });
         if (res.data && !res.data.error && res.data.codigo_postal) {
             const data = res.data.codigo_postal;
             orderForm.receiver.estado = data.estado || '';
             orderForm.receiver.municipio = data.municipio || '';
-            
             if (data.colonias && Array.isArray(data.colonias)) {
-                // Normalizar a strings para facilitar el mapping
                 colonias.value = data.colonias.map(c => c.colonia || c);
-                
-                // REGLA DE VISIBILIDAD: Si la colonia que viene del cliente no está en la lista de la API, 
-                // la agregamos manualmente para que el selector no la oculte por ser valor inválido
-                if (preserveColonia && orderForm.receiver.colonia && !colonias.value.includes(orderForm.receiver.colonia)) {
-                    colonias.value.unshift(orderForm.receiver.colonia);
-                }
-
-                // Selección automática si solo hay una
-                if (!preserveColonia && colonias.value.length === 1) {
-                    orderForm.receiver.colonia = colonias.value[0];
-                }
+                if (preserveColonia && orderForm.receiver.colonia && !colonias.value.includes(orderForm.receiver.colonia)) colonias.value.unshift(orderForm.receiver.colonia);
+                if (!preserveColonia && colonias.value.length === 1) orderForm.receiver.colonia = colonias.value[0];
             }
         }
-    } catch (e) {
-        console.error("Error al consultar CP:", e);
-    } finally {
-        searchingCP.value = false;
-    }
+    } catch (e) { console.error(e); } finally { searchingCP.value = false; }
 };
 
-const resetAddress = () => {
-    orderForm.receiver.estado = '';
-    orderForm.receiver.municipio = '';
-    orderForm.receiver.colonia = '';
-    colonias.value = [];
-};
+const resetAddress = () => { orderForm.receiver.estado = ''; orderForm.receiver.municipio = ''; orderForm.receiver.colonia = ''; colonias.value = []; };
 
 /**
  * LÓGICA DE CLIENTES
@@ -538,14 +536,9 @@ const searchClients = () => {
 };
 
 const selectClient = (c) => {
-    // DEBUG: Verifica en consola qué campos trae tu objeto de cliente
-    console.log("Datos del cliente recibidos desde el buscador:", c);
-
     orderForm.clientId = c.id;
     orderForm.clientName = c.name;
     clientSuggestions.value = [];
-    
-    // Mapeo exhaustivo y seguro desde el backend
     orderForm.receiver.persona_recibe = c.contacto || c.name || '';
     orderForm.receiver.rfc = c.rfc || '';
     orderForm.receiver.regimen_fiscal = c.regimen_fiscal || '';
@@ -553,30 +546,26 @@ const selectClient = (c) => {
     orderForm.receiver.correo = c.email || '';
     orderForm.receiver.calle_num = c.calle_num || c.direccion || '';
     orderForm.receiver.colonia = c.colonia || ''; 
-    
-    // Sincronización con catálogo de Dipomex
-    if (c.cp) {
-        orderForm.receiver.cp = c.cp;
-        fetchAddressByCP(c.cp, true); // true = no resetear el campo colonia de inmediato
-    } else {
-        resetAddress();
-    }
-};
-
-const openEditReceiverModal = () => {
-    if (!orderForm.clientId) return;
-    showEditReceiverModal.value = true;
+    if (c.cp) { orderForm.receiver.cp = c.cp; fetchAddressByCP(c.cp, true); } else resetAddress();
 };
 
 /**
- * LÓGICA DE LIBROS
+ * LÓGICA DE LIBROS - FILTRADO POR TIPO
  */
 const searchBooks = async () => {
     if (currentOrderItem.bookName.length < 3) { currentOrderItem.bookSuggestions = []; return; }
     searchingLibros.value = true;
     try {
         const res = await axios.get('/search/libros', { params: { query: currentOrderItem.bookName } });
-        currentOrderItem.bookSuggestions = res.data;
+        
+        // REGLA DE NEGOCIO: Filtrar según el selector tipo_material
+        if (currentOrderItem.tipo_material === 'promocion') {
+            // Solo promoción
+            currentOrderItem.bookSuggestions = res.data.filter(b => b.type === 'promocion');
+        } else {
+            // Solo venta/digital, NADA de promoción
+            currentOrderItem.bookSuggestions = res.data.filter(b => b.type !== 'promocion');
+        }
     } catch (e) { console.error(e); } finally { searchingLibros.value = false; }
 };
 
@@ -611,22 +600,13 @@ const totalUnits = computed(() => orderForm.orderItems.reduce((s, i) => s + i.qu
 const formatCurrency = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
 const submitOrder = async () => {
-    if (!orderForm.receiver.rfc) {
-        alert("El RFC es obligatorio para procesar el pedido.");
-        return;
-    }
-
+    if (!orderForm.receiver.rfc) { alert("El RFC es obligatorio para procesar el pedido."); return; }
     loading.value = true;
-    const payload = { ...orderForm, items: orderForm.orderItems };
     try {
-        const res = await axios.post('/pedidos', payload);
+        const res = await axios.post('/pedidos', { ...orderForm, items: orderForm.orderItems });
         generatedOrderId.value = res.data.order_id;
         showSuccessModal.value = true;
-    } catch (e) { 
-        alert(e.response?.data?.message || 'Error al procesar pedido. Verifique campos obligatorios.'); 
-    } finally { 
-        loading.value = false; 
-    }
+    } catch (e) { alert(e.response?.data?.message || 'Error al procesar pedido.'); } finally { loading.value = false; }
 };
 
 const closeAndRedirect = () => { showSuccessModal.value = false; router.push('/pedidos'); };
@@ -677,4 +657,83 @@ onMounted(async () => {
 .modal-pop-enter-from, .modal-pop-leave-to { opacity: 0; }
 
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Cabeceras Oscuras */
+.table-header-dark {
+    padding: 18px 24px;
+    font-size: 0.65rem;
+    font-weight: 900;
+    color: #94a3b8; /* Slate-400 */
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+}
+
+.table-cell {
+    padding: 16px 24px;
+    vertical-align: middle;
+}
+
+/* Badges de Tipo de Material */
+.badge-material-promo {
+    background-color: #f5f3ff; /* Purple-50 */
+    color: #7e22ce; /* Purple-700 */
+    border: 1px solid #ddd6fe;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+.badge-material-sale {
+    background-color: #eff6ff; /* Blue-50 */
+    color: #1d4ed8; /* Blue-700 */
+    border: 1px solid #dbeafe;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 9px;
+    font-weight: 900;
+}
+
+/* Botón de Cancelar */
+.btn-delete-item {
+    background: none;
+    border: none;
+    color: #cbd5e1; /* Slate-300 */
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-delete-item:hover {
+    color: #ef4444; /* Red-500 */
+    transform: translateX(2px);
+}
+
+/* Footer: Tipografía de Impacto */
+tfoot {
+    border-top: 3px solid #f1f5f9;
+}
+
+.table-shadow-lg {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+}
+
+/* Utilitarios */
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
 </style>
