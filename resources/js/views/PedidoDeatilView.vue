@@ -42,23 +42,26 @@
                         </div>
                         <div class="space-y-4">
                             <div>
-                                <label class="label-mini">Plantel / Distribuidor</label>
+                                <label class="label-mini lbb ">Plantel / Distribuidor</label>
                                 <p class="text-sm font-black text-slate-800 uppercase leading-tight">{{ pedido.cliente.name }}</p>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="label-mini">Perfil</label>
+                                    <label class="label-mini lbb">Perfil</label>
+                                    <br>
+                                   
                                     <span :class="pedido.cliente.tipo === 'CLIENTE' ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700 border-blue-100'" class="status-badge">
                                         {{ pedido.cliente.tipo }}
                                     </span>
                                 </div>
                                 <div>
-                                    <label class="label-mini">RFC</label>
+                                     <br>
+                                    <label class="label-mini lbb">RFC</label>
                                     <p class="text-[10px] font-mono font-black text-slate-500 uppercase">{{ pedido.cliente.rfc || 'N/A' }}</p>
                                 </div>
                             </div>
                             <div class="pt-3 border-t border-slate-50">
-                                <label class="label-mini">Contacto Directo</label>
+                                <label class="label-mini lbb">Contacto Directo</label>
                                 <p class="text-xs font-bold text-slate-600">{{ pedido.cliente.contacto }}</p>
                                 <p class="text-xs text-slate-400 mt-1"><i class="fas fa-phone-alt mr-1"></i> {{ pedido.cliente.telefono }}</p>
                             </div>
@@ -72,11 +75,11 @@
                         </div>
                         <div class="space-y-4">
                             <div>
-                                <label class="label-mini">Destinatario Final</label>
+                                <label class="label-mini lbb">Destinatario Final</label>
                                 <p class="text-sm font-black text-slate-800">{{ getReceiverName(pedido) }}</p>
                             </div>
                             <div>
-                                <label class="label-mini">Dirección de Envío</label>
+                                <label class="label-mini lbb">Dirección de Envío</label>
                                 <p class="text-[11px] text-slate-500 leading-relaxed italic">
                                     <i class="fas fa-map-marker-alt text-red-500 mr-1"></i> 
                                     {{ pedido.delivery_address || 'Entrega en Sucursal / Oficina' }}
@@ -84,16 +87,22 @@
                             </div>
                             <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
                                 <div>
-                                    <label class="label-mini">Método</label>
+                                    <label class="label-mini lbb">Método</label>
+                                    <br>
                                     <span class="text-[10px] font-black text-red-700 uppercase">{{ getDeliveryOption(pedido.delivery_option) }}</span>
+                                    <br>
                                 </div>
-                                <div v-if="pedido.paqueteria_nombre" class="text-right">
-                                    <label class="label-mini">Empresa</label>
+                                <br>
+                                    <label class="label-mini lbb">Empresa</label>
+                                    <br>
                                     <span class="text-[10px] font-bold text-slate-800">{{ pedido.paqueteria_nombre }}</span>
-                                </div>
+                                    <br>
+                            
                             </div>
+                            <br>
                             <div>
-                                <label class="label-mini">Estatus Actual</label>
+                                <label class="label-mini lbb">Estatus Actual</label>
+                                <br>
                                 <span :class="getStatusClass(pedido.status)" class="status-badge w-full text-center">
                                     {{ pedido.status }}
                                 </span>
@@ -109,26 +118,29 @@
                         <div class="space-y-4">
                             <div class="flex justify-between">
                                 <div>
-                                    <label class="label-mini">Tipo de Operación</label>
+                                    <label class="label-mini lbb">Tipo de Operación</label>
                                     <p class="text-[10px] font-black uppercase" :class="pedido.tipo_pedido === 'promocion' ? 'text-purple-600' : 'text-slate-800'">
                                         {{ pedido.tipo_pedido === 'promocion' ? 'PROMOCIÓN' : 'VENTA NORMAL' }}
                                     </p>
                                 </div>
-                                <div class="text-right">
-                                    <label class="label-mini">Prioridad</label>
-                                    <span :class="getPriorityClass(pedido.prioridad)" class="status-badge mt-1">
+                                    <label class="label-mini lbb">Prioridad</label>
+                                    <br>
+                                    <p :class="getPriorityClass(pedido.prioridad)" class="status-badge mt-1">
+                                        
                                         {{ (pedido.prioridad || 'media').toUpperCase() }}
-                                    </span>
-                                </div>
+                                    </p>
                             </div>
                             
                             <div class="pt-4 border-t border-slate-200">
                                 <div class="flex justify-between items-center mb-1">
-                                    <span class="text-[10px] font-black text-slate-400 uppercase">Volumen total:</span>
+                                    <span class="text-[10px] font-black text-slate-400 uppercase lbb">Volumen total:</span>
+                                    <br>
                                     <span class="text-xs font-black text-slate-700">{{ calculateTotalItems(pedido.detalles) }} Libros</span>
                                 </div>
+                                <br><br>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-xs font-black text-red-900 uppercase">Inversión Final:</span>
+                                    <span class="text-xs font-black text-red-900 uppercase lbb">Inversión Final:</span>
+                                    <br>
                                     <span class="text-2xl font-black text-red-700 tracking-tighter">{{ totalOrderCost }}</span>
                                 </div>
                             </div>
@@ -151,7 +163,7 @@
                                     <i class="fas fa-file-invoice text-xl" :class="pedido.factura_path ? 'text-red-600' : 'text-slate-300'"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Factura</p>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest lbb">Factura</p>
                                     <p class="text-xs font-bold text-slate-700">{{ pedido.factura_path ? 'PDF Disponible' : 'No cargada' }}</p>
                                 </div>
                             </div>
@@ -168,7 +180,7 @@
                                     <i class="fas fa-shipping-fast text-xl" :class="pedido.guia_envio_path ? 'text-blue-600' : 'text-slate-300'"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Guía</p>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest lbb">Guía</p>
                                     <p class="text-xs font-bold text-slate-700">{{ pedido.guia_envio_path ? 'Rastreo Listo' : 'Pendiente' }}</p>
                                 </div>
                             </div>
@@ -261,7 +273,7 @@
                 <!-- Comentarios -->
                 <div v-if="pedido.comments" class="info-card border-none bg-amber-50/50 p-8 rounded-[2.5rem] border border-amber-100">
                     <h3 class="text-[10px] font-black text-amber-600 uppercase mb-3 tracking-widest flex items-center gap-2">
-                        <i class="fas fa-comment-dots"></i> Observaciones Adicionales
+                        <i class="fas fa-comment-dots lbb1"></i> Observaciones Adicionales
                     </h3>
                     <p class="text-sm text-slate-700 italic leading-relaxed">{{ pedido.comments }}</p>
                 </div>
@@ -359,7 +371,7 @@ onMounted(() => fetchPedidoDetail());
 <style scoped>
 .info-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f1f5f9; }
 .section-title { font-weight: 900; color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
-.label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-[0.1em]; }
+.label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-[0.1em];  }
 .status-badge { padding: 4px 14px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; text-transform: uppercase; }
 
 .shadow-premium { box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05); }
@@ -378,7 +390,13 @@ onMounted(() => fetchPedidoDetail());
     overflow-x: auto;
     background: white;
 }
-
+.lbb{
+    color: black;
+    font-weight: bold;
+}
+.lbb1{
+    font-weight: bold;
+}
 table {
     width: 100%;
     border-collapse: collapse;
