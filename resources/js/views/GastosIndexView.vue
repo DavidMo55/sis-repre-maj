@@ -21,7 +21,7 @@
                 </div>
                 <div class="filter-grid">
                     <div class="form-group col-span-2">
-                        <label for="search">Buscar por concepto:</label>
+                        <label for="search">Buscar por viaje:</label>
                         <div class="relative">
                             <i class="fas fa-search search-icon"></i>
                             <input 
@@ -29,7 +29,7 @@
                                 id="search" 
                                 v-model="filters.search" 
                                 class="form-input pl-10" 
-                                placeholder="Ej: Gasolina, Alimentos..."
+                                placeholder="Ej: Hidalgo, CDMX..."
                             >
                         </div>
                     </div>
@@ -84,9 +84,8 @@
         <thead class="bg-gray-100">
             <tr>
                 <th class="table-header">Fecha</th>
-                <th class="table-header">Concepto</th>
+                <th class="table-header">Paquete de gastos</th>
                 <th class="table-header text-right">Monto</th>
-                <th class="table-header text-center">Facturado</th>
                 <th class="table-header text-center">Estado</th>
                 <th class="px-6 py-3"></th>
             </tr>
@@ -110,12 +109,7 @@
                     {{ formatCurrency(gasto.monto) }}
                 </td>
 
-                <td class="table-cell text-center">
-                    <span v-if="gasto.facturado" class="text-green-600 font-bold text-xs">
-                        <i class="fas fa-file-invoice mr-1"></i> SÍ
-                    </span>
-                    <span v-else class="text-gray-400 text-xs font-bold">NO</span>
-                </td>
+              
 
                 <td class="table-cell text-center">
                     <span class="status-badge" 

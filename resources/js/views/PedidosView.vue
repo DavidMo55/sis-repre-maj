@@ -21,7 +21,7 @@
                             <div class="relative">
                                 <input 
                                     type="text" 
-                                    class="form-input pl-10 font-bold" 
+                                    class="form-input pl-10 font-bold lbb"  
                                     placeholder="Buscar por nombre..." 
                                     v-model="orderForm.clientName"
                                     @input="searchClients"
@@ -58,7 +58,7 @@
                         <!-- Opciones de envío -->
                         <div class="form-group">
                             <label class="label-style">Método de Envío:</label>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                            <div class="grid  grid-cols-1 md:grid-cols-3 gap-4 mt-2">
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'paqueteria'}">
                                     <input type="radio" value="paqueteria" v-model="orderForm.logistics.deliveryOption" class="hidden">
                                     <i class="fas fa-box"></i>
@@ -96,7 +96,7 @@
                             <div class="flex gap-6">
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="cliente" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600" :disabled="!orderForm.clientId">
-                                    <span class="text-sm font-bold text-slate-700 group-hover:text-red-700">Usar datos de registro</span>
+                                    <span class="text-sm font-bold text-slate-700 group-hover:text-red-700">Usar datos de ultimo registro</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="nuevo" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
@@ -110,11 +110,10 @@
                             <div v-if="orderForm.clientId" class="receiver-summary-card shadow-sm border border-slate-200 rounded-[2.5rem] p-6 bg-white relative overflow-hidden group">
                                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 gap-4">
                                     <div class="space-y-1">
-                                        <p class="text-[10px] font-black text-red-700 uppercase tracking-[0.2em]">Ficha del Cliente (Sincronizada)</p>
                                         <h4 class="text-xl font-black text-slate-800 leading-none mb-2">{{ orderForm.receiver.persona_recibe || 'Sin Nombre' }}</h4>
                                         
                                         <div class="flex flex-wrap gap-x-4 gap-y-1">
-                                            <p class="text-xs font-bold text-slate-500 uppercase"><i class="fas fa-id-card mr-1 text-slate-300"></i> RFC: <span :class="orderForm.receiver.rfc ? 'text-slate-700' : 'text-red-500 italic font-black'">{{ orderForm.receiver.rfc || 'FALTA RFC EN BD' }}</span></p>
+                                            <p class="text-xs font-bold text-slate-500 uppercase"><i class="fas fa-id-card mr-1 text-slate-300"></i> RFC: <span :class="orderForm.receiver.rfc ? 'text-slate-700' : ' italic font-black'">{{ orderForm.receiver.rfc || 'FALTA RFC EN BD' }}</span></p>
                                             <p class="text-xs font-bold text-slate-500 uppercase"><i class="fas fa-envelope mr-1 text-slate-300"></i> {{ orderForm.receiver.correo || 'SIN CORREO' }}</p>
                                         </div>
                                         
@@ -625,10 +624,10 @@ onMounted(async () => {
 
 .shadow-premium { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); }
 .form-section { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f1f5f9; margin-bottom: 25px; }
-.section-title { font-weight: 900; color: #a93339; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
+.section-title { font-weight: 900; color: #000000; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
 
 .form-input { width: 100%; padding: 12px 16px; border-radius: 14px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; }
-.form-input:focus { border-color: #a93339; background: white; outline: none; }
+.form-input:focus { border-color: #000000; background: white; outline: none; }
 
 .autocomplete-list { position: absolute; z-index: 1000; width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 12px; max-height: 250px; overflow-y: auto; list-style: none; padding: 5px; margin-top: 5px; }
 .autocomplete-list li { padding: 10px 15px; cursor: pointer; border-radius: 8px; border-bottom: 1px solid #f8fafc; transition: background 0.2s; }
@@ -667,7 +666,9 @@ table {
     width: 100%;
     border-collapse: collapse;
 }
-
+.lbb{
+    color: black;
+}
 /* Cabeceras Oscuras */
 .table-header-dark {
     padding: 18px 24px;

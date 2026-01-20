@@ -68,7 +68,7 @@ public function store(Request $request)
                 'user_id'       => $ownerId,
                 'fecha'         => $request->fecha,
                 'estado_nombre' => $request->estado_nombre,
-                'concepto'      => "Paquete de gastos: " . $request->estado_nombre,
+                'concepto'      => $request->estado_nombre,
                 'monto'         => $request->monto_total,
                 'facturado'     => $tieneFactura,
                 'detalles'      => $request->conceptos, // Guardamos el desglose JSON
