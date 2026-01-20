@@ -76,8 +76,8 @@
                                 </div>
                                 <div class="data-row">
                                     <label class="label-large">Estatus de Cuenta</label>
-                                    <p class="font-black" :class="visita?.cliente?.tipo === 'CLIENTE' ? 'text-green-600' : 'text-orange-600'">
-                                        {{ visita?.cliente?.tipo || 'PROSPECTO ACTIVO' }}
+                                    <p class="font-black text-sm uppercase tracking-wider" :class="visita?.cliente?.tipo === 'CLIENTE' ? 'text-green-600' : 'text-orange-600'">
+                                        {{ visita?.cliente?.tipo || 'PROSPECTO' }}
                                     </p>
                                 </div>
                             </div>
@@ -102,12 +102,12 @@
                         <div class="space-y-6">
                             <div class="data-row">
                                 <label class="label-large">Dirección Completa</label>
-                                <p class="value-text italic leading-relaxed">{{ visita.direccion_plantel || visita.cliente?.direccion || 'Sin dirección registrada' }}</p>
+                                <p class="value-text italic leading-relaxed text-sm">{{ visita.direccion_plantel || visita.cliente?.direccion || 'Sin dirección registrada' }}</p>
                             </div>
                             
                             <div class="data-row">
                                 <label class="label-large">Nombre del Director / Coordinador</label>
-                                <p class="value-text">{{ visita.director_plantel || visita.cliente?.contacto || 'No especificado' }}</p>
+                                <p class="value-text text-slate-700">{{ visita.director_plantel || visita.cliente?.contacto || 'No especificado' }}</p>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -117,7 +117,7 @@
                                 </div>
                                 <div class="data-row">
                                     <label class="label-large">Correo Electrónico</label>
-                                    <p class="value-text lowercase"><i class="fas fa-envelope mr-2 text-slate-300"></i>{{ visita.email_plantel || visita.cliente?.email || 'N/A' }}</p>
+                                    <p class="value-text lowercase text-sm"><i class="fas fa-envelope mr-2 text-slate-300"></i>{{ visita.email_plantel || visita.cliente?.email || 'N/A' }}</p>
                                 </div>
                             </div>
                         </div>
@@ -140,7 +140,7 @@
                                 </div>
                                 <div class="data-row">
                                     <label class="label-large">Fecha de la Sesión</label>
-                                    <p class="value-text">{{ formatDate(visita.fecha) }}</p>
+                                    <p class="value-text text-slate-700">{{ formatDate(visita.fecha) }}</p>
                                 </div>
                             </div>
 
@@ -183,11 +183,17 @@
                                 <p v-else class="text-white/30 italic text-[11px] font-black uppercase tracking-widest mt-4">Sin fecha agendada</p>
                             </div>
 
-                            <button v-if="visita.resultado_visita !== 'rechazo'" 
+                            <!-- REGLA: Solo se permite seguimiento si el estatus actual es SEGUIMIENTO y no es CLIENTE -->
+                            <button v-if="visita.resultado_visita === 'seguimiento' && visita.cliente?.tipo !== 'CLIENTE'" 
                                 @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
                                 class="w-full btn-primary py-4 rounded-[2rem] bg-red-700 hover:bg-red-600 text-white font-black uppercase tracking-widest text-[11px] shadow-2xl shadow-red-900/50 transition-all active:scale-95">
-                                <i class="fas fa-plus-circle mr-2 "></i> Nuevo Seguimiento
+                                <i class="fas fa-plus-circle mr-2 "></i> Iniciar Segunda Visita
                             </button>
+                            <div v-else class="bg-white/10 p-4 rounded-2xl border border-white/5">
+                                <p class="text-[9px] font-black text-slate-400 uppercase text-center leading-tight">
+                                    Etapa de prospectación cerrada. <br> No se requieren seguimientos adicionales.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -207,14 +213,13 @@
                                     <i class="fas fa-star text-yellow-400"></i>
                                     <h3 class="text-[11px] font-black uppercase tracking-widest">Libros de Interés</h3>
                                 </div>
+                                <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ materialesInteres.length }} Títulos</span>
                             </div>
-                            <div class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
+                            <div class="table-responsive table-shadow-lg border-t overflow-hidden">
                                 <table class="min-width-full divide-y divide-gray-200">
                                     <thead class="bg-gray-100">
                                         <tr>
                                             <th class="table-header">Material</th>
-                                            <th class="table-header"></th>
-                                            <th class="table-header"></th>
                                             <th class="table-header text-right">Formato Solicitado</th>
                                         </tr>
                                     </thead>
@@ -228,8 +233,6 @@
                                                     SERIE: {{ libro.serie_nombre || 'N/A' }}
                                                 </div>
                                             </td>
-                                            <td class="table-cell"></td>
-                                            <td class="table-cell"></td>
                                             <td class="table-cell text-right">
                                                 <span class="type-badge badge-blue-outline">
                                                     {{ libro.tipo || 'Físico' }}
@@ -237,7 +240,7 @@
                                             </td>
                                         </tr>
                                         <tr v-if="!materialesInteres.length">
-                                            <td colspan="4" class="px-8 py-16 text-center">
+                                            <td colspan="2" class="px-8 py-16 text-center">
                                                 <i class="fas fa-box-open text-gray-200 text-5xl mb-4 block"></i>
                                                 <p class="text-gray-400 font-bold uppercase text-[11px] tracking-widest italic">Sin registros de prospección</p>
                                             </td>
@@ -246,7 +249,7 @@
                                 </table>
                             </div>
                         </div>
-<br>
+
                         <!-- APARTADO B: PROMOCIÓN -->
                         <div class="info-card bg2 !p-0 overflow-hidden border border-red-100 shadow-premium bg-white">
                             <div class="p-6 bg-red-900 text-white flex justify-between items-center">
@@ -254,13 +257,13 @@
                                     <i class="fas fa-box-open text-red-300"></i>
                                     <h3 class="text-[11px] font-black uppercase tracking-widest"> Muestras Entregadas</h3>
                                 </div>
+                                <span class="text-[9px] font-black text-red-200 uppercase tracking-widest">{{ materialesEntregados.length }} Entregas</span>
                             </div>
-                            <div class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
+                            <div class="table-responsive table-shadow-lg border-t overflow-hidden">
                             <table class="min-width-full divide-y divide-gray-200">
                                 <thead class="bg-red-50">
                                     <tr>
                                         <th class="table-header text-red-900/60">Título / Muestra Física</th>
-                                        <th class="table-header"></th>
                                         <th class="table-header text-center">Cantidad</th>
                                     </tr>
                                 </thead>
@@ -271,7 +274,6 @@
                                                 {{ libro.titulo }}
                                             </div>
                                         </td>
-                                        <td class="table-cell"></td>
                                         <td class="table-cell text-center">
                                             <div class="flex flex-col items-center">
                                                 <span class="text-2xl font-black text-red-700 tracking-tighter">{{ libro.cantidad || '1' }}</span>
@@ -280,7 +282,7 @@
                                         </td>
                                     </tr>
                                     <tr v-if="!materialesEntregados.length">
-                                        <td colspan="3" class="px-8 py-16 text-center">
+                                        <td colspan="2" class="px-8 py-16 text-center">
                                             <i class="fas fa-folder-open text-red-100 text-5xl mb-4 block"></i>
                                             <p class="text-red-200 font-bold uppercase text-[11px] tracking-widest italic">No se entregaron muestras físicas</p>
                                         </td>
@@ -291,7 +293,7 @@
                         </div>
                     </div>
                 </div>
-<br>
+
                 <!-- OBSERVACIONES FINALES -->
                 <div v-if="visita.comentarios" class="info-card border-none bg-amber-50 p-10 rounded-[3rem] border border-amber-200 shadow-sm">
                     <h3 class="text-[11px] font-black text-amber-700 uppercase mb-4 tracking-[0.3em] flex items-center gap-2">
@@ -390,22 +392,22 @@ onMounted(fetchVisitaDetail);
 
 <style scoped>
 .info-card { background: white; padding: 40px; border-radius: 40px; border: 1px solid #f1f5f9; }
-.section-title { font-weight: 900; color: #1e293b; margin-bottom: 30px; border-bottom: 2px solid #f8fafc; padding-bottom: 15px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; }
+.section-title { font-weight: 900; color: #3b1e1e; margin-bottom: 30px; border-bottom: 2px solid #f8fafc; padding-bottom: 15px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; }
 
 /* ETIQUETAS Y TEXTO */
 .label-large { 
     display: block;
-    font-size: 0.7rem; 
+    font-size: 0.72rem; 
     font-weight: 900; 
     text-transform: uppercase; 
-    color: #94a3b8; 
+    color: #000000; 
     margin-bottom: 6px; 
-    letter-spacing: 0.1em; 
+    letter-spacing: 0.12em; 
 }
 
 .value-text { 
-    font-weight: 700; 
-    color: #a22f2fff; 
+    font-weight: 800; 
+    color: #be5e5e; 
     line-height: 1.4;
 }
 

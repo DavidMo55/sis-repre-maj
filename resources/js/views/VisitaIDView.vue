@@ -80,6 +80,12 @@
                                     <option value="Otro">Otro</option>
                                 </select>
                             </div>
+
+                            <div v-if="form.visita.cargo === 'Otro'" class="form-group mb-6 animate-fade-in">
+                                <label class="label-style">Especifique el Cargo *</label>
+                                <input v-model="form.visita.cargo_especifico" type="text" class="form-input font-bold border-red-100" placeholder="Escriba el puesto real..." required :disabled="loading">
+                            </div>
+                    
                         </div>
 
                         <!-- APARTADO A: LIBROS DE INTERÉS -->
@@ -256,7 +262,7 @@
                 <!-- BOTONES DE ACCIÓN -->
                 <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8">
                     <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest" :disabled="loading">Cancelar</button>
-                    <button type="submit" class="btn-primary-action px-20 py-4" :disabled="loading || !selectedCliente || gettingLocation">
+                    <button type="submit" class="btn-primary px-20 py-4" :disabled="loading || !selectedCliente || gettingLocation">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
                         {{ loading ? 'Sincronizando...' : 'Postear Seguimiento' }}
                     </button>

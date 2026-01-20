@@ -114,15 +114,20 @@
                         </div>
 
                         <div class="form-group mb-6">
-                            <label class="label-style">Cargo / Puesto de la Persona Entrevistada *</label>
-                            <select v-model="form.visita.cargo" class="form-input font-bold" required :disabled="loading">
-                                <option value="Director/Coordinador">Director/Coordinador</option>
-                                <option value="Subdirector">Subdirector</option>
-                                <option value="Jefe de Departamento">Jefe de Departamento</option>
-                                <option value="Profesor">Profesor</option>
-                                <option value="Otro">Otro</option>
-                            </select>
-                        </div>
+                                <label class="label-style">Cargo / Puesto de la Persona *</label>
+                                <select v-model="form.visita.cargo" class="form-input font-bold" required :disabled="loading">
+                                    <option value="Director/Coordinador">Director/Coordinador</option>
+                                    <option value="Subdirector">Subdirector</option>
+                                    <option value="Jefe de Departamento">Jefe de Departamento</option>
+                                    <option value="Profesor">Profesor</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <div v-if="form.visita.cargo === 'Otro'" class="form-group mb-6 animate-fade-in">
+                                <label class="label-style">Especifique el Cargo *</label>
+                                <input v-model="form.visita.cargo_especifico" type="text" class="form-input font-bold border-red-100" placeholder="Escriba el puesto real..." required :disabled="loading">
+                            </div>
                     </div>
                     <div>
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800">
@@ -361,7 +366,6 @@ const nivelesCatalog = ref([]);
 const allSeries = ref([]); 
 
 const selectedSerieIdA = ref(''); 
-
 const interestSuggestions = ref([]);
 const deliveredSuggestions = ref([]);
 const selectedInterestBooks = ref([]);
@@ -373,23 +377,16 @@ const deliveredInput = reactive({ titulo: '' });
 let bookTimer = null;
 
 const form = reactive({
-    plantel: {
-        name: '', rfc: '', niveles: [], direccion: '',
-        estado_id: '', telefono: '', email: '', director: '',
-        latitud: null, longitud: null
-    },
-    visita: {
-        fecha: new Date().toISOString().split('T')[0],
-        persona_entrevistada: '', cargo: 'Director/Coordinador',
-        comentarios: '', resultado_visita: 'seguimiento',
-        proxima_visita: '', proxima_accion: 'visita'
-    }
+    plantel: { name: '', rfc: '', niveles: [], direccion: '', estado_id: '', telefono: '', email: '', director: '', latitud: null, longitud: null },
+    visita: { fecha: new Date().toISOString().split('T')[0], persona_entrevistada: '', cargo: 'Director/Coordinador', cargo_especifico: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '', proxima_accion: 'visita' }
 });
 
 const seriesFiltradas = computed(() => {
     if (form.plantel.niveles.length === 0) return [];
     return allSeries.value.filter(serie => form.plantel.niveles.includes(serie.nivel_educativo_id));
 });
+
+const savedClientType = computed(() => form.visita.resultado_visita === 'compra' ? 'Cliente' : 'Prospecto');
 
 const getLocation = () => {
     if (!navigator.geolocation) return alert("Navegador no soporta GPS.");
@@ -405,21 +402,11 @@ const handleSerieChange = (type) => {
     if (type === 'interest') { interestInput.titulo = ''; interestSuggestions.value = []; }
 };
 
-const savedClientType = computed(() => {
-    return form.visita.resultado_visita === 'compra' ? 'Cliente' : 'Prospecto';
-});
-
 const searchBooks = (event, type) => {
     const val = event.target.value;
-    if (val.length < 3) {
-        if (type === 'interest') interestSuggestions.value = [];
-        else deliveredSuggestions.value = [];
-        return;
-    }
+    if (val.length < 3) { type === 'interest' ? interestSuggestions.value = [] : deliveredSuggestions.value = []; return; }
     
-    if (type === 'interest') searchingInterest.value = true;
-    else searchingDelivered.value = true;
-
+    type === 'interest' ? searchingInterest.value = true : searchingDelivered.value = true;
     if (bookTimer) clearTimeout(bookTimer);
     
     const serieId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? null : selectedSerieIdA.value) : null; 
@@ -427,13 +414,9 @@ const searchBooks = (event, type) => {
     bookTimer = setTimeout(async () => {
         try {
             const res = await axios.get('search/libros', { params: { query: val, serie_id: serieId } });
-            
             if (type === 'interest') {
-                // FILTRO A: Excluir libros de promoción (asumiendo que tienen un flag is_promo o tipo)
-                // Usamos type como discriminador
                 interestSuggestions.value = res.data.filter(b => b.type !== 'promocion');
             } else {
-                // FILTRO B: Solo promoción y NO digitales
                 deliveredSuggestions.value = res.data.filter(b => b.type === 'promocion' && b.type !== 'digital');
             }
         } catch (e) { console.error(e); } 
@@ -448,19 +431,14 @@ const addMaterial = (book, type) => {
     if (type === 'interest') {
         if (!selectedInterestBooks.value.find(b => b.id === book.id)) {
             selectedInterestBooks.value.push({ 
-                id: book.id, 
-                titulo: book.titulo,
-                serie_nombre: serieNombre,
-                original_type: book.type, // Guardamos el tipo real del catálogo
-                tipo: book.type === 'digital' ? 'digital' : 'fisico'
+                id: book.id, titulo: book.titulo, serie_nombre: serieNombre, 
+                original_type: book.type, tipo: book.type === 'digital' ? 'digital' : 'fisico' 
             });
         }
         interestInput.titulo = ''; interestSuggestions.value = [];
     } else {
         if (!selectedDeliveredBooks.value.find(b => b.id === book.id)) {
-            selectedDeliveredBooks.value.push({ 
-                id: book.id, titulo: book.titulo, serie_nombre: serieNombre, cantidad: 1 
-            });
+            selectedDeliveredBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: serieNombre, cantidad: 1 });
         }
         deliveredInput.titulo = ''; deliveredSuggestions.value = [];
     }
@@ -483,9 +461,11 @@ const handleSubmit = async () => {
             entregado: selectedDeliveredBooks.value.map(b => ({ titulo: b.titulo, cantidad: b.cantidad }))
         };
 
+        const finalCargo = form.visita.cargo === 'Otro' ? form.visita.cargo_especifico : form.visita.cargo;
+
         const payload = { 
             plantel: { ...form.plantel, niveles: nivelNombres }, 
-            visita: { ...form.visita, libros_interes: materiales } 
+            visita: { ...form.visita, cargo: finalCargo, libros_interes: materiales } 
         };
         
         await axios.post('visitas/primera', payload);
@@ -498,7 +478,7 @@ const handleSubmit = async () => {
 
 const goToHistory = () => { showSuccessModal.value = false; router.push('/visitas'); };
 
-const fetchInitialData = async () => {
+onMounted(async () => {
     loadingInitial.value = true;
     try {
         const [resEst, resNiv, resSer] = await Promise.all([
@@ -509,9 +489,7 @@ const fetchInitialData = async () => {
         allSeries.value = resSer.data;
     } catch (e) { errorMessage.value = "Error al cargar catálogos."; } 
     finally { loadingInitial.value = false; }
-};
-
-onMounted(fetchInitialData);
+});
 </script>
 
 <style scoped>
