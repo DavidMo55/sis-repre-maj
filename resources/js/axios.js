@@ -29,21 +29,33 @@ instance.interceptors.request.use(config => {
 
 /**
  * INTERCEPTOR DE RESPUESTA
- * Si el servidor responde 401, la sesión es inválida o expiró.
+ * Maneja errores globales de autenticación, exceptuando servicios externos específicos.
  */
 instance.interceptors.response.use(
     response => response,
     error => {
+        // 1. Identificar si el error es 401
         if (error.response && error.response.status === 401) {
-            // Evitamos redirecciones si ya estamos en el login
-            if (window.location.pathname !== '/login') {
-                // Limpiar almacenamiento local por seguridad
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('session_start_time');
-                localStorage.removeItem('user_data');
-                
-                // Redirección forzada para limpiar estado de la app
-                window.location.href = '/login';
+            
+            // 2. EXCEPCIÓN CRÍTICA: No expulsar al usuario si falla el Proxy de Dipomex
+            // Esto permite que el error sea manejado localmente por el componente (silent fail)
+            const isProxyUrl = error.config.url.includes('proxy/dipomex');
+            
+            if (!isProxyUrl) {
+                // Solo cerramos sesión si no es una página pública y no es el proxy
+                if (window.location.pathname !== '/login') {
+                    console.error("Sesión invalidada por el servidor. Redirigiendo...");
+                    
+                    // Limpiar almacenamiento local
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('session_start_time');
+                    localStorage.removeItem('user_data');
+                    
+                    // Redirección forzada
+                    window.location.href = '/login';
+                }
+            } else {
+                console.warn("Se detectó un error 401 en el Proxy externo, pero se mantuvo la sesión activa.");
             }
         }
         return Promise.reject(error);
