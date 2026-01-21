@@ -20,12 +20,16 @@ class VisitaController extends Controller
     {
         try {
             $user = $request->user();
-            // Determinamos el ID del dueño de la información (soporte para delegados)
             $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
             $query = Visita::where('user_id', $ownerId);
 
-            // Aplicamos los Scopes de búsqueda definidos en el modelo Visita
+            // REGLA: Si NO se pide el historial completo, filtrar solo por primeras visitas (1)
+            // Si se envía el parámetro 'full_history', mostrará tanto 1 como 0.
+            if (!$request->has('full_history')) {
+                $query->where('es_primera_visita', 1);
+            }
+
             $query->search($request->input('search'))
                   ->byDateRange($request->input('desde'), $request->input('hasta'))
                   ->byResultado($request->input('resultado'));
@@ -35,14 +39,14 @@ class VisitaController extends Controller
             }
 
             $visitas = $query->with(['estado', 'cliente'])
-                ->orderBy('fecha', 'desc')
+                ->orderBy('id', 'desc') 
                 ->paginate(15);
 
             return response()->json($visitas);
 
         } catch (\Exception $e) {
             Log::error("Error en VisitaController@index: " . $e->getMessage());
-            return response()->json(['message' => 'Error al cargar el historial de bitácoras.'], 500);
+            return response()->json(['message' => 'Error al cargar el historial.'], 500);
         }
     }
 

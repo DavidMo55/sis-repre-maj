@@ -4,40 +4,34 @@
             <!-- Encabezado Dinámico -->
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div class="header-info min-w-0">
-                    <div class="flex items-center gap-3 mb-1">
-                        <span :class="visita?.cliente?.tipo === 'CLIENTE' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'" 
-                              class="text-[10px] font-black uppercase px-3 py-1 rounded-full border border-current opacity-80">
-                            {{ visita?.cliente?.tipo || 'PROSPECTO' }}
-                        </span>
-                        <span class="text-slate-300">/</span>
-                    </div>
-                    <h1 v-if="visita" class="text-2xl md:text-4xl font-black text-slate-800 tracking-tight leading-tight break-words">
+                    
+                    <h1 v-if="visita" class="text-2xl md:text-4xl font-black text-black tracking-tight leading-tight break-words">
                         {{ visita.nombre_plantel || visita.cliente?.name || 'Sin nombre' }}
                     </h1>
-                    <h1 v-else-if="loading" class="text-2xl font-black text-slate-300 animate-pulse">Cargando bitácora...</h1>
-                    <p class="text-xs md:text-sm text-slate-500 font-medium mt-1 uppercase tracking-tighter">Expediente técnico de prospectación y acuerdos académicos.</p>
+                    <h1 v-else-if="loading" class="text-2xl font-black text-slate-300 animate-pulse uppercase">Sincronizando información...</h1>
+                    <p class="text-xs md:text-sm text-red-600 font-medium mt-1 uppercase tracking-tighter italic">Expediente técnico de prospectación y acuerdos académicos.</p>
                 </div>
-                <button @click="router.push('/visitas')" class="btn-secondary flex items-center justify-center gap-2 px-8 py-3 rounded-2xl text-sm font-black shadow-sm shrink-0 w-full sm:w-auto bg-white border-2 border-slate-200 hover:bg-slate-50 transition-all">
+                <button @click="router.push('/visitas')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto">
                     <i class="fas fa-arrow-left"></i> VOLVER AL LISTADO
                 </button>
             </div>
 
-            <!-- Loader -->
+            <!-- Loader de Sistema -->
             <div v-if="loading" class="loading-state py-20 text-center">
                 <i class="fas fa-circle-notch fa-spin text-5xl text-red-600 mb-4"></i>
-                <p class="text-slate-400 font-black uppercase tracking-widest text-xs">Sincronizando información...</p>
+                <p class="text-slate-400 font-black uppercase tracking-widest text-xs">Consultando base de datos maestra...</p>
             </div>
 
-            <!-- Error -->
+            <!-- Error de Conexión -->
             <div v-else-if="error" class="error-message-container p-10 text-center bg-red-50 border-2 border-red-100 rounded-[2.5rem] shadow-sm animate-fade-in">
                 <i class="fas fa-exclamation-triangle fa-3xl text-red-600 mb-6"></i>
-                <h2 class="text-xl font-black text-red-800 uppercase tracking-tighter">Error de Sistema</h2>
+                <h2 class="text-xl font-black text-black uppercase tracking-tighter">Error de Sincronización</h2>
                 <p class="text-red-600/70 text-sm mt-2 font-medium">{{ error }}</p>
-                <button @click="fetchVisitaDetail" class="btn-primary mt-6 px-10 py-3 rounded-2xl shadow-lg">Reintentar</button>
+                <button @click="fetchVisitaDetail" class="btn-primary-action mt-6 px-10">Reintentar</button>
             </div>
 
             <!-- Contenido Principal -->
-            <div v-else-if="visita" class="space-y-8 animate-fade-in pb-10">
+            <div v-else-if="visita" class="space-y-8 animate-fade-in pb-20">
                 
                 <!-- 1. IDENTIDAD DEL PLANTEL -->
                 <div class="info-card shadow-premium border-t-8 border-t-red-700">
@@ -49,19 +43,19 @@
                         <!-- Columna Datos Base -->
                         <div class="space-y-6">
                             <div class="data-row">
-                                <label class="label-large">Nombre Oficial / Razón</label>
-                                <p class="value-text text-lg">{{ visita.nombre_plantel || visita.cliente?.name }}</p>
+                                <label class="label-large">Nombre Oficial de la Institución</label>
+                                <p class="value-text text-xl leading-none uppercase">{{ visita.nombre_plantel || visita.cliente?.name }}</p>
                             </div>
                             
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="data-row">
                                     <label class="label-large">RFC Fiscal</label>
-                                    <p class="value-text font-mono">{{ visita.rfc_plantel || visita.cliente?.rfc || 'No registrado' }}</p>
+                                    <p class="value-text font-mono uppercase tracking-widest">{{ visita.rfc_plantel || visita.cliente?.rfc || 'No registrado' }}</p>
                                 </div>
                                 <div class="data-row">
                                     <label class="label-large">Niveles Educativos</label>
-                                    <div class="flex flex-wrap gap-1 mt-1">
-                                        <span v-for="n in formatLevels(visita.nivel_educativo_plantel || visita.cliente?.nivel_educativo)" :key="n" class="status-badge bg-slate-100 text-slate-700 font-black border border-slate-200">
+                                    <div class="flex flex-wrap gap-1.5 mt-1">
+                                        <span v-for="n in formatLevels(visita.nivel_educativo_plantel || visita.cliente?.nivel_educativo)" :key="n" class="badge-red-outline">
                                             {{ n }}
                                         </span>
                                     </div>
@@ -70,138 +64,137 @@
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="data-row">
-                                    <label class="label-large">Estado</label>
+                                    <label class="label-large">Estado / Región</label>
                                     <p class="value-text uppercase">{{ visita.estado?.estado || 'No especificado' }}</p>
                                 </div>
                                 <div class="data-row">
-                                    <label class="label-large">Estatus de Cuenta</label>
-                                    <p class="font-black text-sm uppercase tracking-wider" :class="visita?.cliente?.tipo === 'CLIENTE' ? 'text-green-600' : 'text-orange-600'">
+                                    <label class="label-large">Estatus de Prospecto</label>
+                                    <p class="font-black text-sm uppercase tracking-wider" :class="visita?.cliente?.tipo === 'CLIENTE' ? 'text-green-600' : 'text-red-700'">
                                         {{ visita?.cliente?.tipo || 'PROSPECTO' }}
                                     </p>
                                 </div>
                             </div>
 
                             <div class="data-row">
-                                <label class="label-large">Ubicación GPS (Coordenadas)</label>
-                                <div v-if="visita.latitud" class="flex items-center gap-3 bg-blue-50 p-3 rounded-2xl border border-blue-100 mt-2">
-                                    <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center shadow-md">
+                                <label class="label-large">Ubicación Geográfica Capturada</label>
+                                <div v-if="visita.latitud" class="flex items-center gap-3 bg-red-50/30 p-4 rounded-2xl border border-red-100 mt-2">
+                                    <div class="w-12 h-12 bg-red-700 text-white rounded-xl flex items-center justify-center shadow-lg">
                                         <i class="fas fa-map-marker-alt"></i>
                                     </div>
                                     <div class="flex-1">
-                                        <p class="text-[10px] font-black text-blue-800 uppercase leading-none">Punto Exacto Capturado</p>
-                                        <p class="text-xs font-mono font-bold text-blue-600 mt-1">{{ visita.latitud }}, {{ visita.longitud }}</p>
+                                        <p class="text-[10px] font-black text-red-800 uppercase leading-none">Punto GPS en Sesión</p>
+                                        <p class="text-xs font-mono font-bold text-red-600 mt-1">{{ visita.latitud }}, {{ visita.longitud }}</p>
                                     </div>
-                                    <a :href="`https://www.google.com/maps?q=${visita.latitud},${visita.longitud}`" target="_blank" class="text-[10px] font-black uppercase text-blue-700 hover:underline">Ver Mapa</a>
+                                    <a :href="`https://www.google.com/maps?q=${visita.latitud},${visita.longitud}`" target="_blank" class="text-[10px] font-black uppercase text-red-700 hover:underline px-3 border-l border-red-100">Ver Mapa</a>
                                 </div>
-                                <p v-else class="value-text text-slate-300 italic">GPS no capturado en esta visita</p>
+                                <p v-else class="value-text text-slate-300 italic text-sm">Sin coordenadas registradas</p>
                             </div>
                         </div>
 
                         <!-- Columna Contacto -->
                         <div class="space-y-6">
                             <div class="data-row">
-                                <label class="label-large">Dirección Completa</label>
+                                <label class="label-large">Dirección de Entrega / Facturación</label>
                                 <p class="value-text italic leading-relaxed text-sm">{{ visita.direccion_plantel || visita.cliente?.direccion || 'Sin dirección registrada' }}</p>
                             </div>
                             
                             <div class="data-row">
-                                <label class="label-large">Nombre del Director / Coordinador</label>
-                                <p class="value-text text-slate-700">{{ visita.director_plantel || visita.cliente?.contacto || 'No especificado' }}</p>
+                                <label class="label-large">Representante / Director General</label>
+                                <p class="value-text text-lg uppercase">{{ visita.director_plantel || visita.cliente?.contacto || 'No especificado' }}</p>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="data-row">
-                                    <label class="label-large">Teléfono / Celular</label>
-                                    <p class="value-text"><i class="fas fa-phone-alt mr-2 text-slate-300"></i>{{ visita.telefono_plantel || visita.cliente?.telefono || 'N/A' }}</p>
+                                    <label class="label-large">Teléfono de Contacto</label>
+                                    <p class="value-text tracking-tighter"><i class="fas fa-phone-alt mr-2 opacity-30"></i>{{ visita.telefono_plantel || visita.cliente?.telefono || 'N/A' }}</p>
                                 </div>
                                 <div class="data-row">
-                                    <label class="label-large">Correo Electrónico</label>
-                                    <p class="value-text lowercase text-sm"><i class="fas fa-envelope mr-2 text-slate-300"></i>{{ visita.email_plantel || visita.cliente?.email || 'N/A' }}</p>
+                                    <label class="label-large">Email Institucional</label>
+                                    <p class="value-text lowercase text-sm"><i class="fas fa-envelope mr-2 opacity-30"></i>{{ visita.email_plantel || visita.cliente?.email || 'N/A' }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. DETALLES DE LA VISITA -->
+                <!-- 2. DETALLES DE LA VISITA ACTUAL -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 info-card shadow-premium border-t-8 border-t-slate-800">
-                        <div class="section-title">
-                            <i class="fas fa-handshake text-slate-800"></i> 2. Detalles de la Entrevista
+                    <div class="lg:col-span-2 info-card shadow-premium border-t-8 border-t-black">
+                        <div class="section-title text-black !border-black/5">
+                            <i class="fas fa-handshake text-black"></i> 2. Detalles de la Entrevista (Esta Sesión)
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-6">
-                                <div class="data-row bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                    <label class="label-large !text-red-700">Atendido por:</label>
-                                    <p class="value-text !text-lg !font-black uppercase">{{ visita.persona_entrevistada || 'N/A' }}</p>
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{{ visita.cargo || 'Responsable de área' }}</p>
+                                <div class="data-row bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                    <label class="label-large !text-red-700">Entrevista concedida por:</label>
+                                    <p class="value-text !text-xl !font-black uppercase !color-black">{{ visita.persona_entrevistada || 'N/A' }}</p>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{{ visita.cargo || 'Responsable' }}</p>
                                 </div>
                                 <div class="data-row">
-                                    <label class="label-large">Fecha de la Sesión</label>
-                                    <p class="value-text text-slate-700">{{ formatDate(visita.fecha) }}</p>
+                                    <label class="label-large">Fecha Programada</label>
+                                    <p class="value-text">{{ formatDate(visita.fecha) }}</p>
                                 </div>
                             </div>
 
                             <div class="space-y-6">
                                 <div class="data-row">
-                                    <label class="label-large">Resultado de la Entrevista</label>
-                                    <br>
-                                    <span :class="getOutcomeClass(visita.resultado_visita)" class="status-badge !text-xs !py-2 !px-6 shadow-sm">
-                                        {{ (visita.resultado_visita || 'seguimiento').toUpperCase() }}
-                                    </span>
+                                    <label class="label-large">Resultado de la Interacción</label>
+                                    <div class="mt-2">
+                                        <span :class="getOutcomeClass(visita.resultado_visita)" class="status-badge !text-xs !py-2.5 !px-8 shadow-sm">
+                                            {{ (visita.resultado_visita || 'seguimiento').toUpperCase() }}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="data-row">
-                                    <label class="label-large">Objetivo de la sesión</label>
-                                    <p class="value-text uppercase text-xs font-black text-slate-500">{{ visita.es_primera_visita ? 'Primera Visita / Prospectación' : 'Visita de Seguimiento' }}</p>
+                                    <label class="label-large">Fase del Embudo</label>
+                                    <p class="value-text uppercase text-xs font-black text-slate-500">{{ visita.es_primera_visita ? 'Apertura de Prospecto' : 'Seguimiento de Venta' }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3. AGENDA Y SEGUIMIENTO -->
+                    <!-- 3. AGENDA Y PRÓXIMA ACCIÓN -->
                     <div class="info-card shadow-premium border-t-8 border-t-red-800 bg-slate-900 text-white">
                         <div class="section-title !text-white !border-white/10">
-                            <i class="fas fa-calendar-check"></i> 3. Agenda y Seguimiento
+                            <i class="fas fa-calendar-check"></i> 3. Agenda de Seguimiento
                         </div>
                         
                         <div class="space-y-6 mt-4">
                             <div class="p-6 bg-white/5 rounded-3xl border border-white/10">
-                                <label class="label-large !text-red-400">Próximo Compromiso</label>
+                                <label class="label-large !text-red-400">Compromiso Agendado</label>
                                 <div v-if="visita.proxima_visita_estimada" class="mt-3">
                                     <p class="text-3xl font-black text-white tracking-tighter">{{ formatDate(visita.proxima_visita_estimada) }}</p>
-                                    <div class="flex items-center gap-2 mt-4 bg-red-600/20 p-2 rounded-xl border border-red-600/30">
+                                    <div class="flex items-center gap-2 mt-4 bg-red-600/20 p-3 rounded-xl border border-red-600/30">
                                         <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-xs">
                                             <i class="fas fa-bullseye"></i>
                                         </div>
-                                        <span class="text-[10px] font-black uppercase tracking-widest text-red-200">
-                                            {{ visita.proxima_accion === 'presentacion' ? 'Presentación Académica' : 'Seguimiento Estándar' }}
-                                        </span>
+                                        
                                     </div>
                                 </div>
-                                <p v-else class="text-white/30 italic text-[11px] font-black uppercase tracking-widest mt-4">Sin fecha agendada</p>
+                                <p v-else class="text-white/20 italic text-[11px] font-black uppercase tracking-widest mt-4">Sin fecha programada</p>
                             </div>
 
-                            <!-- REGLA: Solo se permite seguimiento si el estatus actual es SEGUIMIENTO y no es CLIENTE -->
+                            <!-- Botón de Acción -->
                             <button v-if="visita.resultado_visita === 'seguimiento' && visita.cliente?.tipo !== 'CLIENTE'" 
                                 @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
-                                class="w-full btn-primary py-4 rounded-[2rem] bg-red-700 hover:bg-red-600 text-white font-black uppercase tracking-widest text-[11px] shadow-2xl shadow-red-900/50 transition-all active:scale-95">
-                                <i class="fas fa-plus-circle mr-2 "></i> Iniciar Segunda Visita
+                                class="w-full btn-primary-action shadow-2xl transition-all active:scale-95">
+                                <i class="fas fa-plus-circle mr-2 "></i> Registrar de Nueva visita
                             </button>
-                            <div v-else class="bg-white/10 p-4 rounded-2xl border border-white/5">
-                                <p class="text-[9px] font-black text-slate-400 uppercase text-center leading-tight">
-                                    Etapa de prospectación cerrada. <br> No se requieren seguimientos adicionales.
+                            <div v-else class="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">
+                                <p class="text-[9px] font-black text-slate-500 uppercase leading-tight">
+                                    Proceso Comercial Finalizado <br> No requiere más seguimiento.
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- EXPEDIENTE DE MATERIALES -->
+                <!-- 4. EXPEDIENTE DE MATERIALES -->
                 <div class="space-y-6">
                     <div class="flex items-center gap-3 px-2">
-                        <div class="w-1.5 h-8 bg-red-700 rounded-full"></div>
-                        <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight">Expediente de Materiales</h2>
+                        <div class="w-1.5 h-8 bg-black rounded-full"></div>
+                        <h2 class="text-2xl font-black text-black uppercase tracking-tight">Materiales de la Sesión Actual</h2>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -210,43 +203,40 @@
                             <div class="p-6 bg-slate-800 text-white flex justify-between items-center">
                                 <div class="flex items-center gap-3">
                                     <i class="fas fa-star text-yellow-400"></i>
-                                    <h3 class="text-[11px] font-black uppercase tracking-widest">Libros de Interés</h3>
+                                    <h3 class="text-[11px] font-black uppercase tracking-widest">Interés de Venta</h3>
                                 </div>
-                                <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ materialesInteres.length }} Títulos</span>
+                                <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">{{ materialesInteres.length }} Títulos</span>
                             </div>
-                            <div class="table-responsive table-shadow-lg border-t overflow-hidden">
-                                <table class="min-width-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="table-header">Material</th>
-                                            <th class="table-header text-right">Formato Solicitado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-100">
-                                        <tr v-for="(libro, idx) in materialesInteres" :key="idx" class="hover:bg-gray-50 transition-colors">
-                                            <td class="table-cell">
-                                                <div class="text-sm font-bold text-gray-800 uppercase leading-tight text-truncate max-w-titulo" :title="libro.titulo">
-                                                    {{ libro.titulo }}
-                                                </div>
-                                                <div class="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-tighter">
-                                                    SERIE: {{ libro.serie_nombre || 'N/A' }}
-                                                </div>
-                                            </td>
-                                            <td class="table-cell text-right">
-                                                <span class="type-badge badge-blue-outline">
-                                                    {{ libro.tipo || 'Físico' }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                        <tr v-if="!materialesInteres.length">
-                                            <td colspan="2" class="px-8 py-16 text-center">
-                                                <i class="fas fa-box-open text-gray-200 text-5xl mb-4 block"></i>
-                                                <p class="text-gray-400 font-bold uppercase text-[11px] tracking-widest italic">Sin registros de prospección</p>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <div class="table-responsive table-shadow-lg border rounded-2xl overflow-hidden bg-white">
+                            <table class="w-full border-collapse">
+                                <thead class="bg-slate-900">
+                                    <tr>
+                                        <th class="table-header-enterprise text-left">Material de Interés</th>
+                                        <th class="table-header-enterprise text-right">Formato</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr v-for="(libro, idx) in materialesInteres" :key="idx" class="hover:bg-slate-50 transition-colors">
+                                        <td class="table-cell">
+                                            <div class="text-xs font-black text-black uppercase leading-tight">
+                                                {{ libro.titulo }}
+                                            </div>
+                                        </td>
+                                        <td class="table-cell text-right">
+                                            <span class="text-[9px] text-red-600 font-black uppercase bg-red-50 border border-red-100 px-3 py-1 rounded-lg tracking-widest">
+                                                {{ libro.tipo || 'Físico' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="!materialesInteres.length">
+                                        <td colspan="2" class="px-8 py-12 text-center">
+                                            <i class="fas fa-search text-slate-100 text-3xl mb-2 block"></i>
+                                            <p class="text-slate-300 font-black uppercase text-[10px] tracking-widest italic">Sin registros de prospección</p>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                         </div>
 
                         <!-- APARTADO B: PROMOCIÓN -->
@@ -254,36 +244,36 @@
                             <div class="p-6 bg-red-900 text-white flex justify-between items-center">
                                 <div class="flex items-center gap-3">
                                     <i class="fas fa-box-open text-red-300"></i>
-                                    <h3 class="text-[11px] font-black uppercase tracking-widest"> Muestras Entregadas</h3>
+                                    <h3 class="text-[11px] font-black uppercase tracking-widest">Muestras Entregadas</h3>
                                 </div>
-                                <span class="text-[9px] font-black text-red-200 uppercase tracking-widest">{{ materialesEntregados.length }} Entregas</span>
+                                <span class="text-[10px] font-black text-red-200 uppercase tracking-widest">{{ materialesEntregados.length }} Entrega(s)</span>
                             </div>
-                            <div class="table-responsive table-shadow-lg border-t overflow-hidden">
-                            <table class="min-width-full divide-y divide-gray-200">
-                                <thead class="bg-red-50">
+                            <div class="table-responsive table-shadow-lg border border-red-100 rounded-2xl overflow-hidden bg-white">
+                            <table class="w-full border-collapse">
+                                <thead class="bg-red-900">
                                     <tr>
-                                        <th class="table-header text-red-900/60">Título / Muestra Física</th>
-                                        <th class="table-header text-center">Cantidad</th>
+                                        <th class="table-header-enterprise text-white/70 text-left">Muestra Física</th>
+                                        <th class="table-header-enterprise text-white/70 text-center">Cantidad</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-red-50">
+                                <tbody class="divide-y divide-red-50">
                                     <tr v-for="(libro, idx) in materialesEntregados" :key="idx" class="hover:bg-red-50/30 transition-colors">
                                         <td class="table-cell">
-                                            <div class="text-sm font-black text-red-900 uppercase leading-tight">
+                                            <div class="text-xs font-black text-black uppercase leading-tight">
                                                 {{ libro.titulo }}
+                                                <span v-if="libro.edicion" class="text-[9px] text-red-500 ml-1">ED. {{ libro.edicion }}</span>
                                             </div>
                                         </td>
                                         <td class="table-cell text-center">
-                                            <div class="flex flex-col items-center">
-                                                <span class="text-2xl font-black text-red-700 tracking-tighter">{{ libro.cantidad || '1' }}</span>
-                                                <span class="text-[9px] text-red-300 font-bold uppercase">Unidades</span>
-                                            </div>
+                                            <span class="text-xl font-black text-red-700 tracking-tighter">
+                                                {{ libro.cantidad || '1' }}
+                                            </span>
                                         </td>
                                     </tr>
                                     <tr v-if="!materialesEntregados.length">
-                                        <td colspan="2" class="px-8 py-16 text-center">
-                                            <i class="fas fa-folder-open text-red-100 text-5xl mb-4 block"></i>
-                                            <p class="text-red-200 font-bold uppercase text-[11px] tracking-widest italic">No se entregaron muestras físicas</p>
+                                        <td colspan="2" class="px-8 py-12 text-center">
+                                            <i class="fas fa-box-open text-red-50 text-3xl mb-2 block"></i>
+                                            <p class="text-red-200 font-black uppercase text-[10px] tracking-widest italic">Sin entrega de muestras físicas</p>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -293,10 +283,171 @@
                     </div>
                 </div>
 
-                <!-- OBSERVACIONES FINALES -->
-                <div v-if="visita.comentarios" class="info-card border-none bg-amber-50 p-10 rounded-[3rem] border border-amber-200 shadow-sm">
-                    <h3 class="text-[11px] font-black text-amber-700 uppercase mb-4 tracking-[0.3em] flex items-center gap-2">
-                        <i class="fas fa-comment-dots"></i> Acuerdos y Notas del Representante
+                <!-- 5. HISTORIAL CRONOLÓGICO DESPLEGABLE -->
+                <div class="info-card space-y-6 mt-16">
+                    <div class="flex items-center gap-3 px-2">
+                        <div class="w-2 h-8 bg-red-700 rounded-full"></div>
+                        <h2 class="text-2xl font-black text-black uppercase tracking-tight">Historial Completo de Sesiones</h2>
+                    </div>
+
+                    <div v-if="loadingHistory" class="py-10 text-center animate-pulse">
+                        <i class="fas fa-spinner fa-spin text-red-600 text-3xl"></i>
+                        <p class="text-[10px] font-black text-slate-400 uppercase mt-4">Cargando toda la cadena de seguimiento...</p>
+                    </div>
+
+                    <div v-else-if="historial.length" class="space-y-4">
+                        <div v-for="h in historial" :key="h.id" 
+                            class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden transition-all duration-300 group"
+                            :class="{'ring-4 ring-red-50 shadow-xl border-red-100': expandedId === h.id}"
+                        >
+                            <!-- Header de la tarjeta -->
+                            <div @click="toggleExpand(h.id)" 
+                                class="p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 cursor-pointer hover:bg-slate-50 transition-colors">
+                                
+                                <div class="flex items-center gap-6 w-full md:w-auto">
+                                    <div :class="h.es_primera_visita ? 'bg-black' : 'bg-red-700'" 
+                                         class="w-16 h-16 text-white rounded-3xl flex flex-col items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+                                   
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span v-if="h.es_primera_visita" class="text-[7px] bg-slate-900 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">Primer Contacto</span>
+                                        </div>
+                                        <h4 class="text-xl font-black text-black uppercase tracking-tight truncate max-w-[200px] md:max-w-none">
+                                            {{ formatDate(h.fecha) }}
+                                        </h4>
+                                        <p class="text-[11px] font-bold text-red-600 mt-0.5 uppercase tracking-tighter italic">
+                                            Atendido por: {{ h.persona_entrevistada }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-5 w-full md:w-auto justify-between md:justify-end">
+                                    <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
+                                        {{ h.resultado_visita }}
+                                    </span>
+                                    <div class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:text-red-600 transition-colors">
+                                        <i class="fas fa-chevron-down transition-transform duration-500" 
+                                           :class="{'rotate-180 text-red-600': expandedId === h.id}"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contenido Desplegable (Expediente) -->
+                            <div v-if="expandedId === h.id" class="p-8 md:p-12 bg-slate-50/40 border-t border-slate-100 animate-fade-in">
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                                    <!-- Información Sesión -->
+                                    <div class="space-y-8">
+                                        <div>
+                                            <h5 class="text-black font-black uppercase text-[11px] tracking-widest mb-4 flex items-center gap-2">
+                                                <i class="fas fa-id-badge text-red-700"></i> Resumen de la Entrevista
+                                            </h5>
+                                            <div class="bg-white p-6 rounded-3xl border border-slate-100 space-y-4 shadow-sm">
+                                                <div class="grid grid-cols-2 gap-6">
+                                                    <div>
+                                                        <label class="label-large">Persona Cargo</label>
+                                                        <p class="value-text">{{ h.persona_entrevistada }}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label class="label-large">Puesto Oficial</label>
+                                                        <p class="value-text">{{ h.cargo }}</p>
+                                                    </div>
+                                                </div>
+                                                <div v-if="h.proxima_visita_estimada" class="pt-3 border-t border-slate-50">
+                                                    <label class="label-large">Acuerdo de Cita</label>
+                                                    <p class="text-xs font-black text-black uppercase">
+                                                        <i class="far fa-calendar-alt mr-1.5 text-red-600"></i>
+                                                        {{ formatDate(h.proxima_visita_estimada) }} — <span class="text-red-700 italic">{{ h.proxima_accion }}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h5 class="text-black font-black uppercase text-[11px] tracking-widest mb-4 flex items-center gap-2">
+                                                <i class="fas fa-comment-dots text-red-700"></i> Observaciones del Registro
+                                            </h5>
+                                            <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner">
+                                                "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Materiales Desplegables -->
+                                    <div class="space-y-8">
+                                    <h5 class="text-black font-black uppercase text-[11px] tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <i class="fas fa-book-open text-red-700"></i> 4. Materiales y Muestras Involucradas
+                                    </h5>
+                                    
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        <div class="table-responsive table-shadow-lg border rounded-2xl overflow-hidden bg-white">
+                                            <table class="w-full border-collapse">
+                                                <thead class="bg-slate-800">
+                                                    <tr>
+                                                        <th class="px-5 py-3 text-left text-[9px] font-black text-slate-300 uppercase tracking-widest">Material de Interés</th>
+                                                        <th class="px-5 py-3 text-right text-[9px] font-black text-slate-300 uppercase tracking-widest">Formato</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-slate-50">
+                                                    <tr v-for="(item, i) in parseMateriales(h.libros_interes).interes" :key="i" class="hover:bg-slate-50/50 transition-colors">
+                                                        <td class="px-5 py-4 text-[11px] font-black text-black uppercase leading-tight">
+                                                            {{ item.titulo }}
+                                                        </td>
+                                                        <td class="px-5 py-4 text-right">
+                                                            <span class="text-[9px] text-red-600 font-black uppercase bg-red-50 border border-red-100 px-3 py-1 rounded-lg tracking-tighter">
+                                                                {{ item.tipo || 'Físico' }}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr v-if="!parseMateriales(h.libros_interes).interes.length">
+                                                        <td colspan="2" class="px-5 py-10 text-center text-[10px] text-slate-300 font-black uppercase tracking-widest italic">Sin intereses registrados</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div class="table-responsive table-shadow-lg border border-red-100 rounded-2xl overflow-hidden bg-white">
+                                            <table class="w-full border-collapse">
+                                                <thead class="bg-red-900">
+                                                    <tr>
+                                                        <th class="px-5 py-3 text-left text-[9px] font-black text-red-200 uppercase tracking-widest">Muestra Entregada</th>
+                                                        <th class="px-5 py-3 text-right text-[9px] font-black text-red-200 uppercase tracking-widest">Cantidad</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-red-50">
+                                                    <tr v-for="(item, i) in parseMateriales(h.libros_interes).entregado" :key="i" class="hover:bg-red-50/30 transition-colors">
+                                                        <td class="px-5 py-4 text-[11px] font-black text-black uppercase leading-tight">
+                                                            {{ item.titulo }}
+                                                        </td>
+                                                        <td class="px-5 py-4 text-right">
+                                                            <span class="text-[12px] text-red-700 font-black tracking-tighter">
+                                                                {{ item.cantidad }} 
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr v-if="!parseMateriales(h.libros_interes).entregado.length">
+                                                        <td colspan="2" class="px-5 py-10 text-center text-[10px] text-red-200 font-black uppercase tracking-widest italic">No se entregaron muestras físicas</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else class="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 opacity-60">
+                        <i class="fas fa-history text-4xl text-slate-200 mb-4 block"></i>
+                        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">Única interacción registrada.</p>
+                    </div>
+                </div>
+
+                <!-- OBSERVACIONES FINALES (SESIÓN ACTUAL) -->
+                <div v-if="visita.comentarios" class="info-card border-none bg-amber-50 p-10 rounded-[3rem] border border-amber-200 shadow-sm mt-8">
+                    <h3 class="text-[11px] font-black text-black uppercase mb-4 tracking-[0.3em] flex items-center gap-2">
+                        <i class="fas fa-comment-dots text-red-700"></i> Notas de la Sesión Actual
                     </h3>
                     <p class="text-base text-slate-700 italic leading-relaxed whitespace-pre-wrap font-medium">"{{ visita.comentarios }}"</p>
                 </div>
@@ -314,8 +465,13 @@ import axios from '../axios';
 const route = useRoute();
 const router = useRouter();
 const visita = ref(null);
+const historial = ref([]);
 const loading = ref(true);
+const loadingHistory = ref(true);
 const error = ref(null);
+
+// Control Acordeón Historial
+const expandedId = ref(null);
 
 const fetchVisitaDetail = async () => {
     loading.value = true;
@@ -323,6 +479,11 @@ const fetchVisitaDetail = async () => {
     try {
         const response = await axios.get(`/visitas/${route.params.id}`);
         visita.value = response.data;
+        
+        // Carga historial completo al tener datos del plantel
+        if (visita.value.cliente_id || visita.value.nombre_plantel) {
+            fetchFullHistory();
+        }
     } catch (err) {
         error.value = err.response?.data?.message || "No se pudo recuperar la información de la bitácora.";
     } finally {
@@ -330,41 +491,51 @@ const fetchVisitaDetail = async () => {
     }
 };
 
-/**
- * Procesa el campo JSON de libros
- */
+const fetchFullHistory = async () => {
+    loadingHistory.value = true;
+    try {
+        const term = visita.value.nombre_plantel || visita.value.cliente?.name;
+        
+        // Petición al index con bandera de historial completo (requiere ajuste en controller)
+        const response = await axios.get('/visitas', { 
+            params: { 
+                search: term,
+                full_history: 1 
+            } 
+        });
+        
+        const dataReceived = response.data.data || response.data;
+        
+        // Filtramos la actual para el listado cronológico inferior
+        historial.value = Array.isArray(dataReceived) 
+            ? dataReceived.filter(h => h.id !== visita.value.id).sort((a,b) => b.id - a.id)
+            : [];
+            
+    } catch (e) {
+        console.error("Error cargando historial:", e);
+    } finally {
+        loadingHistory.value = false;
+    }
+};
+
+const toggleExpand = (id) => {
+    expandedId.value = expandedId.value === id ? null : id;
+};
+
+const parseMateriales = (raw) => {
+    if (!raw) return { interes: [], entregado: [] };
+    if (typeof raw === 'object' && !Array.isArray(raw)) return raw;
+    try { return JSON.parse(raw); } catch (e) { return { interes: [], entregado: [] }; }
+};
+
 const librosRaw = computed(() => {
     if (!visita.value || !visita.value.libros_interes) return null;
-    if (typeof visita.value.libros_interes === 'object' && !Array.isArray(visita.value.libros_interes)) {
-        return visita.value.libros_interes;
-    }
-    try {
-        const parsed = JSON.parse(visita.value.libros_interes);
-        return parsed;
-    } catch (e) {
-        return null;
-    }
+    if (typeof visita.value.libros_interes === 'object' && !Array.isArray(visita.value.libros_interes)) return visita.value.libros_interes;
+    try { return JSON.parse(visita.value.libros_interes); } catch (e) { return null; }
 });
 
-const materialesInteres = computed(() => {
-    const data = librosRaw.value;
-    if (data && data.interes) return data.interes;
-    if (Array.isArray(visita.value?.libros_interes)) {
-        return visita.value.libros_interes.map(titulo => ({ 
-            titulo: typeof titulo === 'string' ? titulo : titulo.titulo 
-        }));
-    }
-    return [];
-});
-
-const materialesEntregados = computed(() => {
-    const data = librosRaw.value;
-    if (data && data.entregado) return data.entregado;
-    if (visita.value?.material_entregado && visita.value?.libros_interes) {
-        return [{ titulo: 'Material de Promoción', cantidad: visita.value.material_cantidad || 1 }];
-    }
-    return [];
-});
+const materialesInteres = computed(() => librosRaw.value?.interes || []);
+const materialesEntregados = computed(() => librosRaw.value?.entregado || []);
 
 const formatLevels = (levels) => {
     if (!levels) return ['General'];
@@ -374,9 +545,19 @@ const formatLevels = (levels) => {
 
 const formatDate = (dateString) => {
     if (!dateString) return '---';
-    const parts = dateString.split('T')[0].split('-');
-    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    const date = new Date(dateString.split('T')[0]);
     return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+};
+
+const getMonthShort = (dateString) => {
+    if (!dateString) return '---';
+    const date = new Date(dateString.split('T')[0]);
+    return date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase();
+};
+
+const getDay = (dateString) => {
+    if (!dateString) return '--';
+    return dateString.split('T')[0].split('-')[2];
 };
 
 const getOutcomeClass = (outcome) => {
@@ -391,120 +572,88 @@ onMounted(fetchVisitaDetail);
 
 <style scoped>
 .info-card { background: white; padding: 40px; border-radius: 40px; border: 1px solid #f1f5f9; }
-.section-title { font-weight: 900; color: #3b1e1e; margin-bottom: 30px; border-bottom: 2px solid #f8fafc; padding-bottom: 15px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; }
+.section-title { font-weight: 900; color: #000000; margin-bottom: 30px; border-bottom: 2px solid #f8fafc; padding-bottom: 15px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; }
 
-/* ETIQUETAS Y TEXTO */
-.label-large { 
-    display: block;
-    font-size: 0.72rem; 
-    font-weight: 900; 
-    text-transform: uppercase; 
-    color: #000000; 
-    margin-bottom: 6px; 
-    letter-spacing: 0.12em; 
-}
-
-.value-text { 
-    font-weight: 800; 
-    color: #be5e5e; 
-    line-height: 1.4;
-}
+.label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
+.value-text { font-weight: 800; color: #be5e5e; line-height: 1.4; }
 
 .status-badge { padding: 6px 16px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; }
-
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.08); }
 
-.animate-fade-in { animation: fadeIn 0.6s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-.table-responsive { width: 100%; overflow-x: auto; }
-
-/* Estilo para las cabeceras de tabla */
-th {
-    white-space: nowrap;
-}
-
-@media (max-width: 640px) {
-    .info-card { padding: 25px; border-radius: 24px; }
-}
-
-.btn-primary { background: linear-gradient(135deg, #cb7e81 0%, #e96a90 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; }
-.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
+.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
 .table-responsive {
     width: 100%;
-    overflow-x: auto;
     background: white;
+    transition: all 0.3s ease;
 }
 
-table {
-    table-layout: fixed;
-    width: 100%;
-    border-collapse: collapse;
+.table-shadow-lg {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
 }
 
-/* Cabeceras */
-.table-header {
-    padding: 16px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: #64748b;
+/* Cabecera Enterprise (Negra/Gris) */
+.table-header-enterprise {
+    padding: 14px 20px;
+    font-size: 0.65rem;
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
+    color: #94a3b8; /* Slate-400 para cabeceras dark */
 }
 
-/* Celdas */
+/* Celdas de Datos */
 .table-cell {
     padding: 16px 20px;
     vertical-align: middle;
 }
 
-/* Badges de Formato */
-.type-badge {
-    padding: 6px 14px;
-    border-radius: 12px;
-    font-size: 0.65rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: inline-block;
+/* Tipografía: Títulos en Negro, Datos en Rojo */
+.text-black {
+    color: #000000;
 }
 
-.badge-blue-outline {
-    background: #eff6ff;
-    color: #1d4ed8;
-    border: 1px solid #dbeafe;
+.text-red-700 {
+    color: #b91c1c;
 }
 
-/* Truncado de Texto */
+/* Ajustes de Grid para las versiones de 2 columnas */
+.grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .lg\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Animación de filas */
+tr {
+    transition: background-color 0.2s ease;
+}
+
+/* Truncado para títulos largos */
 .text-truncate {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.max-w-titulo {
-    max-width: 300px;
-}
 
-/* Efectos y Sombras */
-.table-shadow-lg {
-    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
-}
 
-.transition-colors {
-    transition: background-color 0.2s ease;
-}
+.btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-3 px-8 rounded-2xl text-sm font-black transition-all hover:bg-slate-50 text-black; }
 
-/* Alineaciones */
-.text-right { text-align: right; }
-.text-center { text-align: center; }
-.text-left { text-align: left; }
+.btn-primary-action { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; padding: 14px 45px; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
-.bg1{
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-}
-.bg2{
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-}
+.badge-red-outline { @apply bg-red-50 text-red-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border border-red-100; }
+
+.badge-blue-outline { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; padding: 4px 10px; border-radius: 10px; }
+
+.text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.bg1{ background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+.bg2{ background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
 </style>

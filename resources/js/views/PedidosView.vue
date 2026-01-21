@@ -128,20 +128,24 @@
                                 <i class="fas fa-user-check absolute -right-6 -bottom-6 text-[10rem] text-red-50/50"></i>
                             </div>
                             <div v-else class="text-center py-16 border-2 border-dashed border-red-100 rounded-[2.5rem] bg-red-50/10">
-                                <p class="text-sm text-red-400 italic font-bold">Busca un cliente para visualizar su información fiscal.</p>
+                                <i class="fas fa-exclamation-triangle text-red-300 text-6xl mb-4"></i>
+                                <p class="text-red-800 font-black uppercase text-xs tracking-[0.3em] italic">
+                                    No se ha seleccionado ningún cliente.<br>
+                                    Por favor, busque y seleccione un plantel o distribuidor.
+                                </p>
                             </div>
                         </div>
 
-                        <!-- FORMULARIO: DATOS NUEVOS -->
+                        <!-- FORMULARIO: DATOS NUEVOS (APARECEN VACÍOS POR REGLA) -->
                         <div v-if="orderForm.receiverType === 'nuevo'" class="animate-fade-in space-y-6 bg-white border border-red-100 p-8 rounded-[3rem] shadow-sm">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div class="form-group">
                                     <label class="label-style">Destinatario *</label>
-                                    <input v-model="orderForm.receiver.persona_recibe" type="text" class="form-input font-bold text-black" required>
+                                    <input v-model="orderForm.receiver.persona_recibe" type="text" class="form-input font-bold text-black" placeholder="Nombre completo" required>
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">RFC *</label>
-                                    <input v-model="orderForm.receiver.rfc" type="text" class="form-input font-mono uppercase font-black text-red-700 border-red-100" placeholder="12 o 13 carac." required>
+                                    <input v-model="orderForm.receiver.rfc" type="text" class="form-input font-mono uppercase font-black text-red-700 border-red-100" placeholder="XXXXXXXXXXXXX" required>
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal</label>
@@ -155,8 +159,8 @@
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="form-group"><label class="label-style">Correo Electrónico</label><input v-model="orderForm.receiver.correo" type="email" class="form-input text-red-700 font-bold" required></div>
-                                <div class="form-group"><label class="label-style">Teléfono</label><input v-model="orderForm.receiver.telefono" type="tel" class="form-input text-red-700 font-bold" required></div>
+                                <div class="form-group"><label class="label-style">Correo Electrónico</label><input v-model="orderForm.receiver.correo" type="email" class="form-input text-red-700 font-bold" placeholder="correo@ejemplo.com " required></div>
+                                <div class="form-group"><label class="label-style">Teléfono</label><input v-model="orderForm.receiver.telefono" type="tel" class="form-input text-red-700 font-bold" placeholder="Número de teléfono" required></div>
                             </div>
 
                             <!-- GEOLOCALIZACIÓN -->
@@ -168,8 +172,8 @@
                                         <input v-model="orderForm.receiver.cp" type="text" class="form-input font-mono font-black text-red-700 shadow-sm" maxlength="5" @input="handleCPInput" placeholder="00000" required>
                                         <i v-if="searchingCP" class="fas fa-spinner fa-spin absolute right-3 top-10 text-red-600"></i>
                                     </div>
-                                    <div class="form-group"><label class="label-mini">Estado</label><input v-model="orderForm.receiver.estado" type="text" class="form-input bg-white font-bold text-red-700" readonly></div>
-                                    <div class="form-group md:col-span-2"><label class="label-mini">Municipio / Alcaldía</label><input v-model="orderForm.receiver.municipio" type="text" class="form-input bg-white font-bold text-red-700" readonly></div>
+                                    <div class="form-group"><label class="label-mini">Estado</label><input v-model="orderForm.receiver.estado" type="text" placeholder="Ingrese CP" class="form-input bg-white font-bold text-red-700" readonly></div>
+                                    <div class="form-group md:col-span-2"><label class="label-mini">Municipio / Alcaldía</label><input v-model="orderForm.receiver.municipio" type="text" placeholder="Ingrese CP" class="form-input bg-white font-bold text-red-700" readonly></div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="form-group">
@@ -234,7 +238,7 @@
                         
                         <div class="md:col-span-1">
                             <label class="label-mini">Cant.</label>
-                            <input type="number" min="1" class="form-input font-bold text-red-700 text-center" v-model.number="currentOrderItem.quantity">
+                            <input type="number" min="1" class="form-input font-bold text-red-700 text-left" v-model.number="currentOrderItem.quantity">
                         </div>
 
                         <div class="md:col-span-2">
@@ -250,7 +254,7 @@
 
                         <div class="md:col-span-1">
                             <button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl bg-black border-none text-white shadow-xl transition-all active:scale-95" :disabled="!isCurrentItemValid || loading">
-                                <i class="fas fa-plus"></i>
+                                <i class="fas fa-plus"></i>Añaddir al Carrito
                             </button>
                         </div>
                     </div>
@@ -337,7 +341,7 @@
                 </div>
 
                 <div class="mt-12 flex justify-end">
-                    <button type="submit" class="btn-primary-action px-20 py-6 text-lg tracking-widest shadow-2xl transition-all active:scale-95" :disabled="loading || !orderForm.clientId || !orderForm.orderItems.length">
+                    <button type="submit" class="btn-primary px-20 py-6 text-lg tracking-widest shadow-2xl transition-all active:scale-95" :disabled="loading || !orderForm.clientId || !orderForm.orderItems.length">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-paper-plane mr-3'"></i> 
                         Generar Pedido
                     </button>
@@ -354,7 +358,7 @@
                         <h2 class="text-2xl font-black text-black mb-3 uppercase tracking-tighter">¡Pedido Registrado!</h2>
                         <p class="text-sm text-red-600 mb-4 font-bold">La orden ha sido enviada al área de revisión.</p>
                         <p class="text-xs font-mono font-black text-white bg-red-700 py-2.5 px-6 rounded-xl inline-block mb-8 uppercase tracking-widest">FOLIO: {{ generatedOrderId }}</p>
-                        <button @click="closeAndRedirect" class="btn-primary-action w-full py-5 bg-black border-none shadow-none text-white font-black uppercase tracking-widest">Regresar al Historial</button>
+                        <button @click="closeAndRedirect" class="btn-primary w-full py-5 bg-black border-none shadow-none text-white font-black uppercase tracking-widest">Regresar al Historial</button>
                     </div>
                 </div>
             </Transition>
@@ -413,6 +417,27 @@ watch(() => currentOrderItem.tipo_material, () => {
     currentOrderItem.sub_type = '';
 });
 
+/**
+ * REGLA DE NEGOCIO: Limpiar campos del receptor cuando se selecciona "Ingresar nuevos"
+ */
+watch(() => orderForm.receiverType, (newType) => {
+    if (newType === 'nuevo') {
+        Object.assign(orderForm.receiver, {
+            persona_recibe: '',
+            rfc: '',
+            regimen_fiscal: '',
+            telefono: '',
+            correo: '',
+            cp: '',
+            estado: '',
+            municipio: '',
+            colonia: '',
+            calle_num: ''
+        });
+        colonias.value = []; // Resetear lista de colonias
+    }
+});
+
 const availableSubTypes = computed(() => {
     if (!currentOrderItem.bookId) return [];
     const isDigital = currentOrderItem.category === 'digital';
@@ -458,7 +483,6 @@ const fetchAddressByCP = async (cp, preserveColonia = false) => {
         }
     } catch (e) { 
         console.warn("Fallo silencioso en Dipomex para evitar 401 redirect:", e.message); 
-        // No lanzamos el error al interceptor para no cerrar sesión si la API externa falla
     } finally { 
         searchingCP.value = false; 
     }
@@ -599,11 +623,9 @@ onMounted(async () => {
 .shipping-card span { @apply text-[10px] font-black uppercase tracking-widest text-center; }
 .shipping-card.active { @apply border-black bg-white text-black shadow-xl scale-[1.02]; }
 
-.btn-primary-action { background: #000000; color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15); transition: all 0.2s; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.1em; }
-.btn-primary-action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25); }
+.btn-primary { background: linear-gradient(135deg, #cb7e81 0%, #e96a90 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
-.btn-primary { background: #000000; color: white; border-radius: 18px; font-weight: 900; text-transform: uppercase; transition: all 0.2s; }
-.btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
 
 /* OVERLAY MODAL */
 .modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); overflow: hidden; }

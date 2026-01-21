@@ -10,7 +10,6 @@
                     <router-link to="/primeras-visitas" class="btn-primary flex-row-centered gap-2">
                         <i class="fas fa-plus-circle"></i> Primera Visita
                     </router-link>
-                    
                 </div>
             </div>
 
@@ -82,7 +81,9 @@
                     </button>
                 </div>
             </div>
+            
             <br><br>
+            
             <div v-if="loading" class="loading-state py-10 mt-8 text-center">
                 <i class="fas fa-spinner fa-spin text-3xl mb-2 text-red-600"></i>
                 <p class="text-gray-500 font-medium">Consultando registros...</p>
@@ -94,7 +95,6 @@
             </div>
             
             <div v-else class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
-                
                 <table class="min-width-full divide-y divide-gray-200">
                     <thead class="bg-gray-100">
                         <tr>
@@ -109,22 +109,19 @@
                     <tbody class="bg-white divide-y divide-gray-100">
                         <tr v-for="visita in visitas" :key="visita.id" class="hover:bg-gray-50 transition-colors">
                             <td class="table-cell table-cell-bold text-gray-700">{{ formatDate(visita.fecha) }}</td>
+                            
                             <td class="table-cell">
-                            <div class="text-red-900 font-bold uppercase text-xs text-truncate max-w-plantel" 
-                                :title="visita.cliente?.name"> {{ visita.cliente?.name || 'Plantel no disponible' }}
-                            </div>
-                            <div class="text-[10px] text-gray-400 uppercase tracking-tighter text-truncate max-w-plantel">
-                            </div>
-                        </td>
+                                <div class="text-red-900 font-bold uppercase text-xs text-truncate max-w-plantel" 
+                                    :title="visita.cliente?.name"> {{ visita.cliente?.name || 'Plantel no disponible' }}
+                                </div>
+                            </td>
 
-                        <td class="table-cell">
-                            <div class="text-sm font-medium text-gray-800 text-truncate max-w-entrevistado" 
-                                :title="visita.persona_entrevistada">
-                                {{ visita.persona_entrevistada }}
-                            </div>
-                            <div class="text-[10px] text-gray-400 uppercase font-bold text-truncate max-w-entrevistado">
-                            </div>
-                        </td>
+                            <td class="table-cell">
+                                <div class="text-sm font-medium text-gray-800 text-truncate max-w-entrevistado" 
+                                    :title="visita.persona_entrevistada">
+                                    {{ visita.persona_entrevistada }}
+                                </div>
+                            </td>
                             
                             <td class="table-cell text-center">
                                 <span class="status-badge" :class="getOutcomeClass(visita.resultado_visita)">
@@ -132,6 +129,7 @@
                                     {{ (visita.resultado_visita || 'seguimiento').toUpperCase() }}
                                 </span>
                             </td>
+
                             <td class="table-cell">
                                 <div v-if="visita.proxima_visita_estimada" class="text-green-700 font-bold text-sm">
                                     <i class="far fa-calendar-alt mr-1"></i>
@@ -139,6 +137,7 @@
                                 </div>
                                 <div v-else class="text-gray-300 text-[10px] italic">No agendada</div>
                             </td>
+
                             <td class="table-cell-action text-right">
                                 <button @click="viewDetails(visita)" class="text-red-link font-bold text-sm">
                                     <i class="fas fa-eye"></i> Ver Detalle
@@ -172,7 +171,7 @@ const fetchVisitas = async () => {
     loading.value = true;
     try {
         const params = {
-            es_primera_visita: 1 // REGLA: Solo primeras visitas
+            es_primera_visita: 1 // REGLA: Solo primeras visitas (valor 1 en BD)
         };
         
         if (filters.query) params.search = filters.query;
@@ -181,11 +180,19 @@ const fetchVisitas = async () => {
         if (filters.resultado) params.resultado = filters.resultado;
 
         const response = await axios.get('/visitas', { params });
+        
+        // Laravel paginate entrega los registros en data.data o response.data según el controlador
         const dataReceived = response.data.data || response.data;
-        visitas.value = Array.isArray(dataReceived) ? dataReceived : [];
+        
+        // REGLA: Ordenar por ID o fecha para que el último agregado aparezca primero 
+        // (Aunque el backend lo haga, lo aseguramos aquí)
+        let sortedData = Array.isArray(dataReceived) ? dataReceived : [];
+        sortedData.sort((a, b) => b.id - a.id);
+        
+        visitas.value = sortedData;
         
     } catch (err) {
-        console.error("Error:", err);
+        console.error("Error al cargar visitas:", err);
         visitas.value = [];
     } finally {
         loading.value = false;
@@ -202,14 +209,18 @@ const formatDate = (dateString) => {
     const cleanDate = dateString.split('T')[0];
     const parts = cleanDate.split('-');
     const date = new Date(parts[0], parts[1] - 1, parts[2]);
-    return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'short', day: 'numeric' });
+    return date.toLocaleDateString('es-ES', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
 };
 
 const getOutcomeClass = (outcome) => {
     const base = 'status-badge ';
-    if (outcome === 'compra') return base + 'bg-green-100 text-green-700 border-green-200';
-    if (outcome === 'rechazo') return base + 'bg-red-100 text-red-700 border-red-200';
-    return base + 'bg-orange-100 text-orange-700 border-orange-200';
+    if (outcome === 'compra') return base + 'bg-green-50 text-green-700 border-green-100';
+    if (outcome === 'rechazo') return base + 'bg-red-50 text-red-700 border-red-100';
+    return base + 'bg-orange-50 text-orange-700 border-orange-100';
 };
 
 const getOutcomeIcon = (outcome) => {
@@ -226,7 +237,6 @@ onMounted(fetchVisitas);
 </script>
 
 <style scoped>
-/* (Se mantienen tus estilos anteriores) */
 .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; align-items: flex-end; }
 @media (min-width: 1024px) { .col-span-2 { grid-column: span 2; } }
 .relative { position: relative; }
@@ -251,16 +261,9 @@ onMounted(fetchVisitas);
     display: block;
 }
 
-/* Anchos máximos específicos para que la tabla no se estire */
-.max-w-plantel {
-    max-width: 200px; /* Ajusta según prefieras */
-}
+.max-w-plantel { max-width: 200px; }
+.max-w-entrevistado { max-width: 150px; }
 
-.max-w-entrevistado {
-    max-width: 150px;
-}
-
-/* Forzar que la tabla respete los anchos y no se salga del contenedor */
 .table-responsive {
     width: 100%;
     overflow-x: auto;
@@ -269,7 +272,7 @@ onMounted(fetchVisitas);
 }
 
 table {
-    table-layout: fixed; /* Esto es clave para que los max-width funcionen bien */
+    table-layout: fixed;
     width: 100%;
 }
 </style>

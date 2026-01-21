@@ -31,26 +31,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     
                     <!-- BLOQUE 1: IDENTIFICACIÓN Y DATOS DEL PLANTEL -->
-                    <div class="form-section shadow-premium border-t-4 border-t-red-700">
-                       
-
-                        <!-- Historial de Visitas lateral -->
-                        <div v-if="selectedCliente" class="mt-8 pt-8 border-t border-slate-100">
-                            <div class="section-title !mb-4">
-                                <i class="fas fa-history text-slate-800"></i> Historial Reciente
-                            </div>
-                            <div v-if="loadingHistory" class="text-center py-6"><i class="fas fa-circle-notch fa-spin text-red-600"></i></div>
-                            <div v-else class="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scroll">
-                                <div v-for="h in historialVisitas" :key="h.id" class="p-4 bg-slate-50 border-l-4 rounded-xl shadow-sm border-slate-200" :class="getOutcomeBorder(h.resultado_visita)">
-                                    <div class="flex justify-between mb-2">
-                                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ formatDateShort(h.fecha) }}</span>
-                                        <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !text-[7px]">{{ h.resultado_visita }}</span>
-                                    </div>
-                                    <p class="text-[11px] text-slate-600 italic line-clamp-3">"{{ h.comentarios || 'Sin observaciones.' }}"</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                   
 
                     <!-- BLOQUE 2: DETALLES DE LA NUEVA VISITA -->
                     <div class="space-y-8">
