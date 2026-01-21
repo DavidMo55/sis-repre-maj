@@ -17,7 +17,7 @@
                 <!-- 1. INFORMACIÓN DEL CLIENTE -->
                 <div class="form-section shadow-premium border-t-4 border-t-black">
                     <div class="section-title text-black">
-                        <i class="fas fa-user-circle text-black"></i> 1. Información del Cliente
+                        <i class="fas fa-user-circle"></i> 1. Información del Cliente
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="form-group relative">
@@ -36,7 +36,7 @@
                             </div>
                             <!-- Resultados Autocompletado -->
                             <ul v-if="clientSuggestions.length" class="autocomplete-list shadow-2xl border border-red-50">
-                                <li v-for="client in clientSuggestions" :key="client.id" @click="selectClient(client)" class="p-3 border-b last:border-0 hover:bg-red-50 transition-colors">
+                                <li v-for="client in clientSuggestions" :key="client.id" @click="selectClient(client)" class="p-3 border-b last:border-0 hover:bg-red-50 transition-colors cursor-pointer">
                                     <div class="text-xs font-black text-black uppercase">{{ client.name }}</div>
                                     <div class="text-[9px] text-red-500 uppercase font-black tracking-widest mt-1">{{ client.tipo }}</div>
                                 </li>
@@ -426,6 +426,7 @@ const availableSubTypes = computed(() => {
 
 /**
  * BÚSQUEDA DE DIRECCIÓN POR CP
+ * CORRECCIÓN: Manejo de errores local para evitar desconexión del interceptor global 401
  */
 const handleCPInput = () => {
     const cp = orderForm.receiver.cp;
@@ -434,12 +435,13 @@ const handleCPInput = () => {
 };
 
 const fetchAddressByCP = async (cp, preserveColonia = false) => {
-    // Si no hay token, no intentamos la petición para evitar 401
-    if (!localStorage.getItem('auth_token')) return;
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
 
     searchingCP.value = true;
     if (!preserveColonia) orderForm.receiver.colonia = '';
     colonias.value = [];
+    
     try {
         const res = await axios.get(`/proxy/dipomex`, { params: { cp: cp } });
         if (res.data && !res.data.error && res.data.codigo_postal) {
@@ -448,12 +450,15 @@ const fetchAddressByCP = async (cp, preserveColonia = false) => {
             orderForm.receiver.municipio = data.municipio || '';
             if (data.colonias && Array.isArray(data.colonias)) {
                 colonias.value = data.colonias.map(c => c.colonia || c);
-                if (preserveColonia && orderForm.receiver.colonia && !colonias.value.includes(orderForm.receiver.colonia)) colonias.value.unshift(orderForm.receiver.colonia);
+                if (preserveColonia && orderForm.receiver.colonia && !colonias.value.includes(orderForm.receiver.colonia)) {
+                    colonias.value.unshift(orderForm.receiver.colonia);
+                }
                 if (!preserveColonia && colonias.value.length === 1) orderForm.receiver.colonia = colonias.value[0];
             }
         }
     } catch (e) { 
-        console.error("Error Dipomex:", e); 
+        console.warn("Fallo silencioso en Dipomex para evitar 401 redirect:", e.message); 
+        // No lanzamos el error al interceptor para no cerrar sesión si la API externa falla
     } finally { 
         searchingCP.value = false; 
     }
