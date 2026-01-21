@@ -122,10 +122,10 @@ router.beforeEach((to, from, next) => {
     const sessionStart = localStorage.getItem('session_start_time');
     
     if (token && sessionStart) {
-        const twoHoursInMs = 2 * 60 * 60 * 1000;
+        const twoHours = 2 * 60 * 60 * 1000;
         const now = new Date().getTime();
 
-        if (now - parseInt(sessionStart) > twoHoursInMs) {
+        if (now - parseInt(sessionStart) > twoHours) {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('session_start_time');
             localStorage.removeItem('user_data');

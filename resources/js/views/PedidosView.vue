@@ -1,11 +1,11 @@
 <template>
-    <div class="content-wrapper p-2 md:p-6">
+    <div class="content-wrapper p-2 md:p-6 bg-slate-50">
         <div class="module-page max-w-7xl mx-auto">
             <!-- Encabezado -->
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
                     <h1 class="text-xl md:text-2xl font-black text-black uppercase tracking-tighter">Ingreso de Pedidos</h1>
-                    <p class="text-xs md:text-sm text-red-600 font-bold">Gestión logística avanzada vinculada a la ficha del cliente.</p>
+                    <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest mt-1">Gestión logística avanzada vinculada a la ficha del cliente.</p>
                 </div>
                 <button @click="router.push('/pedidos')" class="btn-secondary flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black shadow-sm shrink-0 w-full sm:w-auto bg-white border-2 border-red-100 text-red-600">
                     <i class="fas fa-arrow-left"></i> Volver al Historial
@@ -17,7 +17,7 @@
                 <!-- 1. INFORMACIÓN DEL CLIENTE -->
                 <div class="form-section shadow-premium border-t-4 border-t-black">
                     <div class="section-title text-black">
-                        <i class="fas fa-user-circle"></i> 1. Información del Cliente
+                        <i class="fas fa-user-circle text-black"></i> 1. Información del Cliente
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="form-group relative">
@@ -34,10 +34,11 @@
                                 <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-red-400"></i>
                                 <i v-if="searchingClients" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
                             </div>
+                            <!-- Resultados Autocompletado -->
                             <ul v-if="clientSuggestions.length" class="autocomplete-list shadow-2xl border border-red-50">
-                                <li v-for="client in clientSuggestions" :key="client.id" @click="selectClient(client)" class="hover:bg-red-50 p-3 border-b border-red-50 last:border-0 transition-colors">
+                                <li v-for="client in clientSuggestions" :key="client.id" @click="selectClient(client)" class="p-3 border-b last:border-0 hover:bg-red-50 transition-colors">
                                     <div class="text-xs font-black text-black uppercase">{{ client.name }}</div>
-                                    <div class="text-[9px] text-red-400 uppercase font-black tracking-widest mt-1">{{ client.tipo }}</div>
+                                    <div class="text-[9px] text-red-500 uppercase font-black tracking-widest mt-1">{{ client.tipo }}</div>
                                 </li>
                             </ul>
                         </div>
@@ -55,7 +56,7 @@
                 <!-- 2. RECEPCIÓN Y LOGÍSTICA -->
                 <div class="form-section shadow-premium border-t-4 border-t-black">
                     <div class="section-title text-black">
-                        <i class="fas fa-truck"></i> 2. Recepción y Logística de Envío
+                        <i class="fas fa-truck text-black"></i> 2. Recepción y Logística de Envío
                     </div>
                     
                     <div class="space-y-6">
@@ -70,7 +71,7 @@
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'recoleccion'}">
                                     <input type="radio" value="recoleccion" v-model="orderForm.logistics.deliveryOption" class="hidden">
                                     <i class="fas fa-warehouse"></i>
-                                    <span>Recolección Almacén</span>
+                                    <span>Recolección</span>
                                 </label>
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'entrega'}">
                                     <input type="radio" value="entrega" v-model="orderForm.logistics.deliveryOption" class="hidden">
@@ -82,7 +83,7 @@
                             <div class="mt-6 space-y-4 animate-fade-in">
                                 <div v-if="orderForm.logistics.deliveryOption === 'paqueteria'">
                                     <label class="label-mini">Empresa de Paquetería sugerida por el cliente:</label>
-                                    <input v-model="orderForm.logistics.paqueteria_nombre" type="text" class="form-input border-red-200 bg-red-50/30 text-red-700 font-bold" placeholder="DHL, FedEx, etc.">
+                                    <input v-model="orderForm.logistics.paqueteria_nombre" type="text" class="form-input border-red-200 bg-red-50/10 text-red-700 font-bold" placeholder="DHL, FedEx, etc.">
                                 </div>
                                 <div v-if="['recoleccion', 'entrega'].includes(orderForm.logistics.deliveryOption)">
                                     <label class="label-mini">Instrucciones / Referencias Logísticas:</label>
@@ -93,42 +94,41 @@
 
                         <hr class="border-red-100">
 
-                        <!-- Selección de quién recibe -->
                         <div class="bg-red-50/20 p-5 rounded-3xl border border-red-100 flex flex-wrap gap-6 items-center">
                             <label class="text-[10px] font-black text-red-800 uppercase tracking-widest">Datos Fiscales y Dirección:</label>
                             <div class="flex gap-6">
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="cliente" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600" :disabled="!orderForm.clientId">
-                                    <span class="text-sm font-bold text-red-600 group-hover:text-black transition-colors">Usar datos de registro</span>
+                                    <span class="text-sm font-bold text-red-700 group-hover:text-black transition-colors">Último registro</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="nuevo" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
-                                    <span class="text-sm font-bold text-red-600 group-hover:text-black transition-colors">Ingresar datos </span>
+                                    <span class="text-sm font-bold text-red-700 group-hover:text-black transition-colors">Ingresar nuevos</span>
                                 </label>
                             </div>
                         </div>
 
-                        <!-- TARJETA: VISTA DE DATOS DEL CLIENTE -->
+                        <!-- FICHA RESUMEN DEL CLIENTE -->
                         <div v-if="orderForm.receiverType === 'cliente'" class="animate-fade-in">
                             <div v-if="orderForm.clientId" class="receiver-summary-card shadow-sm border border-red-100 rounded-[2.5rem] p-8 bg-white relative overflow-hidden group">
-                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center relative z-10 gap-4">
-                                    <div class="space-y-1">
-                                        <h4 class="text-2xl font-black text-black leading-none mb-4 uppercase tracking-tighter">{{ orderForm.receiver.persona_recibe || 'Sin Nombre' }}</h4>
-                                        
-                                        <div class="flex flex-wrap gap-x-8 gap-y-2">
-                                            <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span :class="orderForm.receiver.rfc ? 'text-black font-black' : 'text-red-500 italic font-black'">{{ orderForm.receiver.rfc || 'FALTA RFC EN BD' }}</span></p>
-                                            <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-envelope mr-2 text-red-300"></i> {{ orderForm.receiver.correo || 'SIN CORREO' }}</p>
-                                        </div>
-                                        
-                                        <p class="text-xs text-red-500 mt-4 italic font-medium leading-relaxed">
-                                            <i class="fas fa-map-marker-alt mr-2"></i> 
-                                            {{ orderForm.receiver.calle_num || 'S/N' }}, Col. {{ orderForm.receiver.colonia || 'S/C' }}, {{ orderForm.receiver.municipio }}, {{ orderForm.receiver.estado }} | C.P. {{ orderForm.receiver.cp }}
-                                        </p>
+                                <div class="relative z-10 space-y-1">
+                                    <p class="text-[10px] font-black text-red-400 uppercase tracking-[0.2em] mb-3">Información de Envío</p>
+                                    <h4 class="text-2xl font-black text-black leading-none mb-3 uppercase tracking-tighter">{{ orderForm.receiver.persona_recibe || 'Sin Nombre' }}</h4>
+                                    
+                                    <div class="flex flex-wrap gap-x-8 gap-y-2">
+                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span :class="orderForm.receiver.rfc ? 'text-black font-black' : 'text-red-500 italic font-black'">{{ orderForm.receiver.rfc || 'FALTA RFC EN BD' }}</span></p>
+                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-envelope mr-2 text-red-300"></i> {{ orderForm.receiver.correo || 'SIN CORREO' }}</p>
                                     </div>
+                                    
+                                    <p class="text-xs text-red-500 mt-4 italic font-medium leading-relaxed">
+                                        <i class="fas fa-map-marker-alt mr-2 text-red-400"></i> 
+                                        {{ orderForm.receiver.calle_num || 'S/N' }}, Col. {{ orderForm.receiver.colonia || 'S/C' }}, {{ orderForm.receiver.municipio }}, {{ orderForm.receiver.estado }} | C.P. {{ orderForm.receiver.cp }}
+                                    </p>
                                 </div>
-                                <i class="fas fa-user-check absolute -right-6 -bottom-6 text-9xl text-red-50/50"></i>
+                                <i class="fas fa-user-check absolute -right-6 -bottom-6 text-[10rem] text-red-50/50"></i>
                             </div>
                             <div v-else class="text-center py-16 border-2 border-dashed border-red-100 rounded-[2.5rem] bg-red-50/10">
+                                <p class="text-sm text-red-400 italic font-bold">Busca un cliente para visualizar su información fiscal.</p>
                             </div>
                         </div>
 
@@ -159,7 +159,7 @@
                                 <div class="form-group"><label class="label-style">Teléfono</label><input v-model="orderForm.receiver.telefono" type="tel" class="form-input text-red-700 font-bold" required></div>
                             </div>
 
-                            <!-- DIRECCIÓN DIPOMEX -->
+                            <!-- GEOLOCALIZACIÓN -->
                             <div class="bg-red-50/20 p-8 rounded-[2.5rem] border border-red-100 space-y-6">
                                 <p class="text-[10px] font-black text-red-800 uppercase tracking-[0.2em] mb-2 border-b border-red-200 pb-3">Geolocalización por Código Postal</p>
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -234,7 +234,7 @@
                         
                         <div class="md:col-span-1">
                             <label class="label-mini">Cant.</label>
-                            <input type="number" min="1" class="form-input font-bold text-red-700 text-left" v-model.number="currentOrderItem.quantity">
+                            <input type="number" min="1" class="form-input font-bold text-red-700 text-center" v-model.number="currentOrderItem.quantity">
                         </div>
 
                         <div class="md:col-span-2">
@@ -250,7 +250,7 @@
 
                         <div class="md:col-span-1">
                             <button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl bg-black border-none text-white shadow-xl transition-all active:scale-95" :disabled="!isCurrentItemValid || loading">
-                                <i class="fas fa-plus"></i>Añadir
+                                <i class="fas fa-plus"></i>
                             </button>
                         </div>
                     </div>
@@ -337,7 +337,7 @@
                 </div>
 
                 <div class="mt-12 flex justify-end">
-                    <button type="submit" class="btn-primary px-20 py-6 text-lg tracking-widest shadow-2xl transition-all active:scale-95" :disabled="loading || !orderForm.clientId || !orderForm.orderItems.length">
+                    <button type="submit" class="btn-primary-action px-20 py-6 text-lg tracking-widest shadow-2xl transition-all active:scale-95" :disabled="loading || !orderForm.clientId || !orderForm.orderItems.length">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-paper-plane mr-3'"></i> 
                         Generar Pedido
                     </button>
@@ -434,6 +434,9 @@ const handleCPInput = () => {
 };
 
 const fetchAddressByCP = async (cp, preserveColonia = false) => {
+    // Si no hay token, no intentamos la petición para evitar 401
+    if (!localStorage.getItem('auth_token')) return;
+
     searchingCP.value = true;
     if (!preserveColonia) orderForm.receiver.colonia = '';
     colonias.value = [];
@@ -450,8 +453,7 @@ const fetchAddressByCP = async (cp, preserveColonia = false) => {
             }
         }
     } catch (e) { 
-        console.error(e); 
-        // Si hay error en el proxy, no expulsamos al usuario, solo limpiamos
+        console.error("Error Dipomex:", e); 
     } finally { 
         searchingCP.value = false; 
     }
@@ -475,10 +477,17 @@ const searchClients = () => {
     }, 400);
 };
 
+/**
+ * SELECCIÓN DEL CLIENTE: RELLENAR TODO EL EXPEDIENTE
+ */
 const selectClient = (c) => {
+    if (!c) return;
+    
     orderForm.clientId = c.id;
     orderForm.clientName = c.name;
     clientSuggestions.value = [];
+
+    // Mapeo exhaustivo
     orderForm.receiver.persona_recibe = c.contacto || c.name || '';
     orderForm.receiver.rfc = c.rfc || '';
     orderForm.receiver.regimen_fiscal = c.regimen_fiscal || '';
@@ -486,7 +495,14 @@ const selectClient = (c) => {
     orderForm.receiver.correo = c.email || '';
     orderForm.receiver.calle_num = c.calle_num || c.direccion || '';
     orderForm.receiver.colonia = c.colonia || ''; 
-    if (c.cp) { orderForm.receiver.cp = c.cp; fetchAddressByCP(c.cp, true); } else resetAddress();
+    
+    // Si tiene CP, disparamos la hidratación de Dipomex de forma segura
+    if (c.cp && String(c.cp).length === 5) { 
+        orderForm.receiver.cp = String(c.cp); 
+        fetchAddressByCP(String(c.cp), true); 
+    } else { 
+        resetAddress(); 
+    }
 };
 
 /**

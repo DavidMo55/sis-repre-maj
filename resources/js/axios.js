@@ -1,8 +1,5 @@
 import axios from 'axios';
 
-/**
- * Configuración base de la instancia de Axios
- */
 const instance = axios.create({
     baseURL: '/api', 
     withCredentials: true,
@@ -29,7 +26,6 @@ instance.interceptors.response.use(
     response => response,
     error => {
         if (error.response && error.response.status === 401) {
-
             localStorage.removeItem('auth_token');
             localStorage.removeItem('session_start_time');
             localStorage.removeItem('user_data');
