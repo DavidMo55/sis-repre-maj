@@ -10,7 +10,6 @@
                             {{ visita?.cliente?.tipo || 'PROSPECTO' }}
                         </span>
                         <span class="text-slate-300">/</span>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID: #{{ visita?.id }}</span>
                     </div>
                     <h1 v-if="visita" class="text-2xl md:text-4xl font-black text-slate-800 tracking-tight leading-tight break-words">
                         {{ visita.nombre_plantel || visita.cliente?.name || 'Sin nombre' }}
