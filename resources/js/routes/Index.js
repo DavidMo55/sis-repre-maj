@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router';
-
 import MainLayout from '@/components/MainLayout.vue';
 import DashboardView from '@/views/DashboardView.vue'; 
 import LoginForm from '@/components/auth/Login.vue';
@@ -113,9 +112,12 @@ const routes = [
 ];
 
 const router = createRouter({
-    history: createWebHistory(),
-    routes,
-});
+  history: createWebHistory(),
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    return { top: 0, left: 0 }
+  }
+})
 
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('auth_token');

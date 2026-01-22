@@ -7,7 +7,7 @@
                     <h1 class="text-xl md:text-2xl font-black text-black uppercase tracking-tighter">Ingreso de Pedidos</h1>
                     <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest mt-1">Gestión logística avanzada vinculada a la ficha del cliente.</p>
                 </div>
-                <button @click="router.push('/pedidos')" class="btn-secondary flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black shadow-sm shrink-0 w-full sm:w-auto bg-white border-2 border-red-100 text-red-600">
+                <button @click="router.push('/pedidos')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto">
                     <i class="fas fa-arrow-left"></i> Volver al Historial
                 </button>
             </div>
@@ -15,17 +15,18 @@
             <form @submit.prevent="submitOrder" class="space-y-6">
 
                 <!-- 1. INFORMACIÓN DEL CLIENTE -->
-                <div class="form-section shadow-premium border-t-4 border-t-black">
+                <div class="form-section shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.clientId}">
                     <div class="section-title text-black">
                         <i class="fas fa-user-circle"></i> 1. Información del Cliente
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="form-group relative">
-                            <label class="label-style">Seleccionar Plantel / Distribuidor:</label>
+                            <label class="label-style">Seleccionar Plantel / Distribuidor *</label>
                             <div class="relative">
                                 <input 
                                     type="text" 
                                     class="form-input pl-10 font-bold lbb"  
+                                    :class="{'border-red-600 bg-red-50': errors.clientId}"
                                     placeholder="Buscar por nombre..." 
                                     v-model="orderForm.clientName"
                                     @input="searchClients"
@@ -34,7 +35,6 @@
                                 <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-red-400"></i>
                                 <i v-if="searchingClients" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
                             </div>
-                            <!-- Resultados Autocompletado -->
                             <ul v-if="clientSuggestions.length" class="autocomplete-list shadow-2xl border border-red-50">
                                 <li v-for="client in clientSuggestions" :key="client.id" @click="selectClient(client)" class="p-3 border-b last:border-0 hover:bg-red-50 transition-colors cursor-pointer">
                                     <div class="text-xs font-black text-black uppercase">{{ client.name }}</div>
@@ -56,7 +56,7 @@
                 <!-- 2. RECEPCIÓN Y LOGÍSTICA -->
                 <div class="form-section shadow-premium border-t-4 border-t-black">
                     <div class="section-title text-black">
-                        <i class="fas fa-truck text-black"></i> 2. Recepción y Logística de Envío
+                        <i class="fas fa-truck"></i> 2. Recepción y Logística de Envío
                     </div>
                     
                     <div class="space-y-6">
@@ -136,16 +136,16 @@
                             </div>
                         </div>
 
-                        <!-- FORMULARIO: DATOS NUEVOS (APARECEN VACÍOS POR REGLA) -->
+                        <!-- FORMULARIO: DATOS NUEVOS -->
                         <div v-if="orderForm.receiverType === 'nuevo'" class="animate-fade-in space-y-6 bg-white border border-red-100 p-8 rounded-[3rem] shadow-sm">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div class="form-group">
                                     <label class="label-style">Destinatario *</label>
-                                    <input v-model="orderForm.receiver.persona_recibe" type="text" class="form-input font-bold text-black" placeholder="Nombre completo" required>
+                                    <input v-model="orderForm.receiver.persona_recibe" type="text" class="form-input font-bold text-black" :class="{'border-red-600 bg-red-50': errors.persona_recibe}" placeholder="Nombre completo">
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">RFC *</label>
-                                    <input v-model="orderForm.receiver.rfc" type="text" class="form-input font-mono uppercase font-black text-red-700 border-red-100" placeholder="XXXXXXXXXXXXX" required>
+                                    <input v-model="orderForm.receiver.rfc" type="text" class="form-input font-mono uppercase font-black text-red-700 border-red-100" :class="{'border-red-600 bg-red-50': errors.rfc}" placeholder="XXXXXXXXXXXXX">
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal</label>
@@ -159,8 +159,8 @@
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="form-group"><label class="label-style">Correo Electrónico</label><input v-model="orderForm.receiver.correo" type="email" class="form-input text-red-700 font-bold" placeholder="correo@ejemplo.com " required></div>
-                                <div class="form-group"><label class="label-style">Teléfono</label><input v-model="orderForm.receiver.telefono" type="tel" class="form-input text-red-700 font-bold" placeholder="Número de teléfono" required></div>
+                                <div class="form-group"><label class="label-style">Correo Electrónico *</label><input v-model="orderForm.receiver.correo" type="email" class="form-input text-red-700 font-bold" :class="{'border-red-600 bg-red-50': errors.correo}" placeholder="correo@ejemplo.com"></div>
+                                <div class="form-group"><label class="label-style">Teléfono *</label><input v-model="orderForm.receiver.telefono" type="tel" class="form-input text-red-700 font-bold" :class="{'border-red-600 bg-red-50': errors.telefono}" placeholder="Número de teléfono"></div>
                             </div>
 
                             <!-- GEOLOCALIZACIÓN -->
@@ -169,7 +169,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                                     <div class="form-group relative">
                                         <label class="label-mini">C.P. *</label>
-                                        <input v-model="orderForm.receiver.cp" type="text" class="form-input font-mono font-black text-red-700 shadow-sm" maxlength="5" @input="handleCPInput" placeholder="00000" required>
+                                        <input v-model="orderForm.receiver.cp" type="text" class="form-input font-mono font-black text-red-700 shadow-sm" :class="{'border-red-600 bg-red-50': errors.cp}" maxlength="5" @input="handleCPInput" placeholder="00000">
                                         <i v-if="searchingCP" class="fas fa-spinner fa-spin absolute right-3 top-10 text-red-600"></i>
                                     </div>
                                     <div class="form-group"><label class="label-mini">Estado</label><input v-model="orderForm.receiver.estado" type="text" placeholder="Ingrese CP" class="form-input bg-white font-bold text-red-700" readonly></div>
@@ -177,15 +177,15 @@
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="form-group">
-                                        <label class="label-mini">Colonia / Asentamiento</label>
-                                        <select v-model="orderForm.receiver.colonia" class="form-input font-bold text-red-700 uppercase" required :disabled="!colonias.length">
+                                        <label class="label-mini">Colonia / Asentamiento *</label>
+                                        <select v-model="orderForm.receiver.colonia" class="form-input font-bold text-red-700 uppercase" :class="{'border-red-600 bg-red-50': errors.colonia}" :disabled="!colonias.length">
                                             <option value="" disabled>{{ colonias.length ? 'Seleccione colonia...' : 'Ingrese CP' }}</option>
                                             <option v-for="(col, idx) in colonias" :key="idx" :value="col.colonia || col">
                                                 {{ col.colonia || col }}
                                             </option>
                                         </select>
                                     </div>
-                                    <div class="form-group"><label class="label-mini">Calle y Número</label><input v-model="orderForm.receiver.calle_num" type="text" class="form-input font-bold text-red-700" placeholder="Ej: Av. Juárez 123" required></div>
+                                    <div class="form-group"><label class="label-mini">Calle y Número *</label><input v-model="orderForm.receiver.calle_num" type="text" class="form-input font-bold text-red-700" :class="{'border-red-600 bg-red-50': errors.calle_num}" placeholder="Ej: Av. Juárez 123"></div>
                                 </div>
                             </div>
                         </div>
@@ -198,14 +198,14 @@
                 </div>
 
                 <!-- 3. SELECCIÓN DE MATERIAL -->
-                <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black">
+                <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.items}">
                     <div class="section-title text-black">
                         <i class="fas fa-book-open"></i> 3. Selección de Material
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-red-50/20 p-6 rounded-[2.5rem] border border-red-100">
                         <div class="md:col-span-2">
-                            <label class="label-mini">Tipo</label>
+                            <label class="label-mini">Rubro</label>
                             <select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700">
                                 <option value="promocion">PROMO</option>
                                 <option value="venta">VENTA</option>
@@ -253,15 +253,15 @@
                         </div>
 
                         <div class="md:col-span-1">
-                            <button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl bg-black border-none text-white shadow-xl transition-all active:scale-95" :disabled="!isCurrentItemValid || loading">
-                                <i class="fas fa-plus"></i>Añaddir al Carrito
+                            <button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95">
+                                <i class="fas fa-cart-plus"></i>Añadir al Carrito
                             </button>
                         </div>
                     </div>
 
                     <!-- TABLA DE CARRITO -->
                     <div class="mt-8 overflow-hidden rounded-[2.5rem] border border-red-100 bg-white shadow-premium">
-                        <div class="table-responsive table-shadow-lg border-none">
+                        <div class="table-responsive border-none">
                             <table class="min-width-full divide-y divide-red-200">
                                 <thead class="bg-black text-white">
                                     <tr>
@@ -341,7 +341,7 @@
                 </div>
 
                 <div class="mt-12 flex justify-end">
-                    <button type="submit" class="btn-primary px-20 py-6 text-lg tracking-widest shadow-2xl transition-all active:scale-95" :disabled="loading || !orderForm.clientId || !orderForm.orderItems.length">
+                    <button type="submit" class="btn-primary px-20 py-6 text-lg font-black tracking-widest shadow-2xl transition-all active:scale-95" :disabled="loading">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-paper-plane mr-3'"></i> 
                         Generar Pedido
                     </button>
@@ -349,16 +349,50 @@
             </form>
         </div>
 
-        <!-- MODAL ÉXITO -->
+        <!-- MODAL INTEGRAL (ÉXITO / ERROR / VALIDACIÓN) -->
         <Teleport to="body">
             <Transition name="modal-pop">
-                <div v-if="showSuccessModal" class="modal-overlay-wrapper">
-                    <div class="modal-content-success animate-scale-in">
+                <div v-if="systemModal.visible" class="modal-overlay-wrapper" @click.self="systemModal.type !== 'success' ? systemModal.visible = false : null">
+                    
+                    <!-- VISTA DE ÉXITO -->
+                    <div v-if="systemModal.type === 'success'" class="modal-content-success animate-scale-in">
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
                         <h2 class="text-2xl font-black text-black mb-3 uppercase tracking-tighter">¡Pedido Registrado!</h2>
                         <p class="text-sm text-red-600 mb-4 font-bold">La orden ha sido enviada al área de revisión.</p>
                         <p class="text-xs font-mono font-black text-white bg-red-700 py-2.5 px-6 rounded-xl inline-block mb-8 uppercase tracking-widest">FOLIO: {{ generatedOrderId }}</p>
                         <button @click="closeAndRedirect" class="btn-primary w-full py-5 bg-black border-none shadow-none text-white font-black uppercase tracking-widest">Regresar al Historial</button>
+                    </div>
+
+                    <!-- VISTA DE ERROR CONCRETO (NUEVO DISEÑO MÁS ESPECÍFICO) -->
+                    <div v-else class="modal-content-success bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden border border-red-100 animate-scale-in">
+                        <div class="bg-red-600 h-4 w-full"></div>
+                        
+                        <div class="p-10 flex flex-col items-center"> <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6 shadow-lg border border-red-100">
+                                <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                            </div>
+                            
+                            <h2 class="text-2xl font-black text-black mb-2 uppercase tracking-tighter text-center">
+                                {{ systemModal.title }}
+                            </h2>
+                            
+                            <p class="text-[10px] text-red-600 font-black uppercase tracking-widest mb-6 text-center">
+                                Faltan los siguientes datos obligatorios:
+                            </p>
+                            
+                            <div class="w-full space-y-3 bg-red-50/30 p-6 rounded-[2rem] border border-red-100/50 mb-8">
+                                <div v-for="(err, i) in systemModal.errorList" :key="i" class="flex items-start gap-3">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-red-600 mt-1.5 shrink-0"></div>
+                                    <span class="text-[11px] font-black text-slate-700 uppercase leading-tight text-left">
+                                        {{ err }}
+                                    </span>
+                                </div>
+                            </div>
+                        
+                            <button @click="systemModal.visible = false" 
+                                    class="btn-primary w-full max-w-[280px] py-5 bg-black border-none text-white font-black uppercase tracking-widest rounded-2xl transition-transform hover:scale-105">
+                                Entendido, completar ahora
+                            </button>
+                        </div>
                     </div>
                 </div>
             </Transition>
@@ -376,12 +410,31 @@ const loading = ref(false);
 const searchingLibros = ref(false);
 const searchingClients = ref(false);
 const searchingCP = ref(false);
-const showSuccessModal = ref(false);
-const showEditReceiverModal = ref(false);
 const generatedOrderId = ref('');
 const clientSuggestions = ref([]);
 const estados = ref([]);
 const colonias = ref([]);
+
+// Estado de errores para señalización visual (Bordes rojos)
+const errors = reactive({
+    clientId: false,
+    persona_recibe: false,
+    rfc: false,
+    correo: false,
+    telefono: false,
+    cp: false,
+    colonia: false,
+    calle_num: false,
+    items: false
+});
+
+// Modal de Sistema (Unificado)
+const systemModal = reactive({
+    visible: false,
+    type: 'success',
+    title: '',
+    errorList: []
+});
 
 const orderForm = reactive({
     prioridad: 'media',
@@ -399,7 +452,7 @@ const orderForm = reactive({
 const currentOrderItem = reactive({
     bookId: null,
     bookName: '',
-    tipo_material: 'venta', // Venta por defecto
+    tipo_material: 'venta', 
     category: '', 
     sub_type: '', 
     quantity: 1,
@@ -407,9 +460,6 @@ const currentOrderItem = reactive({
     bookSuggestions: [],
 });
 
-/**
- * REGLA DE NEGOCIO: Limpiar búsqueda al cambiar entre Promo y Venta
- */
 watch(() => currentOrderItem.tipo_material, () => {
     currentOrderItem.bookName = '';
     currentOrderItem.bookId = null;
@@ -417,41 +467,40 @@ watch(() => currentOrderItem.tipo_material, () => {
     currentOrderItem.sub_type = '';
 });
 
-/**
- * REGLA DE NEGOCIO: Limpiar campos del receptor cuando se selecciona "Ingresar nuevos"
- */
 watch(() => orderForm.receiverType, (newType) => {
     if (newType === 'nuevo') {
         Object.assign(orderForm.receiver, {
-            persona_recibe: '',
-            rfc: '',
-            regimen_fiscal: '',
-            telefono: '',
-            correo: '',
-            cp: '',
-            estado: '',
-            municipio: '',
-            colonia: '',
-            calle_num: ''
+            persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: ''
         });
-        colonias.value = []; // Resetear lista de colonias
+        colonias.value = [];
     }
+    // Limpiamos señales visuales de error al cambiar modo
+    Object.keys(errors).forEach(key => errors[key] = false);
 });
 
+/**
+ * TIPOS DE FORMATO / LICENCIA DISPONIBLES SEGÚN TIPO DE MATERIAL Y CATEGORÍA
+ */
 const availableSubTypes = computed(() => {
     if (!currentOrderItem.bookId) return [];
-    const isDigital = currentOrderItem.category === 'digital';
+    
+    const category = currentOrderItem.category?.toLowerCase();
+    const isDigital = category === 'digital';
     const isPromo = currentOrderItem.tipo_material === 'promocion';
+    
     if (isPromo) {
-        return isDigital ? ['Licencia docente', 'Demo'] : ['Físico (Promoción)'];
+        return isDigital 
+            ? ['Licencia Digital (Docente)', 'Demo Digital (30 días)', 'Licencia de Cortesía'] 
+            : ['Físico (Muestra Promoción)'];
     } else {
-        return isDigital ? ['Libro Digital'] : ['Pack (Digital + Físico)', 'Solo Físico'];
+        return isDigital 
+            ? ['Libro Digital (Venta)'] 
+            : ['Pack (Físico + Digital)', 'Solo Físico'];
     }
 });
 
 /**
  * BÚSQUEDA DE DIRECCIÓN POR CP
- * CORRECCIÓN: Manejo de errores local para evitar desconexión del interceptor global 401
  */
 const handleCPInput = () => {
     const cp = orderForm.receiver.cp;
@@ -482,7 +531,7 @@ const fetchAddressByCP = async (cp, preserveColonia = false) => {
             }
         }
     } catch (e) { 
-        console.warn("Fallo silencioso en Dipomex para evitar 401 redirect:", e.message); 
+        console.warn("Fallo silencioso en Dipomex para evitar logout:", e.message); 
     } finally { 
         searchingCP.value = false; 
     }
@@ -506,17 +555,13 @@ const searchClients = () => {
     }, 400);
 };
 
-/**
- * SELECCIÓN DEL CLIENTE: RELLENAR TODO EL EXPEDIENTE
- */
 const selectClient = (c) => {
     if (!c) return;
-    
+    errors.clientId = false;
     orderForm.clientId = c.id;
     orderForm.clientName = c.name;
     clientSuggestions.value = [];
 
-    // Mapeo exhaustivo
     orderForm.receiver.persona_recibe = c.contacto || c.name || '';
     orderForm.receiver.rfc = c.rfc || '';
     orderForm.receiver.regimen_fiscal = c.regimen_fiscal || '';
@@ -525,7 +570,6 @@ const selectClient = (c) => {
     orderForm.receiver.calle_num = c.calle_num || c.direccion || '';
     orderForm.receiver.colonia = c.colonia || ''; 
     
-    // Si tiene CP, disparamos la hidratación de Dipomex de forma segura
     if (c.cp && String(c.cp).length === 5) { 
         orderForm.receiver.cp = String(c.cp); 
         fetchAddressByCP(String(c.cp), true); 
@@ -543,9 +587,11 @@ const searchBooks = async () => {
     try {
         const res = await axios.get('/search/libros', { params: { query: currentOrderItem.bookName } });
         if (currentOrderItem.tipo_material === 'promocion') {
-            currentOrderItem.bookSuggestions = res.data.filter(b => b.type === 'promocion');
+            // Muestra libros de tipo 'promocion' O libros de tipo 'digital'
+            currentOrderItem.bookSuggestions = res.data.filter(b => b.type === 'promocion' || b.type === 'digital');
         } else {
-            currentOrderItem.bookSuggestions = res.data.filter(b => b.type !== 'promocion');
+            // Muestra libros de tipo 'venta' O libros de tipo 'digital'
+            currentOrderItem.bookSuggestions = res.data.filter(b => b.type === 'venta' || b.type === 'digital');
         }
     } catch (e) { console.error(e); } finally { searchingLibros.value = false; }
 };
@@ -561,7 +607,14 @@ const selectBook = (book) => {
 const isCurrentItemValid = computed(() => currentOrderItem.bookId && currentOrderItem.sub_type && currentOrderItem.quantity >= 1);
 
 const addItemToCart = () => {
-    if (!isCurrentItemValid.value) return;
+    if (!isCurrentItemValid.value) {
+        systemModal.title = 'Material Incompleto';
+        systemModal.type = 'error';
+        systemModal.errorList = ["Debes seleccionar un libro de la lista.", "Debes elegir el formato o licencia.", "La cantidad debe ser mayor a 0."];
+        systemModal.visible = true;
+        return;
+    }
+    errors.items = false;
     orderForm.orderItems.push({
         id: Date.now(),
         bookId: currentOrderItem.bookId,
@@ -580,21 +633,81 @@ const orderTotal = computed(() => orderForm.orderItems.reduce((s, i) => s + i.to
 const totalUnits = computed(() => orderForm.orderItems.reduce((s, i) => s + i.quantity, 0));
 const formatCurrency = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
+/**
+ * LÓGICA DE VALIDACIÓN CONCRETA ANTES DE ENVIAR
+ */
+const validateForm = () => {
+    // Reset de estados visuales
+    Object.keys(errors).forEach(key => errors[key] = false);
+    const list = [];
+
+    if (!orderForm.clientId) {
+        errors.clientId = true;
+        list.push("Sección 1: Debe seleccionar un Plantel o Distribuidor.");
+    }
+    
+    if (orderForm.receiverType === 'nuevo') {
+        if (!orderForm.receiver.persona_recibe) { errors.persona_recibe = true; list.push("Sección 2: Nombre del destinatario obligatorio."); }
+        if (!orderForm.receiver.rfc || orderForm.receiver.rfc.length < 12) { errors.rfc = true; list.push("Sección 2: RFC fiscal válido (12 o 13 caracteres)."); }
+        if (!orderForm.receiver.correo || !orderForm.receiver.correo.includes('@')) { errors.correo = true; list.push("Sección 2: Email de contacto válido."); }
+        if (!orderForm.receiver.telefono) { errors.telefono = true; list.push("Sección 2: Teléfono del receptor obligatorio."); }
+        if (!orderForm.receiver.cp || orderForm.receiver.cp.length !== 5) { errors.cp = true; list.push("Sección 2: Código Postal obligatorio."); }
+        if (!orderForm.receiver.colonia) { errors.colonia = true; list.push("Sección 2: Colonia (Geolocalización necesaria)."); }
+        if (!orderForm.receiver.calle_num) { errors.calle_num = true; list.push("Sección 2: Calle y número para entrega."); }
+    } else {
+        // VALIDACIÓN CONCRETA DEL REGISTRO BASE (SIN AMBIGÜEDAD)
+        const missingFields = [];
+        if (!orderForm.receiver.rfc) missingFields.push("RFC");
+        if (!orderForm.receiver.cp) missingFields.push("C.P.");
+        if (!orderForm.receiver.colonia) missingFields.push("Colonia");
+        if (!orderForm.receiver.calle_num) missingFields.push("Dirección (Calle/Núm)");
+
+        if (missingFields.length > 0) {
+            list.push(`El expediente base 
+            del cliente está incompleto. 
+            Faltan los 
+            siguientes campos: ${missingFields.join(', ')}.
+            Vaya a la información del cliente para registrar 
+            los datos correctos para este pedido.`);
+        }
+    }
+
+    if (orderForm.orderItems.length === 0) {
+        errors.items = true;
+        list.push("Sección 3: No ha añadido ningún libro a la canasta.");
+    }
+
+    if (list.length > 0) {
+        systemModal.type = 'error';
+        systemModal.title = 'Requisitos Faltantes';
+        systemModal.errorList = list;
+        systemModal.visible = true;
+        return false;
+    }
+    return true;
+};
+
 const submitOrder = async () => {
-    if (!orderForm.receiver.rfc) { alert("El RFC es obligatorio para procesar el pedido."); return; }
+    if (!validateForm()) return;
+
     loading.value = true;
     try {
         const res = await axios.post('/pedidos', { ...orderForm, items: orderForm.orderItems });
         generatedOrderId.value = res.data.order_id;
-        showSuccessModal.value = true;
+        systemModal.type = 'success';
+        systemModal.visible = true;
     } catch (e) { 
         console.error(e); 
+        systemModal.type = 'error';
+        systemModal.title = 'Fallo de Servidor';
+        systemModal.errorList = [e.response?.data?.message || "Ocurrió un error inesperado al intentar guardar el pedido."];
+        systemModal.visible = true;
     } finally { 
         loading.value = false; 
     }
 };
 
-const closeAndRedirect = () => { showSuccessModal.value = false; router.push('/pedidos'); };
+const closeAndRedirect = () => { systemModal.visible = false; router.push('/pedidos'); };
 
 onMounted(async () => {
     try {
@@ -604,12 +717,13 @@ onMounted(async () => {
 });
 </script>
 
+
 <style scoped>
 .label-style { @apply text-xs font-black text-red-600 uppercase tracking-widest mb-2 block; }
 .label-mini { @apply text-[9px] uppercase font-black text-red-500 mb-1 block; }
 
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
-.form-section { background: white; padding: 30px; border-radius: 40px; border: 1px solid #fee2e2; margin-bottom: 30px; }
+.form-section { background: white; padding: 30px; border-radius: 40px; border: 1px solid #fee2e2; margin-bottom: 30px; transition: all 0.2s ease; }
 .section-title { font-weight: 900; color: #000000; margin-bottom: 25px; border-bottom: 2px solid #fee2e2; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; }
 
 .form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #fee2e2; font-weight: 700; color: #000000; background: #fff; transition: all 0.2s; font-size: 0.9rem; }
@@ -623,9 +737,12 @@ onMounted(async () => {
 .shipping-card span { @apply text-[10px] font-black uppercase tracking-widest text-center; }
 .shipping-card.active { @apply border-black bg-white text-black shadow-xl scale-[1.02]; }
 
+.btn-primary-action { background: #000000; color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15); transition: all 0.2s; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.1em; display: flex; align-items: center; justify-content: center; }
+.btn-primary-action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25); }
+
 .btn-primary { background: linear-gradient(135deg, #cb7e81 0%, #e96a90 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
-
+.btn-primary:disabled { background: #fca5a5; cursor: not-allowed; box-shadow: none; transform: none; }
 
 /* OVERLAY MODAL */
 .modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); overflow: hidden; }
@@ -638,33 +755,25 @@ onMounted(async () => {
 .animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
+.modal-pop-enter-active, .modal-pop-leave-active { transition: all 0.3s ease; }
+.modal-pop-enter-from, .modal-pop-leave-to { opacity: 0; }
+
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23dc2626' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 3rem; appearance: none; }
 
-.table-responsive { width: 100%; overflow-x: auto; background: white; }
+.table-responsive { width: 100%; overflow-x: auto; background: white; border-radius: 2.5rem; }
 table { width: 100%; border-collapse: collapse; }
 .lbb { color: #000000; }
 
-.table-header-dark {
-    padding: 20px 24px;
-    font-size: 0.7rem;
-    font-weight: 900;
-    color: #ffffff;
-    text-transform: uppercase;
-    letter-spacing: 0.25em;
-}
-
-.table-cell {
-    padding: 20px 24px;
-    vertical-align: middle;
-    color: #dc2626;
-    font-weight: 700;
-}
+.table-header-dark { padding: 20px 24px; font-size: 0.7rem; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: 0.25em; }
+.table-cell { padding: 20px 24px; vertical-align: middle; color: #dc2626; font-weight: 700; }
 
 .badge-material-promo { background-color: #f5f3ff; color: #7e22ce; border: 1px solid #ddd6fe; padding: 6px 14px; border-radius: 9999px; font-size: 9px; font-weight: 900; }
 .badge-material-sale { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 6px 14px; border-radius: 9999px; font-size: 9px; font-weight: 900; }
 
 .btn-delete-item { background: none; border: none; color: #fca5a5; font-size: 11px; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
 .btn-delete-item:hover { color: #000000; transform: translateX(3px); }
+
+.btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-2.5 px-6 rounded-xl text-sm font-black transition-all hover:bg-slate-50 text-black; }
 
 tfoot { border-top: 4px solid #000000; }
 .table-shadow-lg { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }

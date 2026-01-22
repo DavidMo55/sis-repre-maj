@@ -536,6 +536,13 @@ const getOutcomeBorder = (outcome) => {
 };
 
 onMounted(async () => {
+    // 1. Scroll inmediato al montar
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
+    // 2. Esperar a que Vue procese el renderizado inicial y forzar de nuevo
+    await nextTick();
+    window.scrollTo(0, 0);
+
     loadingInitial.value = true;
     try {
         const [resEst, resNiv, resSer] = await Promise.all([
@@ -544,8 +551,19 @@ onMounted(async () => {
         estados.value = resEst.data;
         nivelesCatalog.value = resNiv.data;
         allSeries.value = resSer.data;
+        
         await verificarPrecarga();
-    } catch (e) { console.error(e); } finally { loadingInitial.value = false; }
+
+        // 3. Opcional: Si los datos tardan y expanden la página, 
+        // ejecutamos un scroll final después de la precarga
+        await nextTick();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (e) { 
+        console.error(e); 
+    } finally { 
+        loadingInitial.value = false; 
+    }
 });
 </script>
 
@@ -559,8 +577,8 @@ onMounted(async () => {
 .form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.9rem; }
 .form-input:focus { border-color: #a93339; background: white; outline: none; box-shadow: 0 0 0 4px rgba(169, 51, 57, 0.05); }
 
-.btn-primary-action { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
-.btn-primary-action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
+.btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
 .btn-primary-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2); }
 

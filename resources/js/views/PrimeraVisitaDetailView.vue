@@ -56,7 +56,7 @@
                                     <label class="label-large">Niveles Educativos</label>
                                     <div class="flex flex-wrap gap-1.5 mt-1">
                                         <span v-for="n in formatLevels(visita.nivel_educativo_plantel || visita.cliente?.nivel_educativo)" :key="n" class="badge-red-outline">
-                                            {{ n }}
+                                            {{ n }} <br><br>
                                         </span>
                                     </div>
                                 </div>
@@ -121,22 +121,22 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 info-card shadow-premium border-t-8 border-t-black">
                         <div class="section-title text-black !border-black/5">
-                            <i class="fas fa-handshake text-black"></i> 2. Detalles de la Entrevista (Esta Sesión)
+                            <i class="fas fa-handshake text-black"></i> 2. Detalles de la Entrevista (Apertura)
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-6">
                                 <div class="data-row bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                                    <label class="label-large !text-red-700">Entrevista concedida por:</label>
+                                    <label class="label-large !text-red-700">Atendido por:</label>
                                     <p class="value-text !text-xl !font-black uppercase !color-black">{{ visita.persona_entrevistada || 'N/A' }}</p>
+                                    <label class="label-large !text-red-700">Cargo:</label>
                                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{{ visita.cargo || 'Responsable' }}</p>
                                 </div>
                                 <div class="data-row">
-                                    <label class="label-large">Fecha Programada</label>
+                                    <label class="label-large">Fecha de Registro Inicial</label>
                                     <p class="value-text">{{ formatDate(visita.fecha) }}</p>
                                 </div>
                             </div>
-
                             <div class="space-y-6">
                                 <div class="data-row">
                                     <label class="label-large">Resultado de la Interacción</label>
@@ -146,15 +146,12 @@
                                         </span>
                                     </div>
                                 </div>
-                                <div class="data-row">
-                                    <label class="label-large">Fase del Embudo</label>
-                                    <p class="value-text uppercase text-xs font-black text-slate-500">{{ visita.es_primera_visita ? 'Apertura de Prospecto' : 'Seguimiento de Venta' }}</p>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3. AGENDA Y PRÓXIMA ACCIÓN -->
+                    <!-- 3. AGENDA Y SEGUIMIENTO -->
                     <div class="info-card shadow-premium border-t-8 border-t-red-800 bg-slate-900 text-white">
                         <div class="section-title !text-white !border-white/10">
                             <i class="fas fa-calendar-check"></i> 3. Agenda de Seguimiento
@@ -162,30 +159,23 @@
                         
                         <div class="space-y-6 mt-4">
                             <div class="p-6 bg-white/5 rounded-3xl border border-white/10">
-                                <label class="label-large !text-red-400">Compromiso Agendado</label>
+                                <label class="label-large !text-red-400">Próximo Compromiso</label>
                                 <div v-if="visita.proxima_visita_estimada" class="mt-3">
                                     <p class="text-3xl font-black text-white tracking-tighter">{{ formatDate(visita.proxima_visita_estimada) }}</p>
                                     <div class="flex items-center gap-2 mt-4 bg-red-600/20 p-3 rounded-xl border border-red-600/30">
                                         <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-xs">
                                             <i class="fas fa-bullseye"></i>
                                         </div>
-                                        
                                     </div>
                                 </div>
                                 <p v-else class="text-white/20 italic text-[11px] font-black uppercase tracking-widest mt-4">Sin fecha programada</p>
                             </div>
 
-                            <!-- Botón de Acción -->
                             <button v-if="visita.resultado_visita === 'seguimiento' && visita.cliente?.tipo !== 'CLIENTE'" 
                                 @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
                                 class="w-full btn-primary-action shadow-2xl transition-all active:scale-95">
-                                <i class="fas fa-plus-circle mr-2 "></i> Registrar de Nueva visita
+                                <i class="fas fa-plus-circle mr-2 "></i> Registrar Nueva Visita
                             </button>
-                            <div v-else class="bg-white/5 p-4 rounded-2xl border border-white/5 text-center">
-                                <p class="text-[9px] font-black text-slate-500 uppercase leading-tight">
-                                    Proceso Comercial Finalizado <br> No requiere más seguimiento.
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -194,10 +184,10 @@
                 <div class="space-y-6">
                     <div class="flex items-center gap-3 px-2">
                         <div class="w-1.5 h-8 bg-black rounded-full"></div>
-                        <h2 class="text-2xl font-black text-black uppercase tracking-tight">Materiales de la Sesión Actual</h2>
+                        <h2 class="text-2xl font-black text-black uppercase tracking-tight">Materiales de la Apertura</h2>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="grid grid-cols-1 gap-8">
                         <!-- APARTADO A: INTERÉS -->
                         <div class="info-card bg1 !p-0 overflow-hidden border border-slate-200 shadow-premium bg-white">
                             <div class="p-6 bg-slate-800 text-white flex justify-between items-center">
@@ -238,7 +228,7 @@
                             </table>
                         </div>
                         </div>
-
+                            
                         <!-- APARTADO B: PROMOCIÓN -->
                         <div class="info-card bg2 !p-0 overflow-hidden border border-red-100 shadow-premium bg-white">
                             <div class="p-6 bg-red-900 text-white flex justify-between items-center">
@@ -282,36 +272,43 @@
                         </div>
                     </div>
                 </div>
+                <br>
 
-                <!-- 5. HISTORIAL CRONOLÓGICO DESPLEGABLE -->
+                
+                <!-- OBSERVACIONES FINALES (Apertura) -->
+                <div v-if="visita.comentarios" class="info-card border-none bg-amber-50 p-10 rounded-[3rem] border border-amber-200 shadow-sm mt-8">
+                    <h3 class="text-[11px] font-black text-black uppercase mb-4 tracking-[0.3em] flex items-center gap-2">
+                        <i class="fas fa-comment-dots text-red-700"></i> Notas de la Apertura de Prospecto
+                    </h3>
+                    <p class="text-base text-slate-700 italic leading-relaxed whitespace-pre-wrap font-medium">"{{ visita.comentarios }}"</p>
+                </div>
+                    <br>
+
+                <!-- 5. HISTORIAL CRONOLÓGICO DESPLEGABLE (Visitas Subsecuentes) -->
                 <div class="info-card space-y-6 mt-16">
                     <div class="flex items-center gap-3 px-2">
                         <div class="w-2 h-8 bg-red-700 rounded-full"></div>
-                        <h2 class="text-2xl font-black text-black uppercase tracking-tight">Historial Completo de Sesiones</h2>
+                        <h2 class="text-2xl font-black text-black uppercase tracking-tight">Historial de Visitas Subsecuentes</h2>
                     </div>
 
                     <div v-if="loadingHistory" class="py-10 text-center animate-pulse">
                         <i class="fas fa-spinner fa-spin text-red-600 text-3xl"></i>
-                        <p class="text-[10px] font-black text-slate-400 uppercase mt-4">Cargando toda la cadena de seguimiento...</p>
+                        <p class="text-[10px] font-black text-slate-400 uppercase mt-4">Sincronizando cadena de seguimiento...</p>
                     </div>
 
                     <div v-else-if="historial.length" class="space-y-4">
-                        <div v-for="h in historial" :key="h.id" 
-                            class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden transition-all duration-300 group"
-                            :class="{'ring-4 ring-red-50 shadow-xl border-red-100': expandedId === h.id}"
-                        >
+                        <div v-for="(h, index) in historial" :key="h.id" class="border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
                             <!-- Header de la tarjeta -->
                             <div @click="toggleExpand(h.id)" 
                                 class="p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 cursor-pointer hover:bg-slate-50 transition-colors">
                                 
                                 <div class="flex items-center gap-6 w-full md:w-auto">
-                                    <div :class="h.es_primera_visita ? 'bg-black' : 'bg-red-700'" 
-                                         class="w-16 h-16 text-white rounded-3xl flex flex-col items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
-                                   
+                                    <div class="bg-red-700 w-16 h-16 text-white rounded-3xl flex flex-col items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+                                        <span class="text-[10px] font-black uppercase opacity-60 leading-none mb-1">{{ getMonthShort(h.fecha) }}</span>
+                                        <span class="text-2xl font-black leading-none">{{ getDay(h.fecha) }}</span>
                                     </div>
                                     <div class="min-w-0">
                                         <div class="flex items-center gap-2 mb-1">
-                                            <span v-if="h.es_primera_visita" class="text-[7px] bg-slate-900 text-white px-2 py-0.5 rounded-full font-black uppercase tracking-tighter">Primer Contacto</span>
                                         </div>
                                         <h4 class="text-xl font-black text-black uppercase tracking-tight truncate max-w-[200px] md:max-w-none">
                                             {{ formatDate(h.fecha) }}
@@ -331,6 +328,10 @@
                                            :class="{'rotate-180 text-red-600': expandedId === h.id}"></i>
                                     </div>
                                 </div>
+
+                                <button 
+                                    class="absolute btn-primary-action top-4 right-4 text-[10px] font-black uppercase text-red-700 hover:underline px-3">
+                                    <i class="fas fa-edit mr-1"></i> Ver más </button>
                             </div>
 
                             <!-- Contenido Desplegable (Expediente) -->
@@ -376,10 +377,10 @@
                                     <!-- Materiales Desplegables -->
                                     <div class="space-y-8">
                                     <h5 class="text-black font-black uppercase text-[11px] tracking-[0.2em] mb-4 flex items-center gap-2">
-                                        <i class="fas fa-book-open text-red-700"></i> 4. Materiales y Muestras Involucradas
+                                        <i class="fas fa-book-open text-red-700"></i> Materiales y Muestras Involucradas
                                     </h5>
                                     
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div class="grid grid-cols-1 gap-6">
                                         <div class="table-responsive table-shadow-lg border rounded-2xl overflow-hidden bg-white">
                                             <table class="w-full border-collapse">
                                                 <thead class="bg-slate-800">
@@ -440,17 +441,10 @@
 
                     <div v-else class="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 opacity-60">
                         <i class="fas fa-history text-4xl text-slate-200 mb-4 block"></i>
-                        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">Única interacción registrada.</p>
+                        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">Aún no se han registrado seguimientos posteriores.</p>
                     </div>
                 </div>
 
-                <!-- OBSERVACIONES FINALES (SESIÓN ACTUAL) -->
-                <div v-if="visita.comentarios" class="info-card border-none bg-amber-50 p-10 rounded-[3rem] border border-amber-200 shadow-sm mt-8">
-                    <h3 class="text-[11px] font-black text-black uppercase mb-4 tracking-[0.3em] flex items-center gap-2">
-                        <i class="fas fa-comment-dots text-red-700"></i> Notas de la Sesión Actual
-                    </h3>
-                    <p class="text-base text-slate-700 italic leading-relaxed whitespace-pre-wrap font-medium">"{{ visita.comentarios }}"</p>
-                </div>
 
             </div>
         </div>
@@ -496,7 +490,7 @@ const fetchFullHistory = async () => {
     try {
         const term = visita.value.nombre_plantel || visita.value.cliente?.name;
         
-        // Petición al index con bandera de historial completo (requiere ajuste en controller)
+        // Enviamos full_history=1 para que el controlador ignore el filtro de es_primera_visita=1
         const response = await axios.get('/visitas', { 
             params: { 
                 search: term,
@@ -506,9 +500,15 @@ const fetchFullHistory = async () => {
         
         const dataReceived = response.data.data || response.data;
         
-        // Filtramos la actual para el listado cronológico inferior
+        /**
+         * FILTRADO Y ORDENACIÓN:
+         * 1. Solo visitas subsecuentes: Number(h.es_primera_visita) === 0 (o false)
+         * 2. Ordenadas por ID de forma ascendente (a.id - b.id) para ver la secuencia histórica.
+         */
         historial.value = Array.isArray(dataReceived) 
-            ? dataReceived.filter(h => h.id !== visita.value.id).sort((a,b) => b.id - a.id)
+            ? dataReceived
+                .filter(h => Number(h.es_primera_visita) === 0)
+                .sort((a,b) => a.id - b.id)
             : [];
             
     } catch (e) {
@@ -543,21 +543,31 @@ const formatLevels = (levels) => {
     return levels.split(',').map(l => l.trim()).filter(l => l.length > 0);
 };
 
+/**
+ * SOLUCIÓN AL BUG DE FECHA (Desfase de zona horaria):
+ * Separamos la cadena por '-' y construimos el objeto Date LOCAL.
+ */
 const formatDate = (dateString) => {
     if (!dateString) return '---';
-    const date = new Date(dateString.split('T')[0]);
+    const cleanDate = dateString.split('T')[0];
+    const [year, month, day] = cleanDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
 const getMonthShort = (dateString) => {
     if (!dateString) return '---';
-    const date = new Date(dateString.split('T')[0]);
+    const cleanDate = dateString.split('T')[0];
+    const [year, month, day] = cleanDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     return date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase();
 };
 
 const getDay = (dateString) => {
     if (!dateString) return '--';
-    return dateString.split('T')[0].split('-')[2];
+    const cleanDate = dateString.split('T')[0];
+    const [year, month, day] = cleanDate.split('-');
+    return day;
 };
 
 const getOutcomeClass = (outcome) => {

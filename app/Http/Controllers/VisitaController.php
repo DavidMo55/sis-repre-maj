@@ -54,10 +54,10 @@ class VisitaController extends Controller
      * Registro de una Primera Visita.
      * Crea un Prospecto (o Cliente directo) y registra la bitácora inicial.
      */
-    public function storePrimeraVisita(Request $request)
+        public function storePrimeraVisita(Request $request)
     {
-        $validated = $request->validate([
-            // Datos del Plantel (Identidad)
+        // 1. VALIDACIÓN INICIAL DE CAMPOS
+        $request->validate([
             'plantel.name'      => 'required|string|max:100',
             'plantel.rfc'       => 'required|string|max:50',
             'plantel.niveles'   => 'required|array|min:1',
@@ -66,49 +66,65 @@ class VisitaController extends Controller
             'plantel.telefono'  => 'required|string',
             'plantel.email'     => 'required|email',
             'plantel.director'  => 'required|string',
-            'plantel.latitud'   => 'nullable|numeric',
-            'plantel.longitud'  => 'nullable|numeric',
             
-            // Datos de la Visita (Bitácora)
             'visita.fecha'                => 'required|date',
             'visita.persona_entrevistada' => 'required|string',
             'visita.cargo'                => 'required|string',
-            'visita.libros_interes'       => 'required|array', // Estructura { interes: [], entregado: [] }
-            'visita.comentarios'          => 'nullable|string',
+            'visita.libros_interes'       => 'required|array',
             'visita.resultado_visita'     => 'required|in:seguimiento,compra,rechazo',
-            'visita.proxima_visita'       => 'nullable|date',
-            'visita.proxima_accion'       => 'nullable|string'
         ]);
 
         try {
-            return DB::transaction(function () use ($request) {
+            $rfc = strtoupper($request->input('plantel.rfc'));
+            $name = $request->input('plantel.name');
+            $email = $request->input('plantel.email');
+            $phone = $request->input('plantel.telefono');
+
+            // 2. VERIFICACIÓN DE DUPLICADOS (REGLA DE NEGOCIO CRÍTICA)
+            // Buscamos cualquier cliente/prospecto que coincida en alguno de estos 4 campos
+            $duplicado = Cliente::where('rfc', $rfc)
+                ->orWhere('name', $name)
+                ->orWhere('email', $email)
+                ->orWhere('telefono', $phone)
+                ->first();
+
+            if ($duplicado) {
+                $campoTrigger = '';
+                if($duplicado->rfc === $rfc) $campoTrigger = "RFC ($rfc)";
+                elseif($duplicado->name === $name) $campoTrigger = "Nombre ($name)";
+                elseif($duplicado->email === $email) $campoTrigger = "Email";
+                else $campoTrigger = "Teléfono";
+
+                return response()->json([
+                    'message' => "ACCIÓN BLOQUEADA: El plantel ya existe en el sistema bajo el registro de '{$duplicado->name}'. Coincidencia detectada en: $campoTrigger."
+                ], 422);
+            }
+
+            return DB::transaction(function () use ($request, $rfc, $name) {
                 $user = $request->user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-                // Lógica dinámica: Si la resolución es compra, se guarda como CLIENTE de inmediato
                 $resultado = $request->input('visita.resultado_visita');
                 $tipoFinal = ($resultado === 'compra') ? 'CLIENTE' : 'PROSPECTO';
 
-                // 1. GESTIÓN DEL REGISTRO MAESTRO (Tabla Clientes)
-                $cliente = Cliente::updateOrCreate(
-                    ['email' => $request->input('plantel.email')],
-                    [
-                        'user_id'         => $ownerId,
-                        'tipo'            => $tipoFinal,
-                        'name'            => $request->input('plantel.name'),
-                        'rfc'             => strtoupper($request->input('plantel.rfc')),
-                        'nivel_educativo' => implode(', ', $request->input('plantel.niveles')),
-                        'contacto'        => $request->input('plantel.director'),
-                        'telefono'        => $request->input('plantel.telefono'),
-                        'direccion'       => $request->input('plantel.direccion'),
-                        'estado_id'       => $request->input('plantel.estado_id'),
-                        'latitud'         => $request->input('plantel.latitud'),
-                        'longitud'        => $request->input('plantel.longitud'),
-                        'status'          => 'activo'
-                    ]
-                );
+                // 3. CREACIÓN DEL REGISTRO MAESTRO
+                $cliente = Cliente::create([
+                    'user_id'         => $ownerId,
+                    'tipo'            => $tipoFinal,
+                    'name'            => $name,
+                    'rfc'             => $rfc,
+                    'nivel_educativo' => implode(', ', $request->input('plantel.niveles')),
+                    'contacto'        => $request->input('plantel.director'),
+                    'telefono'        => $request->input('plantel.telefono'),
+                    'email'           => $request->input('plantel.email'),
+                    'direccion'       => $request->input('plantel.direccion'),
+                    'estado_id'       => $request->input('plantel.estado_id'),
+                    'latitud'         => $request->input('plantel.latitud'),
+                    'longitud'        => $request->input('plantel.longitud'),
+                    'status'          => 'activo'
+                ]);
 
-                // 2. REGISTRO DE LA BITÁCORA (Tabla Visitas - Snapshot de datos)
+                // 4. REGISTRO DE BITÁCORA
                 $visita = Visita::create([
                     'user_id'                 => $ownerId,
                     'cliente_id'              => $cliente->id,
@@ -125,10 +141,7 @@ class VisitaController extends Controller
                     'fecha'                   => $request->input('visita.fecha'),
                     'persona_entrevistada'    => $request->input('visita.persona_entrevistada'),
                     'cargo'                   => $request->input('visita.cargo'),
-                    
-                    // El modelo Visita debe tener 'libros_interes' en $casts como 'array'
                     'libros_interes'          => $request->input('visita.libros_interes'),
-                    
                     'comentarios'             => $request->input('visita.comentarios'),
                     'resultado_visita'        => $resultado,
                     'proxima_visita_estimada' => $request->input('visita.proxima_visita'),
@@ -137,13 +150,13 @@ class VisitaController extends Controller
                 ]);
 
                 return response()->json([
-                    'message'   => "Registro de $tipoFinal y bitácora procesado correctamente.",
+                    'message'   => "Registro de $tipoFinal exitoso.",
                     'visita_id' => $visita->id
                 ], 201);
             });
         } catch (\Exception $e) {
             Log::error("Fallo en storePrimeraVisita: " . $e->getMessage());
-            return response()->json(['message' => 'Error técnico al registrar la primera visita.'], 500);
+            return response()->json(['message' => 'Error técnico al procesar el alta.'], 500);
         }
     }
 
