@@ -10,14 +10,28 @@
         <h2>SISTEMA DE REPRESENTANTES</h2>
         <p>Acceso de Representantes</p>
       </div>
+
       <div class="form-group">
         <label for="username">Usuario</label>
-        <input v-model="form.username" type="text" id="username" required autocomplete="off" class="form-input"/>
-        </div>
+        <input 
+          v-model="form.username" 
+          type="text" 
+          id="username" 
+          required 
+          autocomplete="off" 
+          class="form-input"
+        />
+      </div>
 
       <div class="form-group">
         <label for="password">Contraseña</label>
-        <input v-model="form.password" type="password" id="password" required autocomplete="new-password" class="form-input"
+        <input 
+          v-model="form.password" 
+          type="password" 
+          id="password" 
+          required 
+          autocomplete="new-password" 
+          class="form-input"
         />
       </div>
 
@@ -67,10 +81,24 @@ const handleLogin = async () => {
         username: form.username,
         password: form.password,
     });
-    localStorage.setItem('auth_token', response.data.token);
 
+    // --- LÓGICA DE SESIÓN ---
+    // 1. Guardamos el token
+    localStorage.setItem('auth_token', response.data.token);
+    
+    // 2. Guardamos el momento exacto del inicio (Timestamp en milisegundos)
+    // Esto es lo que usará el router para calcular las 2 horas
+    localStorage.setItem('session_start_time', new Date().getTime().toString());
+
+    // 3. Opcional: Guardar datos del usuario si tu API los retorna
+    if (response.data.user) {
+        localStorage.setItem('user_data', JSON.stringify(response.data.user));
+    }
+
+    // Redirigir al sistema
     router.push('/dashboard'); 
 
+    // Limpiar formulario
     form.username = '';
     form.password = '';
 
@@ -86,3 +114,13 @@ const handleLogin = async () => {
   }
 };
 </script>
+
+<style scoped>
+/* Aquí irían tus estilos existentes */
+.error-message {
+  color: #ff4d4d;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+</style>

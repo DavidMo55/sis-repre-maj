@@ -79,7 +79,6 @@
                                         </td>
 
                                         <td class="table-cell">
-                                            <!-- CORREGIDO: Mapeo de sub.concepto -->
                                             <p class="font-black text-slate-800 text-sm uppercase leading-tight">
                                                 {{ sub.concepto || 'Sin Concepto' }}
                                             </p>
@@ -89,9 +88,11 @@
                                         </td>
 
                                         <td class="table-cell text-center">
-                                            <!-- LOGICA DOCUMENTO: Mostrar link si existe, sino botón de subida -->
                                             <div v-if="gasto.comprobantes && gasto.comprobantes[idx]" class="inline-flex items-center">
-                                                <a 
+                                                <!-- AJUSTE: Abrir en pestaña nueva y forzar visualización en lugar de descarga -->
+                                                <a :href="getViewableUrl(gasto.comprobantes[idx].public_url)" 
+                                                   target="_blank"
+                                                   rel="noopener noreferrer"
                                                    class="btn-file-view group-hover:border-red-600 transition-all">
                                                     <i class="fas mr-2" :class="getFileIcon(gasto.comprobantes[idx].extension)"></i>
                                                     Archivo Guardado
@@ -179,6 +180,15 @@ const fetchGastoDetail = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+/**
+ * Normaliza la URL de Dropbox para previsualización en lugar de descarga forzada.
+ */
+const getViewableUrl = (url) => {
+    if (!url) return '#';
+    // Dropbox usa dl=1 para forzar descarga. Cambiamos a dl=0 para previsualizar.
+    return url.replace('dl=1', 'dl=0');
 };
 
 const formatDate = (dateString) => {

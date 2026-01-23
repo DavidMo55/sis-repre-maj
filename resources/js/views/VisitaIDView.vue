@@ -1,8 +1,8 @@
 <template>
-    <div class="content-wrapper p-2 md:p-6">
+    <div class="content-wrapper p-2 md:p-6 bg-slate-50 min-h-screen">
         <div class="module-page max-w-7xl mx-auto">
             <!-- Encabezado -->
-            <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div class="header-info min-w-0">
                     <h1 v-if="loadingPrecarga" class="text-2xl font-black text-slate-300 animate-pulse uppercase">Sincronizando expediente...</h1>
                     <h1 v-else-if="selectedCliente" class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight leading-tight">
@@ -11,7 +11,7 @@
                     <h1 v-else class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight text-red-800">Seguimiento de Prospectos</h1>
                     <p class="text-xs md:text-sm text-slate-500 font-medium mt-1 uppercase tracking-tighter italic">Actualiza el expediente y registra los nuevos acuerdos de la visita subsecuente.</p>
                 </div>
-                <button @click="router.push('/visitas')" class="btn-secondary flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm shrink-0 w-full sm:w-auto" :disabled="loading">
+                <button @click="router.push('/visitas')" class="btn-secondary flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm shrink-0 w-full sm:w-auto bg-white border-2 border-slate-200 text-black uppercase" :disabled="loading">
                     <i class="fas fa-arrow-left"></i> Volver al Historial
                 </button>
             </div>
@@ -30,13 +30,12 @@
             <form @submit.prevent="handleSubmit">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     
-                    <!-- BLOQUE 1: IDENTIFICACIÓN Y DATOS DEL PLANTEL -->
                    
 
                     <!-- BLOQUE 2: DETALLES DE LA NUEVA VISITA -->
                     <div class="space-y-8">
-                        <div class="form-section shadow-premium border-t-4 border-t-slate-800">
-                            <div class="section-title">
+                        <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <div class="section-title text-black">
                                 <i class="fas fa-calendar-plus text-slate-800"></i> 2. Detalles de la Interacción
                             </div>
 
@@ -66,13 +65,12 @@
                                 <label class="label-style">Especifique el Cargo *</label>
                                 <input v-model="form.visita.cargo_especifico" type="text" class="form-input font-bold border-red-100" placeholder="Escriba el puesto real..." required :disabled="loading">
                             </div>
-                    
                         </div>
 
                         <!-- APARTADO A: LIBROS DE INTERÉS -->
-                        <div class="form-section shadow-premium border-t-4 border-t-slate-800">
+                        <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i> Apartado A: Libros de Interés (Venta)</label>
+                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i>  Libros de Interés (Venta)</label>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                                     <div class="form-group">
@@ -90,7 +88,7 @@
                                             <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                         </div>
                                         <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
-                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 flex justify-between items-center">
+                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 flex justify-between items-center transition-colors">
                                                 <span>{{ b.titulo }}</span>
                                                 <span class="text-[7px] bg-slate-100 px-1.5 rounded">{{ b.type }}</span>
                                             </li>
@@ -98,8 +96,8 @@
                                     </div>
                                 </div>
                                 
-                                <div v-if="selectedInterestBooks.length" class="table-modern-wrapper mt-6">
-                                   <div class="table-responsive table-shadow-lg mt-6 border rounded-xl overflow-hidden shadow-sm">
+                                <div v-if="selectedInterestBooks.length" class="table-container mt-6">
+                                   <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm">
                                 <table class="min-width-full divide-y divide-gray-200">
                                     <thead class="bg-gray-100">
                                         <tr>
@@ -115,7 +113,7 @@
                                                     {{ item.titulo }}
                                                 </div>
                                                 <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">
-                                                    {{ item.serie_nombre }}
+                                                    Serie: {{ item.serie_nombre }}
                                                 </div>
                                             </td>
                                             <td class="table-cell text-center">
@@ -146,25 +144,25 @@
                         </div>
 
                         <!-- APARTADO B: PROMOCIÓN -->
-                        <div class="form-section shadow-premium border-t-4 border-t-slate-800">
+                        <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 mb-8 relative" style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-red-800 font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> Apartado B: Muestras de Promoción Entregadas</label>
+                                <label class="label-mini mb-4 text-red-800 font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i>  Muestras de Promoción Entregadas</label>
                                 
                                 <div class="form-group relative mb-4">
-                                    <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Buscar Libro de Promoción (Solo Material Físico)</label>
+                                    <label class="label-mini">Buscar Libro de Promoción (Solo Material Físico)</label>
                                     <div class="relative">
                                         <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100 shadow-sm" placeholder="Escribe título o ISBN..." @input="searchBooks($event, 'delivered')" autocomplete="off">
                                         <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
                                     </div>
                                     <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
-                                        <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3">
+                                        <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
                                             <span>{{ b.titulo }}</span>
                                         </li>
                                     </ul>
                                 </div>
                                 
-                                <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6">
-                                    <div class="table-responsive table-shadow-lg mt-6 border rounded-xl overflow-hidden shadow-sm">
+                                <div v-if="selectedDeliveredBooks.length" class="table-container mt-6">
+                                    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm">
                                     <table class="min-width-full divide-y divide-gray-200">
                                         <thead class="bg-red-50">
                                             <tr>
@@ -180,7 +178,7 @@
                                                         {{ item.titulo }}
                                                     </div>
                                                     <div class="text-[8px] font-black text-red-400 uppercase tracking-widest mt-1">
-                                                        Inventario de Promoción
+                                                        Serie: {{ item.serie_nombre }}
                                                     </div>
                                                 </td>
                                                 <td class="table-cell text-center">
@@ -211,7 +209,7 @@
                         </div>
 
                         <!-- RESULTADO Y COMENTARIOS -->
-                        <div class="form-section shadow-premium border-t-4 border-t-slate-800">
+                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="form-group mb-6">
                                 <label class="label-style">Resolución / Resultado Actual</label>
                                 <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required :disabled="loading">
@@ -241,9 +239,9 @@
                 </div>
 
                 <!-- BOTONES DE ACCIÓN -->
-                <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8">
-                    <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest" :disabled="loading">Cancelar</button>
-                    <button type="submit" class="btn-primary px-20 py-4" :disabled="loading || !selectedCliente || gettingLocation">
+                <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8 pb-20">
+                    <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest bg-white border-2 border-slate-200 text-black" :disabled="loading">Cancelar</button>
+                    <button type="submit" class="btn-primary px-20 py-4 shadow-xl shadow-red-900/10 transition-all active:scale-95" :disabled="loading || !selectedCliente || gettingLocation">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
                         {{ loading ? 'Sincronizando...' : 'Postear Seguimiento' }}
                     </button>
@@ -259,7 +257,7 @@
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
                         <h2 class="modal-title-success">¡Seguimiento Exitoso!</h2>
                         <p class="modal-text-success">La bitácora se guardó. El plantel ahora figura como <strong>{{ savedClientType }}</strong> activo.</p>
-                        <button @click="goToHistory" class="btn-primary-action w-full mt-8 bg-slate-900 border-none shadow-none text-white">Regresar al Historial</button>
+                        <button @click="goToHistory" class="btn-primary w-full mt-8 bg-slate-900 border-none text-white uppercase font-black tracking-widest py-4">Regresar al Listado</button>
                     </div>
                 </div>
             </Transition>
@@ -268,7 +266,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from '../axios';
 
@@ -308,17 +306,8 @@ let bookTimer = null;
 let clientTimer = null;
 
 const form = reactive({
-    plantel: { 
-        name: '', rfc: '', niveles: [], direccion: '', 
-        estado_id: '', telefono: '', email: '', director: '', 
-        latitud: null, longitud: null 
-    },
-    visita: { 
-        fecha: new Date().toISOString().split('T')[0], 
-        persona_entrevistada: '', cargo: 'Director/Coordinador', 
-        comentarios: '', resultado_visita: 'seguimiento', 
-        proxima_visita: '', proxima_accion: 'visita' 
-    }
+    plantel: { name: '', rfc: '', niveles: [], direccion: '', estado_id: '', telefono: '', email: '', director: '', latitud: null, longitud: null },
+    visita: { fecha: new Date().toISOString().split('T')[0], persona_entrevistada: '', cargo: 'Director/Coordinador', cargo_especifico: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '', proxima_accion: 'visita' }
 });
 
 const seriesFiltradas = computed(() => {
@@ -353,15 +342,11 @@ const searchProspectos = () => {
     }, 400);
 };
 
-/**
- * REGLA ACTUALIZADA: Rellenar todos los campos de identidad del plantel
- */
 const selectProspecto = (c) => {
     selectedCliente.value = c;
     searchQuery.value = c.name;
     clientesSuggestions.value = [];
     
-    // Mapeo completo de datos desde el objeto cliente
     form.plantel.name = c.name;
     form.plantel.rfc = c.rfc || '';
     form.plantel.direccion = c.direccion || '';
@@ -370,7 +355,6 @@ const selectProspecto = (c) => {
     form.plantel.email = c.email || '';
     form.plantel.director = c.contacto || '';
     
-    // Procesar niveles educativos (mapeo de nombres a IDs del catálogo)
     if (c.nivel_educativo) {
         const nombres = c.nivel_educativo.split(',').map(n => n.trim());
         form.plantel.niveles = nivelesCatalog.value
@@ -421,6 +405,9 @@ const searchBooks = (event, type) => {
     }, 400);
 };
 
+/**
+ * REGLA ACTUALIZADA: Obtener nombre de serie del catálogo
+ */
 const addMaterial = (book, type) => {
     const serie = allSeries.value.find(s => s.id == book.serie_id);
     const serieNombre = serie ? serie.nombre : 'Sin Serie';
@@ -435,7 +422,9 @@ const addMaterial = (book, type) => {
         interestInput.titulo = ''; interestSuggestions.value = [];
     } else {
         if (!selectedDeliveredBooks.value.find(b => b.id === book.id)) {
-            selectedDeliveredBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: serieNombre, cantidad: 1 });
+            selectedDeliveredBooks.value.push({ 
+                id: book.id, titulo: book.titulo, serie_nombre: serieNombre, cantidad: 1 
+            });
         }
         deliveredInput.titulo = ''; deliveredSuggestions.value = [];
     }
@@ -459,13 +448,15 @@ const handleSubmit = async () => {
             entregado: selectedDeliveredBooks.value.map(b => ({ titulo: b.titulo, cantidad: b.cantidad }))
         };
 
+        const finalCargo = form.visita.cargo === 'Otro' ? form.visita.cargo_especifico : form.visita.cargo;
+
         const payload = { 
             cliente_id: selectedCliente.value.id,
             plantel: { ...form.plantel, niveles: nivelNombres }, 
-            visita: { ...form.visita, libros_interes: materiales },
+            visita: { ...form.visita, cargo: finalCargo, libros_interes: materiales },
             fecha: form.visita.fecha,
             persona_entrevistada: form.visita.persona_entrevistada,
-            cargo: form.visita.cargo,
+            cargo: finalCargo,
             libros_interes: materiales,
             comentarios: form.visita.comentarios,
             resultado_visita: form.visita.resultado_visita,
@@ -492,7 +483,6 @@ const verificarPrecarga = async () => {
         const v = res.data;
         if (v.cliente) selectProspecto(v.cliente);
         else {
-            // Hidratación completa desde campos snapshot si no hay objeto cliente
             selectedCliente.value = { id: v.cliente_id, name: v.nombre_plantel };
             searchQuery.value = v.nombre_plantel;
             form.plantel.name = v.nombre_plantel;
@@ -517,9 +507,16 @@ const verificarPrecarga = async () => {
     } catch (e) { console.error(e); } finally { loadingPrecarga.value = false; }
 };
 
-const formatDateShort = (d) => {
-    if (!d) return '---';
-    return new Date(d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }).toUpperCase();
+/**
+ * SOLUCIÓN AL BUG DE FECHA (Desfase de zona horaria):
+ * Separamos la cadena por '-' y construimos el objeto Date LOCAL.
+ */
+const formatDateShort = (dateString) => {
+    if (!dateString) return '---';
+    const cleanDate = dateString.split('T')[0];
+    const [year, month, day] = cleanDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }).toUpperCase();
 };
 
 const getOutcomeClass = (outcome) => {
@@ -554,8 +551,7 @@ onMounted(async () => {
         
         await verificarPrecarga();
 
-        // 3. Opcional: Si los datos tardan y expanden la página, 
-        // ejecutamos un scroll final después de la precarga
+        // 3. Scroll final después de la precarga
         await nextTick();
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -569,13 +565,16 @@ onMounted(async () => {
 
 <style scoped>
 .form-section { background: #fff; padding: 30px; border-radius: 32px; border: 1px solid #f1f5f9; }
-.section-title { color: #b91c1c; font-weight: 900; font-size: 1.1rem; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.section-title { font-weight: 900; font-size: 1.1rem; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 1px; }
 
 .label-style { @apply text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block; }
 .label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-widest; }
 
-.form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.9rem; }
-.form-input:focus { border-color: #a93339; background: white; outline: none; box-shadow: 0 0 0 4px rgba(169, 51, 57, 0.05); }
+.form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #000000; background: #fafbfc; transition: all 0.2s; font-size: 0.9rem; }
+.form-input:focus { border-color: #000000; background: white; outline: none; box-shadow: 0 0 0 4px rgba(0,0,0,0.02); }
+
+.btn-primary-black { background: #000000; color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; }
+.btn-primary-black:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
 
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
@@ -588,105 +587,20 @@ onMounted(async () => {
 .modal-overlay-custom { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
 .modal-content-success { background: white; padding: 45px; border-radius: 40px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #f1f5f9; }
 .success-icon-wrapper { width: 80px; height: 80px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; border: 4px solid white; }
+.modal-title-success { font-size: 1.75rem; font-weight: 900; color: #000000; margin-bottom: 12px; }
+.modal-text-success { color: #64748b; font-size: 0.95rem; line-height: 1.6; font-weight: 500; }
 
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-    background: white;
-}
+.table-responsive { width: 100%; overflow-x: auto; background: white; border-radius: 20px; }
+.table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
+.table-cell { padding: 12px 16px; vertical-align: middle; }
 
-table {
-    table-layout: fixed;
-    width: 100%;
-}
+.input-table, .select-table { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 10px; font-weight: 900; color: #1e293b; padding: 6px 8px; text-transform: uppercase; transition: all 0.2s; width: 100%; }
+.input-table:focus, .select-table:focus { outline: none; border-color: #f87171; background-color: #fff; box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.1); }
 
-.table-header {
-    padding: 14px 16px;
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.table-cell {
-    padding: 12px 16px;
-    vertical-align: middle;
-}
-
-/* Inputs y Selects dentro de la Tabla */
-.input-table, .select-table {
-    background-color: #f8fafc; /* Slate-50 */
-    border: 1px solid #e2e8f0; /* Slate-200 */
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: 900;
-    color: #1e293b;
-    padding: 6px 8px;
-    text-transform: uppercase;
-    transition: all 0.2s;
-}
-
-.input-table:focus, .select-table:focus {
-    outline: none;
-    border-color: #f87171; /* Rojo suave */
-    background-color: #fff;
-    box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.1);
-}
-
-.quantity-control-wrapper {
-    max-width: 80px;
-}
-
-.input-table {
-    width: 100%;
-}
-
-.select-table {
-    width: 100%;
-    cursor: pointer;
-}
-
-/* Botones de Acción */
-.btn-icon-delete {
-    background: none;
-    border: none;
-    color: #cbd5e1; /* Slate-300 */
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: color 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.btn-icon-delete:hover {
-    color: #dc2626; /* Red-600 */
-}
-
-.btn-icon-delete-simple {
-    background: none;
-    border: none;
-    color: #cbd5e1;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-
-.btn-icon-delete-simple:hover {
-    color: #dc2626;
-}
-
-/* Clases de utilidad */
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.w-32 { width: 8rem; }
-.w-36 { width: 9rem; }
-.w-12 { width: 3rem; }
-.w-16 { width: 4rem; }
-
-.quantity-control input { @apply w-16 text-center font-black text-red-600 bg-red-50/50 border-2 border-red-100 py-1.5 rounded-xl focus:border-red-400 focus:bg-white outline-none text-sm; }
+.btn-icon-delete { background: none; border: none; color: #cbd5e1; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: color 0.2s; display: inline-flex; align-items: center; gap: 4px; }
+.btn-icon-delete:hover { color: #dc2626; }
+.btn-icon-delete-simple { background: none; border: none; color: #cbd5e1; font-size: 0.9rem; cursor: pointer; transition: color 0.2s; }
+.btn-icon-delete-simple:hover { color: #dc2626; }
 
 .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; text-transform: uppercase; }
 
@@ -701,5 +615,5 @@ table {
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
+select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
 </style>

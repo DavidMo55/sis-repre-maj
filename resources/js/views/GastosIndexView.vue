@@ -56,7 +56,7 @@
                             <i class="fas fa-sync-alt"></i> Buscar
                         </button>
                         <button @click="resetFilters" class="btn-secondary" title="Limpiar Filtros">
-                            <i class="fas fa-eraser">Borrar Filtros</i>
+                            <i class="fas fa-eraser"></i> Borrar Filtros
                         </button>
                     </div>
                 </div>
@@ -64,70 +64,66 @@
 
 
             <!-- TABLA DE GASTOS -->
-            <div v-if="loading" class="loading-state mt-8">
-                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                <p>Consultando registros...</p>
+            <div v-if="loading" class="loading-state mt-8 text-center py-10">
+                <i class="fas fa-spinner fa-spin text-3xl mb-2 text-red-600"></i>
+                <p class="text-gray-500 font-medium">Consultando registros...</p>
             </div>
 
-            <div v-else-if="error" class="error-message text-center py-4">
+            <div v-else-if="error" class="error-message text-center py-4 text-red-600 font-bold">
                 {{ error }}
             </div>
 
-            <div v-else-if="filteredGastos.length === 0" class="cart-empty-message mt-8">
-                <i class="fas fa-info-circle mb-2 text-xl"></i>
-                <p class="mt-2">No se encontraron gastos que coincidan con los filtros aplicados.</p>
+            <div v-else-if="filteredGastos.length === 0" class="cart-empty-message mt-8 text-center py-10 bg-gray-50 rounded-xl border-2 border-dashed">
+                <i class="fas fa-info-circle mb-2 text-xl text-gray-300"></i>
+                <p class="mt-2 text-gray-500">No se encontraron gastos que coincidan con los filtros aplicados.</p>
             </div>
 
-            <div v-else class="table-responsive table-shadow-lg mt-8">
-                <div class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
-    <table class="min-width-full divide-y divide-gray-200">
-        <thead class="bg-gray-100">
-            <tr>
-                <th class="table-header">Fecha</th>
-                <th class="table-header">Paquete de gastos</th>
-                <th class="table-header text-right">Monto</th>
-                <th class="table-header text-center">Estado</th>
-                <th class="px-6 py-3"></th>
-            </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-100">
-            <tr v-for="gasto in filteredGastos" :key="gasto.id" 
-                class="hover:bg-gray-50 transition-colors"
-                :class="{'bg-red-50/30': !gasto.comprobantes.length}">
-                
-                <td class="table-cell table-cell-bold text-gray-700">
-                    {{ formatDate(gasto.fecha) }}
-                </td>
+            <div v-else class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
+                <table class="min-width-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="table-header">Fecha</th>
+                            <th class="table-header">Paquete de gastos</th>
+                            <th class="table-header text-right">Monto</th>
+                            <th class="table-header text-center">Estado</th>
+                            <th class="px-6 py-3"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-100">
+                        <tr v-for="gasto in filteredGastos" :key="gasto.id" 
+                            class="hover:bg-gray-50 transition-colors"
+                            :class="{'bg-red-50/30': !gasto.comprobantes.length}">
+                            
+                            <td class="table-cell table-cell-bold text-gray-700">
+                                {{ formatDate(gasto.fecha) }}
+                            </td>
 
-                <td class="table-cell">
-                    <div class="text-sm font-medium text-gray-800 text-truncate max-w-concepto" :title="gasto.concepto">
-                        {{ gasto.concepto }}
-                    </div>
-                </td>
+                            <td class="table-cell">
+                                <div class="text-sm font-medium text-gray-800 text-truncate max-w-concepto" :title="gasto.concepto">
+                                    {{ gasto.concepto }}
+                                </div>
+                            </td>
 
-                <td class="table-cell table-cell-bold text-right text-gray-900">
-                    {{ formatCurrency(gasto.monto) }}
-                </td>
+                            <td class="table-cell table-cell-bold text-right text-gray-900">
+                                {{ formatCurrency(gasto.monto) }}
+                            </td>
 
-              
+                            <td class="table-cell text-center">
+                                <span class="status-badge" 
+                                      :class="gasto.comprobantes.length ? 'badge-completed' : 'badge-pending'">
+                                    <i :class="gasto.comprobantes.length ? 'fas fa-check-circle' : 'fas fa-clock'" class="mr-1"></i>
+                                    {{ gasto.comprobantes.length ? 'COMPLETADO' : 'PENDIENTE' }}
+                                </span>
+                            </td>
 
-                <td class="table-cell text-center">
-                    <span class="status-badge" 
-                          :class="gasto.comprobantes.length ? 'badge-completed' : 'badge-pending'">
-                        <i :class="gasto.comprobantes.length ? 'fas fa-check-circle' : 'fas fa-clock'" class="mr-1"></i>
-                        {{ gasto.comprobantes.length ? 'COMPLETADO' : 'PENDIENTE' }}
-                    </span>
-                </td>
-
-                <td class="table-cell text-right">
-                    <button @click="viewDetails(gasto)" class="text-red-link">
-                        <i class="fas fa-eye"></i> Ver Detalle
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+                            <td class="table-cell text-right">
+                                <button @click="viewDetails(gasto)" class="text-red-link">
+                                    <i class="fas fa-eye"></i> Ver Detalle
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             
         </div>
@@ -157,7 +153,7 @@ const showUploadModal = ref(false);
 const selectedGasto = ref(null);
 
 const filters = ref({
-    search: '', // NUEVO: Campo de búsqueda
+    search: '',
     fecha_desde: '',
     fecha_hasta: '',
     tiene_comprobante: 'all', 
@@ -179,13 +175,8 @@ const filteredGastos = computed(() => {
         result = result.filter(g => g.comprobantes.length > 0);
     }
 
-    // 3. Ordenar: Pendientes arriba
-    result.sort((a, b) => {
-        const aDone = a.comprobantes.length > 0;
-        const bDone = b.comprobantes.length > 0;
-        if (aDone === bDone) return new Date(b.fecha) - new Date(a.fecha);
-        return aDone ? 1 : -1;
-    });
+    // 3. Ordenar: Conforme se agregan (Nuevos arriba por ID)
+    result.sort((a, b) => b.id - a.id);
 
     return result;
 });
@@ -199,7 +190,7 @@ const fetchGastos = async () => {
             fecha_hasta: filters.value.fecha_hasta,
         };
         const response = await axios.get('/gastos', { params }); 
-        gastos.value = response.data.data; 
+        gastos.value = response.data.data || response.data; 
     } catch (err) {
         error.value = 'No se pudo obtener la lista de gastos.';
         console.error(err);
@@ -208,7 +199,6 @@ const fetchGastos = async () => {
     }
 };
 
-// NUEVO: Función para resetear filtros
 const resetFilters = () => {
     filters.value = {
         search: '',
@@ -221,11 +211,6 @@ const resetFilters = () => {
 
 const handleUploadSuccess = () => {
     fetchGastos(); 
-};
-
-const openUploadModal = (gasto) => {
-    selectedGasto.value = gasto;
-    showUploadModal.value = true;
 };
 
 const viewDetails = (gasto) => {
@@ -241,13 +226,6 @@ const formatCurrency = (value) => {
     return Number(value).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 };
 
-const getComprobanteClass = (count) => {
-    const base = 'status-badge flex-row-centered gap-1 ';
-    return count > 0 
-        ? base + 'bg-green-100 text-green-800' 
-        : base + 'bg-red-100 text-red-700 font-bold';
-};
-
 onMounted(() => {
     fetchGastos();
 });
@@ -261,7 +239,6 @@ onMounted(() => {
     align-items: flex-end;
 }
 
-/* Permitir que el buscador sea más ancho en pantallas grandes */
 @media (min-width: 1024px) {
     .col-span-2 {
         grid-column: span 2;
@@ -289,41 +266,26 @@ onMounted(() => {
     align-items: center;
 }
 
-.missing-comprobante-row {
-    background-color: #fff5f5;
-    border-left: 4px solid #f87171;
-}
-
 .completed-row:hover {
     background-color: #f0fdf4;
-}
-
-.btn-action-link {
-    background: none;
-    border: none;
-    font-weight: 700;
-    cursor: pointer;
-    font-size: 0.85rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
 }
 
 .text-red-link {
     background: none;
     border: none;
     cursor: pointer;
-    color: var(--brand-red-light);
+    color: #b91c1c;
     text-decoration: none;
     transition: color 0.2s;
+    font-weight: 700;
+    font-size: 0.85rem;
 }
 
 .text-red-link:hover {
-    color: var(--brand-red-dark);
+    color: #7f1d1d;
     text-decoration: underline;
 }
 
-.gap-1 { gap: 4px; }
 .gap-2 { gap: 8px; }
 
 .table-responsive {
@@ -334,12 +296,11 @@ onMounted(() => {
 }
 
 table {
-    table-layout: fixed; /* Mantiene el control de los anchos */
+    table-layout: fixed;
     width: 100%;
     border-collapse: collapse;
 }
 
-/* Cabeceras */
 .table-header {
     padding: 14px 16px;
     font-size: 0.7rem;
@@ -350,7 +311,6 @@ table {
     letter-spacing: 0.025em;
 }
 
-/* Celdas */
 .table-cell {
     padding: 16px;
     font-size: 0.85rem;
@@ -361,7 +321,6 @@ table {
     font-weight: 700;
 }
 
-/* Truncado de texto para el concepto */
 .text-truncate {
     white-space: nowrap;
     overflow: hidden;
@@ -372,7 +331,6 @@ table {
     max-width: 250px;
 }
 
-/* Badges de Estado */
 .status-badge {
     padding: 6px 12px;
     border-radius: 20px;
@@ -393,24 +351,6 @@ table {
     color: #92400e;
 }
 
-/* Botón de Acción */
-.text-red-link {
-    color: #b91c1c;
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 700;
-    font-size: 0.85rem;
-    white-space: nowrap;
-}
-
-.text-red-link:hover {
-    color: #7f1d1d;
-    text-decoration: underline;
-}
-
-/* Sombras y Bordes Modernos */
 .table-shadow-lg {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
@@ -418,7 +358,30 @@ table {
 .text-right { text-align: right; }
 .text-center { text-align: center; }
 
-.btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+.btn-primary { 
+    background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); 
+    color: white; 
+    border-radius: 20px; 
+    font-weight: 900; 
+    cursor: pointer; 
+    border: none; 
+    box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); 
+    transition: all 0.2s; 
+    text-transform: uppercase; 
+    font-size: 0.8rem; 
+    letter-spacing: 0.05em; 
+}
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
 </style>

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Cliente; 
 use App\Models\Pedido; 
 use App\Models\PedidoDetalle; 
+use App\Models\PedidoReceptor;
 use App\Models\Libro;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -69,11 +70,11 @@ class PedidoController extends Controller
             $user = $request->user();
             $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-            $pedido = Pedido::with(['cliente', 'detalles.libro'])
-                            ->where('id', $id)
-                            ->where('user_id', $ownerId)
-                            ->firstOrFail();
-
+            $pedido = Pedido::with(['cliente', 'detalles.libro', 'receptor']) 
+                        ->where('id', $id)
+                        ->where('user_id', $ownerId)
+                        ->firstOrFail();
+                        
             return response()->json($pedido);
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {

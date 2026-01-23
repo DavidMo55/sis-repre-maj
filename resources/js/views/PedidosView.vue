@@ -83,11 +83,11 @@
                             <div class="mt-6 space-y-4 animate-fade-in">
                                 <div v-if="orderForm.logistics.deliveryOption === 'paqueteria'">
                                     <label class="label-mini">Empresa de Paquetería sugerida por el cliente:</label>
-                                    <input v-model="orderForm.logistics.paqueteria_nombre" type="text" class="form-input border-red-200 bg-red-50/10 text-red-700 font-bold" placeholder="DHL, FedEx, etc.">
+                                    <input v-model="orderForm.logistics.paqueteria_nombre" type="text" minlength="3" class="form-input border-red-200 bg-red-50/10 text-red-700 font-bold" placeholder="DHL, FedEx, etc.">
                                 </div>
                                 <div v-if="['recoleccion', 'entrega'].includes(orderForm.logistics.deliveryOption)">
                                     <label class="label-mini">Instrucciones / Referencias Logísticas:</label>
-                                    <textarea v-model="orderForm.logistics.comentarios_logistica" class="form-input text-red-600 font-medium" rows="2" placeholder="Ej: Pasará el chofer el viernes..."></textarea>
+                                    <textarea v-model="orderForm.logistics.comentarios_logistica" class="form-input text-red-600 font-medium" rows="2" minlength="10" placeholder="Ej: Pasará el chofer el viernes..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -116,7 +116,7 @@
                                     <h4 class="text-2xl font-black text-black leading-none mb-3 uppercase tracking-tighter">{{ orderForm.receiver.persona_recibe || 'Sin Nombre' }}</h4>
                                     
                                     <div class="flex flex-wrap gap-x-8 gap-y-2">
-                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span :class="orderForm.receiver.rfc ? 'text-black font-black' : 'text-red-500 italic font-black'">{{ orderForm.receiver.rfc || 'FALTA RFC EN BD' }}</span></p>
+                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span :class="orderForm.receiver.rfc ? 'text-black font-black' : 'text-red-500 italic font-black'">{{ orderForm.receiver.rfc || 'Ingrese un instituto correcto' }}</span></p>
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-envelope mr-2 text-red-300"></i> {{ orderForm.receiver.correo || 'SIN CORREO' }}</p>
                                     </div>
                                     
@@ -141,11 +141,11 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div class="form-group">
                                     <label class="label-style">Destinatario *</label>
-                                    <input v-model="orderForm.receiver.persona_recibe" type="text" class="form-input font-bold text-black" :class="{'border-red-600 bg-red-50': errors.persona_recibe}" placeholder="Nombre completo">
+                                    <input v-model="orderForm.receiver.persona_recibe" type="text" minlength="6" class="form-input font-bold text-black" :class="{'border-red-600 bg-red-50': errors.persona_recibe}" placeholder="Nombre completo">
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">RFC *</label>
-                                    <input v-model="orderForm.receiver.rfc" type="text" class="form-input font-mono uppercase font-black text-red-700 border-red-100" :class="{'border-red-600 bg-red-50': errors.rfc}" placeholder="XXXXXXXXXXXXX">
+                                    <input v-model="orderForm.receiver.rfc" type="text" minlength="13" class="form-input font-mono uppercase font-black text-red-700 border-red-100" :class="{'border-red-600 bg-red-50': errors.rfc}" placeholder="XXXXXXXXXXXXX">
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal</label>
@@ -159,8 +159,8 @@
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="form-group"><label class="label-style">Correo Electrónico *</label><input v-model="orderForm.receiver.correo" type="email" class="form-input text-red-700 font-bold" :class="{'border-red-600 bg-red-50': errors.correo}" placeholder="correo@ejemplo.com"></div>
-                                <div class="form-group"><label class="label-style">Teléfono *</label><input v-model="orderForm.receiver.telefono" type="tel" class="form-input text-red-700 font-bold" :class="{'border-red-600 bg-red-50': errors.telefono}" placeholder="Número de teléfono"></div>
+                                <div class="form-group"><label class="label-style">Correo Electrónico *</label><input v-model="orderForm.receiver.correo" type="email" class="form-input text-red-700 font-bold" :class="{'border-red-600 bg-red-50': errors.correo}" placeholder="correo@ejemplo.com" required></div>
+                                <div class="form-group"><label class="label-style">Teléfono *</label><input v-model="orderForm.receiver.telefono" type="tel" class="form-input text-red-700 font-bold" :class="{'border-red-600 bg-red-50': errors.telefono}" placeholder="Número de teléfono" required></div>
                             </div>
 
                             <!-- GEOLOCALIZACIÓN -->
@@ -185,14 +185,14 @@
                                             </option>
                                         </select>
                                     </div>
-                                    <div class="form-group"><label class="label-mini">Calle y Número *</label><input v-model="orderForm.receiver.calle_num" type="text" class="form-input font-bold text-red-700" :class="{'border-red-600 bg-red-50': errors.calle_num}" placeholder="Ej: Av. Juárez 123"></div>
+                                    <div class="form-group"><label class="label-mini">Calle y Número *</label><input v-model="orderForm.receiver.calle_num" type="text" class="form-input font-bold text-red-700" :class="{'border-red-600 bg-red-50': errors.calle_num}" placeholder="Ej: Av. Juárez 123" required></div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="label-style">Comentarios Generales del Pedido:</label>
-                            <textarea v-model="orderForm.comments" class="form-input text-red-600 font-medium" rows="3" placeholder="Notas adicionales para el equipo..."></textarea>
+                            <textarea v-model="orderForm.comments" class="form-input text-red-600 font-medium" minlength="10" rows="3" placeholder="Notas adicionales para el equipo..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -205,7 +205,7 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-red-50/20 p-6 rounded-[2.5rem] border border-red-100">
                         <div class="md:col-span-2">
-                            <label class="label-mini">Rubro</label>
+                            <label class="label-mini">Tipo</label>
                             <select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700">
                                 <option value="promocion">PROMO</option>
                                 <option value="venta">VENTA</option>
@@ -229,7 +229,7 @@
                         </div>
                         
                         <div class="md:col-span-3">
-                            <label class="label-mini">Formato / Licencia</label>
+                            <label class="label-mini">Formato</label>
                             <select class="form-input font-bold text-red-700 uppercase text-xs" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId">
                                 <option value="" disabled>Seleccionar...</option>
                                 <option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option>
@@ -254,7 +254,7 @@
 
                         <div class="md:col-span-1">
                             <button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95">
-                                <i class="fas fa-cart-plus"></i>Añadir al Carrito
+                                <i class="fas fa-cart-plus"></i> Añadir
                             </button>
                         </div>
                     </div>
@@ -360,14 +360,15 @@
                         <h2 class="text-2xl font-black text-black mb-3 uppercase tracking-tighter">¡Pedido Registrado!</h2>
                         <p class="text-sm text-red-600 mb-4 font-bold">La orden ha sido enviada al área de revisión.</p>
                         <p class="text-xs font-mono font-black text-white bg-red-700 py-2.5 px-6 rounded-xl inline-block mb-8 uppercase tracking-widest">FOLIO: {{ generatedOrderId }}</p>
-                        <button @click="closeAndRedirect" class="btn-primary w-full py-5 bg-black border-none shadow-none text-white font-black uppercase tracking-widest">Regresar al Historial</button>
+                        <button @click="closeAndRedirect" class="btn-primary-action w-full py-5 bg-black border-none shadow-none text-white font-black uppercase tracking-widest">Regresar al Historial</button>
                     </div>
 
                     <!-- VISTA DE ERROR CONCRETO (NUEVO DISEÑO MÁS ESPECÍFICO) -->
                     <div v-else class="modal-content-success bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden border border-red-100 animate-scale-in">
                         <div class="bg-red-600 h-4 w-full"></div>
                         
-                        <div class="p-10 flex flex-col items-center"> <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6 shadow-lg border border-red-100">
+                        <div class="p-10 flex flex-col items-center">
+                            <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6 shadow-lg border border-red-100">
                                 <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
                             </div>
                             
@@ -376,7 +377,7 @@
                             </h2>
                             
                             <p class="text-[10px] text-red-600 font-black uppercase tracking-widest mb-6 text-center">
-                                Faltan los siguientes datos obligatorios:
+                                No se pudo completar la acción:
                             </p>
                             
                             <div class="w-full space-y-3 bg-red-50/30 p-6 rounded-[2rem] border border-red-100/50 mb-8">
@@ -484,13 +485,14 @@ watch(() => orderForm.receiverType, (newType) => {
 const availableSubTypes = computed(() => {
     if (!currentOrderItem.bookId) return [];
     
+    // Normalizamos para comparación insensible a mayúsculas
     const category = currentOrderItem.category?.toLowerCase();
     const isDigital = category === 'digital';
     const isPromo = currentOrderItem.tipo_material === 'promocion';
     
     if (isPromo) {
         return isDigital 
-            ? ['Licencia Digital (Docente)', 'Demo Digital (30 días)', 'Licencia de Cortesía'] 
+            ? ['Licencia Digital (Docente)', 'Demo Digital'] 
             : ['Físico (Muestra Promoción)'];
     } else {
         return isDigital 
@@ -531,7 +533,7 @@ const fetchAddressByCP = async (cp, preserveColonia = false) => {
             }
         }
     } catch (e) { 
-        console.warn("Fallo silencioso en Dipomex para evitar logout:", e.message); 
+        console.warn("Fallo silencioso en Dipomex:", e.message); 
     } finally { 
         searchingCP.value = false; 
     }
@@ -580,18 +582,18 @@ const selectClient = (c) => {
 
 /**
  * LÓGICA DE LIBROS - FILTRADO POR TIPO
+ * Ajustado para mostrar DIGITAL en ambos rubros.
  */
 const searchBooks = async () => {
     if (currentOrderItem.bookName.length < 3) { currentOrderItem.bookSuggestions = []; return; }
     searchingLibros.value = true;
     try {
         const res = await axios.get('/search/libros', { params: { query: currentOrderItem.bookName } });
-        if (currentOrderItem.tipo_material === 'promocion') {
-            // Muestra libros de tipo 'promocion' O libros de tipo 'digital'
-            currentOrderItem.bookSuggestions = res.data.filter(b => b.type === 'promocion' || b.type === 'digital');
+        const queryVal = currentOrderItem.tipo_material;
+        if (queryVal === 'promocion') {
+            currentOrderItem.bookSuggestions = res.data.filter(b => b.type?.toLowerCase() === 'promocion' || b.type?.toLowerCase() === 'digital');
         } else {
-            // Muestra libros de tipo 'venta' O libros de tipo 'digital'
-            currentOrderItem.bookSuggestions = res.data.filter(b => b.type === 'venta' || b.type === 'digital');
+            currentOrderItem.bookSuggestions = res.data.filter(b => b.type?.toLowerCase() === 'venta' || b.type?.toLowerCase() === 'digital');
         }
     } catch (e) { console.error(e); } finally { searchingLibros.value = false; }
 };
@@ -637,7 +639,6 @@ const formatCurrency = (v) => v.toLocaleString('es-MX', { style: 'currency', cur
  * LÓGICA DE VALIDACIÓN CONCRETA ANTES DE ENVIAR
  */
 const validateForm = () => {
-    // Reset de estados visuales
     Object.keys(errors).forEach(key => errors[key] = false);
     const list = [];
 
@@ -655,7 +656,6 @@ const validateForm = () => {
         if (!orderForm.receiver.colonia) { errors.colonia = true; list.push("Sección 2: Colonia (Geolocalización necesaria)."); }
         if (!orderForm.receiver.calle_num) { errors.calle_num = true; list.push("Sección 2: Calle y número para entrega."); }
     } else {
-        // VALIDACIÓN CONCRETA DEL REGISTRO BASE (SIN AMBIGÜEDAD)
         const missingFields = [];
         if (!orderForm.receiver.rfc) missingFields.push("RFC");
         if (!orderForm.receiver.cp) missingFields.push("C.P.");
@@ -663,12 +663,7 @@ const validateForm = () => {
         if (!orderForm.receiver.calle_num) missingFields.push("Dirección (Calle/Núm)");
 
         if (missingFields.length > 0) {
-            list.push(`El expediente base 
-            del cliente está incompleto. 
-            Faltan los 
-            siguientes campos: ${missingFields.join(', ')}.
-            Vaya a la información del cliente para registrar 
-            los datos correctos para este pedido.`);
+            list.push(`Faltan datos en la ficha del cliente: ${missingFields.join(', ')}. Actualice el expediente del cliente antes de continuar.`);
         }
     }
 
@@ -679,7 +674,7 @@ const validateForm = () => {
 
     if (list.length > 0) {
         systemModal.type = 'error';
-        systemModal.title = 'Requisitos Faltantes';
+        systemModal.title = 'Datos Incompletos';
         systemModal.errorList = list;
         systemModal.visible = true;
         return false;
@@ -697,10 +692,20 @@ const submitOrder = async () => {
         systemModal.type = 'success';
         systemModal.visible = true;
     } catch (e) { 
-        console.error(e); 
+        console.error("Error de servidor:", e);
+        
+        let serverError = "Ocurrió un error inesperado al procesar el pedido.";
+        
+        // Manejo específico del error de truncado de ENUM (delivery_option) detectado
+        if (e.response?.data?.message?.includes("Data truncated for column 'delivery_option'")) {
+            serverError = "Error de compatibilidad logística: La opción 'Entrega Directa' no está habilitada en el servidor. Por favor seleccione 'Paquetería' o 'Recolección' mientras se actualiza el sistema.";
+        } else {
+            serverError = e.response?.data?.message || serverError;
+        }
+
         systemModal.type = 'error';
         systemModal.title = 'Fallo de Servidor';
-        systemModal.errorList = [e.response?.data?.message || "Ocurrió un error inesperado al intentar guardar el pedido."];
+        systemModal.errorList = [serverError];
         systemModal.visible = true;
     } finally { 
         loading.value = false; 
@@ -716,7 +721,6 @@ onMounted(async () => {
     } catch (e) { console.error(e); }
 });
 </script>
-
 
 <style scoped>
 .label-style { @apply text-xs font-black text-red-600 uppercase tracking-widest mb-2 block; }
@@ -740,9 +744,10 @@ onMounted(async () => {
 .btn-primary-action { background: #000000; color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15); transition: all 0.2s; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.1em; display: flex; align-items: center; justify-content: center; }
 .btn-primary-action:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25); }
 
-.btn-primary { background: linear-gradient(135deg, #cb7e81 0%, #e96a90 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; }
+.btn-primary-black { background: #000000; color: white; border-radius: 16px; font-weight: 900; cursor: pointer; border: none; transition: all 0.2s; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; }
+.btn-primary-black:hover:not(:disabled) { transform: scale(1.02); background: #1e293b; }
+.btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
-.btn-primary:disabled { background: #fca5a5; cursor: not-allowed; box-shadow: none; transform: none; }
 
 /* OVERLAY MODAL */
 .modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background-color: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); overflow: hidden; }

@@ -231,6 +231,7 @@
                                             <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors">
                                                 <div class="flex justify-between items-center w-full">
                                                     <span class="truncate uppercase">{{ b.titulo }}</span>
+                                                    <span> Serie: {{ b.serie_nombre }}</span>
                                                 </div>
                                             </li>
                                         </ul>
@@ -251,7 +252,7 @@
                                                 <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-gray-50 transition-colors">
                                                     <td class="table-cell">
                                                         <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">{{ item.serie_nombre }}</div>
+                                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">Serie: {{ item.serie_nombre }}</div>
                                                     </td>
                                                     <td class="table-cell text-center">
                                                         <select v-model="item.tipo" class="select-table">
@@ -296,6 +297,7 @@
                                         <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
                                             <div class="flex justify-between items-center w-full">
                                                 <span class="truncate uppercase">{{ b.titulo }}</span>
+                                               
                                             </div>
                                         </li>
                                     </ul>
@@ -315,7 +317,6 @@
                                                 <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors">
                                                     <td class="table-cell">
                                                         <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                                                        <div class="text-[8px] font-black text-red-400 uppercase tracking-widest mt-1">Inventario de Promoción</div>
                                                     </td>
                                                     <td class="table-cell text-center">
                                                         <div class="flex justify-center">

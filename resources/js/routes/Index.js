@@ -122,19 +122,17 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('auth_token');
     const sessionStart = localStorage.getItem('session_start_time');
-    
-    if (token && sessionStart) {
-        const twoHours = 2 * 60 * 60 * 1000;
-        const now = new Date().getTime();
+    const now = new Date().getTime();
+    const TWO_HOURS = 2 * 60 * 60 * 1000;
 
-        if (now - parseInt(sessionStart) > twoHours) {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('session_start_time');
-            localStorage.removeItem('user_data');
+    if (token && sessionStart) {
+        if (now - parseInt(sessionStart) > TWO_HOURS) {
+            localStorage.clear(); 
             return next('/login');
         }
     }
 
+    // 2. Reglas de redirección
     if (to.meta.requiresAuth && !token) {
         next('/login');
     } else if (to.path === '/login' && token) {

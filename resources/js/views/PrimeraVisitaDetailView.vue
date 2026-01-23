@@ -1,525 +1,561 @@
 <template>
     <div class="content-wrapper p-2 md:p-6 bg-slate-50 min-h-screen">
         <div class="module-page max-w-7xl mx-auto">
-            <!-- Encabezado Dinámico -->
+            <!-- Encabezado -->
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div class="header-info min-w-0">
-                    
-                    <h1 v-if="visita" class="text-2xl md:text-4xl font-black text-black tracking-tight leading-tight break-words">
-                        {{ visita.nombre_plantel || visita.cliente?.name || 'Sin nombre' }}
+                    <h1 v-if="loadingPrecarga" class="text-2xl font-black text-slate-300 animate-pulse uppercase">Sincronizando expediente...</h1>
+                    <h1 v-else-if="selectedCliente" class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight leading-tight">
+                        Seguimiento: {{ selectedCliente.name }}
                     </h1>
-                    <h1 v-else-if="loading" class="text-2xl font-black text-slate-300 animate-pulse uppercase">Sincronizando información...</h1>
-                    <p class="text-xs md:text-sm text-red-600 font-medium mt-1 uppercase tracking-tighter italic">Expediente técnico de prospectación y acuerdos académicos.</p>
+                    <h1 v-else class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight text-red-800">Seguimiento de Prospectos</h1>
+                    <p class="text-xs md:text-sm text-slate-500 font-medium mt-1 uppercase tracking-tighter italic">Actualiza el expediente y registra los nuevos acuerdos de la visita subsecuente.</p>
                 </div>
-                <button @click="router.push('/visitas')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto">
-                    <i class="fas fa-arrow-left"></i> VOLVER AL LISTADO
+                <button @click="router.push('/visitas')" class="btn-secondary flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm shrink-0 w-full sm:w-auto bg-white border-2 border-slate-200 text-black uppercase" :disabled="loading">
+                    <i class="fas fa-arrow-left"></i> Volver al Historial
                 </button>
             </div>
 
-            <!-- Loader de Sistema -->
-            <div v-if="loading" class="loading-state py-20 text-center">
-                <i class="fas fa-circle-notch fa-spin text-5xl text-red-600 mb-4"></i>
-                <p class="text-slate-400 font-black uppercase tracking-widest text-xs">Consultando base de datos maestra...</p>
-            </div>
-
-            <!-- Error de Conexión -->
-            <div v-else-if="error" class="error-message-container p-10 text-center bg-red-50 border-2 border-red-100 rounded-[2.5rem] shadow-sm animate-fade-in">
-                <i class="fas fa-exclamation-triangle fa-3xl text-red-600 mb-6"></i>
-                <h2 class="text-xl font-black text-black uppercase tracking-tighter">Error de Sincronización</h2>
-                <p class="text-red-600/70 text-sm mt-2 font-medium">{{ error }}</p>
-                <button @click="fetchVisitaDetail" class="btn-primary-action mt-6 px-10">Reintentar</button>
-            </div>
-
-            <!-- Contenido Principal -->
-            <div v-else-if="visita" class="space-y-8 animate-fade-in pb-20">
-                
-                <!-- 1. IDENTIDAD DEL PLANTEL -->
-                <div class="info-card shadow-premium border-t-8 border-t-red-700">
-                    <div class="section-title">
-                        <i class="fas fa-school text-red-700"></i> 1. Identidad y Ubicación del Plantel
-                    </div>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
-                        <!-- Columna Datos Base -->
-                        <div class="space-y-6">
-                            <div class="data-row">
-                                <label class="label-large">Nombre Oficial de la Institución</label>
-                                <p class="value-text text-xl leading-none uppercase">{{ visita.nombre_plantel || visita.cliente?.name }}</p>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="data-row">
-                                    <label class="label-large">RFC Fiscal</label>
-                                    <p class="value-text font-mono uppercase tracking-widest">{{ visita.rfc_plantel || visita.cliente?.rfc || 'No registrado' }}</p>
-                                </div>
-                                <div class="data-row">
-                                    <label class="label-large">Niveles Educativos</label>
-                                    <div class="flex flex-wrap gap-1.5 mt-1">
-                                        <span v-for="n in formatLevels(visita.nivel_educativo_plantel || visita.cliente?.nivel_educativo)" :key="n" class="badge-red-outline">
-                                            {{ n }} <br><br>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="data-row">
-                                    <label class="label-large">Estado / Región</label>
-                                    <p class="value-text uppercase">{{ visita.estado?.estado || 'No especificado' }}</p>
-                                </div>
-                                <div class="data-row">
-                                    <label class="label-large">Estatus de Prospecto</label>
-                                    <p class="font-black text-sm uppercase tracking-wider" :class="visita?.cliente?.tipo === 'CLIENTE' ? 'text-green-600' : 'text-red-700'">
-                                        {{ visita?.cliente?.tipo || 'PROSPECTO' }}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="data-row">
-                                <label class="label-large">Ubicación Geográfica Capturada</label>
-                                <div v-if="visita.latitud" class="flex items-center gap-3 bg-red-50/30 p-4 rounded-2xl border border-red-100 mt-2">
-                                    <div class="w-12 h-12 bg-red-700 text-white rounded-xl flex items-center justify-center shadow-lg">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <p class="text-[10px] font-black text-red-800 uppercase leading-none">Punto GPS en Sesión</p>
-                                        <p class="text-xs font-mono font-bold text-red-600 mt-1">{{ visita.latitud }}, {{ visita.longitud }}</p>
-                                    </div>
-                                    <a :href="`https://www.google.com/maps?q=${visita.latitud},${visita.longitud}`" target="_blank" class="text-[10px] font-black uppercase text-red-700 hover:underline px-3 border-l border-red-100">Ver Mapa</a>
-                                </div>
-                                <p v-else class="value-text text-slate-300 italic text-sm">Sin coordenadas registradas</p>
-                            </div>
-                        </div>
-
-                        <!-- Columna Contacto -->
-                        <div class="space-y-6">
-                            <div class="data-row">
-                                <label class="label-large">Dirección de Entrega / Facturación</label>
-                                <p class="value-text italic leading-relaxed text-sm">{{ visita.direccion_plantel || visita.cliente?.direccion || 'Sin dirección registrada' }}</p>
-                            </div>
-                            
-                            <div class="data-row">
-                                <label class="label-large">Representante / Director General</label>
-                                <p class="value-text text-lg uppercase">{{ visita.director_plantel || visita.cliente?.contacto || 'No especificado' }}</p>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="data-row">
-                                    <label class="label-large">Teléfono de Contacto</label>
-                                    <p class="value-text tracking-tighter"><i class="fas fa-phone-alt mr-2 opacity-30"></i>{{ visita.telefono_plantel || visita.cliente?.telefono || 'N/A' }}</p>
-                                </div>
-                                <div class="data-row">
-                                    <label class="label-large">Email Institucional</label>
-                                    <p class="value-text lowercase text-sm"><i class="fas fa-envelope mr-2 opacity-30"></i>{{ visita.email_plantel || visita.cliente?.email || 'N/A' }}</p>
-                                </div>
-                            </div>
-                        </div>
+            <!-- Alerta de Error -->
+            <div v-if="errorMessage" class="error-message-container mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl animate-fade-in shadow-sm">
+                <div class="flex items-start gap-3">
+                    <i class="fas fa-exclamation-triangle text-red-600 mt-1"></i>
+                    <div>
+                        <p class="text-red-800 font-black uppercase text-[10px] tracking-widest">Error al procesar registro</p>
+                        <p class="text-red-600 text-xs mt-1 font-medium whitespace-pre-wrap">{{ errorMessage }}</p>
                     </div>
                 </div>
+            </div>
 
-                <!-- 2. DETALLES DE LA VISITA ACTUAL -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 info-card shadow-premium border-t-8 border-t-black">
-                        <div class="section-title text-black !border-black/5">
-                            <i class="fas fa-handshake text-black"></i> 2. Detalles de la Entrevista (Apertura)
+            <form @submit.prevent="handleSubmit">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    <!-- BLOQUE 1: IDENTIFICACIÓN Y DATOS DEL PLANTEL -->
+                    <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                        <div class="section-title text-black">
+                            <i class="fas fa-school text-red-700"></i> 1. Identidad del Plantel
                         </div>
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="space-y-6">
-                                <div class="data-row bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                                    <label class="label-large !text-red-700">Atendido por:</label>
-                                    <p class="value-text !text-xl !font-black uppercase !color-black">{{ visita.persona_entrevistada || 'N/A' }}</p>
-                                    <label class="label-large !text-red-700">Cargo:</label>
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{{ visita.cargo || 'Responsable' }}</p>
-                                </div>
-                                <div class="data-row">
-                                    <label class="label-large">Fecha de Registro Inicial</label>
-                                    <p class="value-text">{{ formatDate(visita.fecha) }}</p>
-                                </div>
+                        <!-- Buscador (Solo si no viene de una precarga directa) -->
+                        <div v-if="!route.params.id" class="form-group relative mb-6">
+                            <label class="label-style">Buscar Plantel en Seguimiento *</label>
+                            <div class="relative">
+                                <input v-model="searchQuery" type="text" class="form-input pl-10 font-bold" placeholder="Escribe nombre del plantel..." @input="searchProspectos" autocomplete="off">
+                                <i class="fas fa-university absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             </div>
-                            <div class="space-y-6">
-                                <div class="data-row">
-                                    <label class="label-large">Resultado de la Interacción</label>
-                                    <div class="mt-2">
-                                        <span :class="getOutcomeClass(visita.resultado_visita)" class="status-badge !text-xs !py-2.5 !px-8 shadow-sm">
-                                            {{ (visita.resultado_visita || 'seguimiento').toUpperCase() }}
-                                        </span>
+                            <ul v-if="clientesSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
+                                <li v-for="v in clientesSuggestions" :key="v.id" @click="selectProspecto(v)" class="hover:bg-red-50 transition-colors border-b last:border-0 border-slate-50">
+                                    <div class="flex justify-between items-start">
+                                        <div class="text-xs font-black text-slate-800 uppercase line-clamp-1">{{ v.name }}</div>
+                                        <span class="text-[7px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-black uppercase">{{ v.tipo }}</span>
                                     </div>
-                                </div>
-                               
-                            </div>
+                                </li>
+                            </ul>
                         </div>
-                    </div>
 
-                    <!-- 3. AGENDA Y SEGUIMIENTO -->
-                    <div class="info-card shadow-premium border-t-8 border-t-red-800 bg-slate-900 text-white">
-                        <div class="section-title !text-white !border-white/10">
-                            <i class="fas fa-calendar-check"></i> 3. Agenda de Seguimiento
+                        <div class="form-group mb-6">
+                            <label class="label-style">Nombre del Plantel *</label>
+                            <input v-model="form.plantel.name" type="text" class="form-input font-bold" placeholder="Nombre oficial" required minlength="5" :disabled="loading">
                         </div>
-                        
-                        <div class="space-y-6 mt-4">
-                            <div class="p-6 bg-white/5 rounded-3xl border border-white/10">
-                                <label class="label-large !text-red-400">Próximo Compromiso</label>
-                                <div v-if="visita.proxima_visita_estimada" class="mt-3">
-                                    <p class="text-3xl font-black text-white tracking-tighter">{{ formatDate(visita.proxima_visita_estimada) }}</p>
-                                    <div class="flex items-center gap-2 mt-4 bg-red-600/20 p-3 rounded-xl border border-red-600/30">
-                                        <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-xs">
-                                            <i class="fas fa-bullseye"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p v-else class="text-white/20 italic text-[11px] font-black uppercase tracking-widest mt-4">Sin fecha programada</p>
-                            </div>
 
-                            <button v-if="visita.resultado_visita === 'seguimiento' && visita.cliente?.tipo !== 'CLIENTE'" 
-                                @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
-                                class="w-full btn-primary-action shadow-2xl transition-all active:scale-95">
-                                <i class="fas fa-plus-circle mr-2 "></i> Registrar Nueva Visita
+                        <div class="form-group mb-6">
+                            <label class="label-style">RFC del Plantel *</label>
+                            <input v-model="form.plantel.rfc" type="text" class="form-input uppercase font-mono border-red-100 font-black text-red-900" placeholder="RFC para facturación" required minlength="12" maxlength="13" :disabled="loading">
+                        </div>
+
+                        <!-- GPS -->
+                        <div class="bg-blue-50 p-6 rounded-[2rem] border border-blue-200 mb-6 shadow-sm text-center">
+                            <div class="flex items-center justify-between mb-4">
+                                <label class="text-[10px] font-black text-blue-700 uppercase tracking-[0.2em]">
+                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica (GPS)
+                                </label>
+                                <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase">✓ Actualizada</span>
+                            </div>
+                            <button type="button" @click="getLocation" class="btn-primary-blue w-full py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-all" :disabled="gettingLocation || loading">
+                                <i class="fas" :class="gettingLocation ? 'fa-spinner fa-spin' : 'fa-crosshairs'"></i>
+                                <span class="font-black uppercase tracking-widest text-[11px]">{{ form.plantel.latitud ? 'Actualizar Coordenadas GPS' : 'Capturar GPS de este Plantel' }}</span>
                             </button>
                         </div>
-                    </div>
-                </div>
 
-                <!-- 4. EXPEDIENTE DE MATERIALES -->
-                <div class="space-y-6">
-                    <div class="flex items-center gap-3 px-2">
-                        <div class="w-1.5 h-8 bg-black rounded-full"></div>
-                        <h2 class="text-2xl font-black text-black uppercase tracking-tight">Materiales de la Apertura</h2>
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-8">
-                        <!-- APARTADO A: INTERÉS -->
-                        <div class="info-card bg1 !p-0 overflow-hidden border border-slate-200 shadow-premium bg-white">
-                            <div class="p-6 bg-slate-800 text-white flex justify-between items-center">
-                                <div class="flex items-center gap-3">
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                    <h3 class="text-[11px] font-black uppercase tracking-widest">Interés de Venta</h3>
-                                </div>
-                                <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">{{ materialesInteres.length }} Títulos</span>
+                        <!-- Niveles -->
+                        <div class="form-group mb-6">
+                            <label class="label-style">Niveles Educativos del Plantel *</label>
+                            <div v-if="loadingInitial" class="py-2 animate-pulse text-[10px] text-slate-400 font-black uppercase tracking-widest italic">Sincronizando catálogo...</div>
+                            <div v-else class="grid grid-cols-2 gap-3">
+                                <label v-for="nivel in nivelesCatalog" :key="nivel.id" 
+                                    class="flex items-center gap-3 p-3 border-2 rounded-2xl cursor-pointer hover:border-red-200 transition-all shadow-sm bg-white" 
+                                    :class="{'border-red-600 bg-red-50/30': form.plantel.niveles.includes(nivel.id), 'border-slate-50': !form.plantel.niveles.includes(nivel.id)}"
+                                >
+                                    <input type="checkbox" :value="nivel.id" v-model="form.plantel.niveles" class="w-4 h-4 accent-red-600">
+                                    <span class="text-[10px] font-black uppercase text-slate-700 leading-none">{{ nivel.nombre }}</span>
+                                </label>
                             </div>
-                            <div class="table-responsive table-shadow-lg border rounded-2xl overflow-hidden bg-white">
-                            <table class="w-full border-collapse">
-                                <thead class="bg-slate-900">
-                                    <tr>
-                                        <th class="table-header-enterprise text-left">Material de Interés</th>
-                                        <th class="table-header-enterprise text-right">Formato</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <tr v-for="(libro, idx) in materialesInteres" :key="idx" class="hover:bg-slate-50 transition-colors">
-                                        <td class="table-cell">
-                                            <div class="text-xs font-black text-black uppercase leading-tight">
-                                                {{ libro.titulo }}
-                                            </div>
-                                        </td>
-                                        <td class="table-cell text-right">
-                                            <span class="text-[9px] text-red-600 font-black uppercase bg-red-50 border border-red-100 px-3 py-1 rounded-lg tracking-widest">
-                                                {{ libro.tipo || 'Físico' }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="!materialesInteres.length">
-                                        <td colspan="2" class="px-8 py-12 text-center">
-                                            <i class="fas fa-search text-slate-100 text-3xl mb-2 block"></i>
-                                            <p class="text-slate-300 font-black uppercase text-[10px] tracking-widest italic">Sin registros de prospección</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
+
+                        <div class="form-group mb-6">
+                            <label class="label-style">Estado / Región *</label>
+                            <select v-model="form.plantel.estado_id" class="form-input font-bold" required :disabled="loading">
+                                <option value="">Seleccionar Estado...</option>
+                                <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
+                            </select>
                         </div>
-                            
-                        <!-- APARTADO B: PROMOCIÓN -->
-                        <div class="info-card bg2 !p-0 overflow-hidden border border-red-100 shadow-premium bg-white">
-                            <div class="p-6 bg-red-900 text-white flex justify-between items-center">
-                                <div class="flex items-center gap-3">
-                                    <i class="fas fa-box-open text-red-300"></i>
-                                    <h3 class="text-[11px] font-black uppercase tracking-widest">Muestras Entregadas</h3>
-                                </div>
-                                <span class="text-[10px] font-black text-red-200 uppercase tracking-widest">{{ materialesEntregados.length }} Entrega(s)</span>
+
+                        <div class="form-group mb-6">
+                            <label class="label-style">Dirección Completa *</label>
+                            <textarea v-model="form.plantel.direccion" class="form-input font-medium" rows="2" placeholder="Calle, número, colonia, CP..." required minlength="10" :disabled="loading"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="form-group">
+                                <label class="label-style">Celular / Teléfono *</label>
+                                <input v-model="form.plantel.telefono" type="tel" class="form-input font-bold" required minlength="10" :disabled="loading">
                             </div>
-                            <div class="table-responsive table-shadow-lg border border-red-100 rounded-2xl overflow-hidden bg-white">
-                            <table class="w-full border-collapse">
-                                <thead class="bg-red-900">
-                                    <tr>
-                                        <th class="table-header-enterprise text-white/70 text-left">Muestra Física</th>
-                                        <th class="table-header-enterprise text-white/70 text-center">Cantidad</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-red-50">
-                                    <tr v-for="(libro, idx) in materialesEntregados" :key="idx" class="hover:bg-red-50/30 transition-colors">
-                                        <td class="table-cell">
-                                            <div class="text-xs font-black text-black uppercase leading-tight">
-                                                {{ libro.titulo }}
-                                                <span v-if="libro.edicion" class="text-[9px] text-red-500 ml-1">ED. {{ libro.edicion }}</span>
-                                            </div>
-                                        </td>
-                                        <td class="table-cell text-center">
-                                            <span class="text-xl font-black text-red-700 tracking-tighter">
-                                                {{ libro.cantidad || '1' }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="!materialesEntregados.length">
-                                        <td colspan="2" class="px-8 py-12 text-center">
-                                            <i class="fas fa-box-open text-red-50 text-3xl mb-2 block"></i>
-                                            <p class="text-red-200 font-black uppercase text-[10px] tracking-widest italic">Sin entrega de muestras físicas</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        </div>
-                    </div>
-                </div>
-                <br>
-
-                
-                <!-- OBSERVACIONES FINALES (Apertura) -->
-                <div v-if="visita.comentarios" class="info-card border-none bg-amber-50 p-10 rounded-[3rem] border border-amber-200 shadow-sm mt-8">
-                    <h3 class="text-[11px] font-black text-black uppercase mb-4 tracking-[0.3em] flex items-center gap-2">
-                        <i class="fas fa-comment-dots text-red-700"></i> Notas de la Apertura de Prospecto
-                    </h3>
-                    <p class="text-base text-slate-700 italic leading-relaxed whitespace-pre-wrap font-medium">"{{ visita.comentarios }}"</p>
-                </div>
-                    <br>
-
-                <!-- 5. HISTORIAL CRONOLÓGICO DESPLEGABLE (Visitas Subsecuentes) -->
-                <div class="info-card space-y-6 mt-16">
-                    <div class="flex items-center gap-3 px-2">
-                        <div class="w-2 h-8 bg-red-700 rounded-full"></div>
-                        <h2 class="text-2xl font-black text-black uppercase tracking-tight">Historial de Visitas Subsecuentes</h2>
-                    </div>
-
-                    <div v-if="loadingHistory" class="py-10 text-center animate-pulse">
-                        <i class="fas fa-spinner fa-spin text-red-600 text-3xl"></i>
-                        <p class="text-[10px] font-black text-slate-400 uppercase mt-4">Sincronizando cadena de seguimiento...</p>
-                    </div>
-
-                    <div v-else-if="historial.length" class="space-y-4">
-                        <div v-for="(h, index) in historial" :key="h.id" class="border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
-                            <!-- Header de la tarjeta -->
-                            <div @click="toggleExpand(h.id)" 
-                                class="p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 cursor-pointer hover:bg-slate-50 transition-colors">
-                                
-                                <div class="flex items-center gap-6 w-full md:w-auto">
-                                    <div class="bg-red-700 w-16 h-16 text-white rounded-3xl flex flex-col items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
-                                        <span class="text-[10px] font-black uppercase opacity-60 leading-none mb-1">{{ getMonthShort(h.fecha) }}</span>
-                                        <span class="text-2xl font-black leading-none">{{ getDay(h.fecha) }}</span>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-2 mb-1">
-                                        </div>
-                                        <h4 class="text-xl font-black text-black uppercase tracking-tight truncate max-w-[200px] md:max-w-none">
-                                            {{ formatDate(h.fecha) }}
-                                        </h4>
-                                        <p class="text-[11px] font-bold text-red-600 mt-0.5 uppercase tracking-tighter italic">
-                                            Atendido por: {{ h.persona_entrevistada }}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-5 w-full md:w-auto justify-between md:justify-end">
-                                    <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
-                                        {{ h.resultado_visita }}
-                                    </span>
-                                    <div class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:text-red-600 transition-colors">
-                                        <i class="fas fa-chevron-down transition-transform duration-500" 
-                                           :class="{'rotate-180 text-red-600': expandedId === h.id}"></i>
-                                    </div>
-                                </div>
-
-                                <button 
-                                    class="absolute btn-primary-action top-4 right-4 text-[10px] font-black uppercase text-red-700 hover:underline px-3">
-                                    <i class="fas fa-edit mr-1"></i> Ver más </button>
+                            <div class="form-group">
+                                <label class="label-style">Correo Electrónico *</label>
+                                <input v-model="form.plantel.email" type="email" class="form-input font-bold" required :disabled="loading">
                             </div>
+                        </div>
 
-                            <!-- Contenido Desplegable (Expediente) -->
-                            <div v-if="expandedId === h.id" class="p-8 md:p-12 bg-slate-50/40 border-t border-slate-100 animate-fade-in">
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                                    <!-- Información Sesión -->
-                                    <div class="space-y-8">
-                                        <div>
-                                            <h5 class="text-black font-black uppercase text-[11px] tracking-widest mb-4 flex items-center gap-2">
-                                                <i class="fas fa-id-badge text-red-700"></i> Resumen de la Entrevista
-                                            </h5>
-                                            <div class="bg-white p-6 rounded-3xl border border-slate-100 space-y-4 shadow-sm">
-                                                <div class="grid grid-cols-2 gap-6">
-                                                    <div>
-                                                        <label class="label-large">Persona Cargo</label>
-                                                        <p class="value-text">{{ h.persona_entrevistada }}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label class="label-large">Puesto Oficial</label>
-                                                        <p class="value-text">{{ h.cargo }}</p>
-                                                    </div>
-                                                </div>
-                                                <div v-if="h.proxima_visita_estimada" class="pt-3 border-t border-slate-50">
-                                                    <label class="label-large">Acuerdo de Cita</label>
-                                                    <p class="text-xs font-black text-black uppercase">
-                                                        <i class="far fa-calendar-alt mr-1.5 text-red-600"></i>
-                                                        {{ formatDate(h.proxima_visita_estimada) }} — <span class="text-red-700 italic">{{ h.proxima_accion }}</span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
+                        <div class="form-group mt-6">
+                            <label class="label-style">Nombre del Director / Coordinador *</label>
+                            <input v-model="form.plantel.director" type="text" class="form-input font-bold" required minlength="3" :disabled="loading">
+                        </div>
 
-                                        <div>
-                                            <h5 class="text-black font-black uppercase text-[11px] tracking-widest mb-4 flex items-center gap-2">
-                                                <i class="fas fa-comment-dots text-red-700"></i> Observaciones del Registro
-                                            </h5>
-                                            <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner">
-                                                "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
-                                            </div>
-                                        </div>
+                        <!-- Historial de Visitas lateral -->
+                        <div v-if="selectedCliente" class="mt-8 pt-8 border-t border-slate-100">
+                            <div class="section-title !mb-4 !text-black">
+                                <i class="fas fa-history text-slate-800"></i> Historial Reciente
+                            </div>
+                            <div v-if="loadingHistory" class="text-center py-6"><i class="fas fa-circle-notch fa-spin text-red-600"></i></div>
+                            <div v-else class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scroll">
+                                <div v-for="h in historialVisitas" :key="h.id" class="p-4 bg-slate-50 border-l-4 rounded-xl shadow-sm border-slate-200" :class="getOutcomeBorder(h.resultado_visita)">
+                                    <div class="flex justify-between mb-2">
+                                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ formatDateShort(h.fecha) }}</span>
+                                        <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !text-[7px]">{{ h.resultado_visita }}</span>
                                     </div>
-
-                                    <!-- Materiales Desplegables -->
-                                    <div class="space-y-8">
-                                    <h5 class="text-black font-black uppercase text-[11px] tracking-[0.2em] mb-4 flex items-center gap-2">
-                                        <i class="fas fa-book-open text-red-700"></i> Materiales y Muestras Involucradas
-                                    </h5>
+                                    <p class="text-[11px] text-slate-600 italic mb-2">"{{ h.comentarios || 'Sin observaciones.' }}"</p>
                                     
-                                    <div class="grid grid-cols-1 gap-6">
-                                        <div class="table-responsive table-shadow-lg border rounded-2xl overflow-hidden bg-white">
-                                            <table class="w-full border-collapse">
-                                                <thead class="bg-slate-800">
-                                                    <tr>
-                                                        <th class="px-5 py-3 text-left text-[9px] font-black text-slate-300 uppercase tracking-widest">Material de Interés</th>
-                                                        <th class="px-5 py-3 text-right text-[9px] font-black text-slate-300 uppercase tracking-widest">Formato</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="divide-y divide-slate-50">
-                                                    <tr v-for="(item, i) in parseMateriales(h.libros_interes).interes" :key="i" class="hover:bg-slate-50/50 transition-colors">
-                                                        <td class="px-5 py-4 text-[11px] font-black text-black uppercase leading-tight">
-                                                            {{ item.titulo }}
-                                                        </td>
-                                                        <td class="px-5 py-4 text-right">
-                                                            <span class="text-[9px] text-red-600 font-black uppercase bg-red-50 border border-red-100 px-3 py-1 rounded-lg tracking-tighter">
-                                                                {{ item.tipo || 'Físico' }}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr v-if="!parseMateriales(h.libros_interes).interes.length">
-                                                        <td colspan="2" class="px-5 py-10 text-center text-[10px] text-slate-300 font-black uppercase tracking-widest italic">Sin intereses registrados</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        <div class="table-responsive table-shadow-lg border border-red-100 rounded-2xl overflow-hidden bg-white">
-                                            <table class="w-full border-collapse">
-                                                <thead class="bg-red-900">
-                                                    <tr>
-                                                        <th class="px-5 py-3 text-left text-[9px] font-black text-red-200 uppercase tracking-widest">Muestra Entregada</th>
-                                                        <th class="px-5 py-3 text-right text-[9px] font-black text-red-200 uppercase tracking-widest">Cantidad</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="divide-y divide-red-50">
-                                                    <tr v-for="(item, i) in parseMateriales(h.libros_interes).entregado" :key="i" class="hover:bg-red-50/30 transition-colors">
-                                                        <td class="px-5 py-4 text-[11px] font-black text-black uppercase leading-tight">
-                                                            {{ item.titulo }}
-                                                        </td>
-                                                        <td class="px-5 py-4 text-right">
-                                                            <span class="text-[12px] text-red-700 font-black tracking-tighter">
-                                                                {{ item.cantidad }} 
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                    <tr v-if="!parseMateriales(h.libros_interes).entregado.length">
-                                                        <td colspan="2" class="px-5 py-10 text-center text-[10px] text-red-200 font-black uppercase tracking-widest italic">No se entregaron muestras físicas</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                    <!-- Desglose de materiales en historial -->
+                                    <div v-if="h.libros_interes" class="pt-2 border-t border-slate-100 mt-1">
+                                        <div v-if="parseMateriales(h.libros_interes).interes?.length" class="mb-1">
+                                            <p class="text-[8px] font-black text-red-600 uppercase">Interés:</p>
+                                            <ul class="list-none">
+                                                <li v-for="(lib, lidx) in parseMateriales(h.libros_interes).interes" :key="lidx" class="text-[9px] text-slate-500 truncate">
+                                                    • {{ lib.titulo }}
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
-                                </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div v-else class="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 opacity-60">
-                        <i class="fas fa-history text-4xl text-slate-200 mb-4 block"></i>
-                        <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">Aún no se han registrado seguimientos posteriores.</p>
+                    <!-- BLOQUE 2: DETALLES DE LA NUEVA VISITA -->
+                    <div class="space-y-8">
+                        <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <div class="section-title text-black">
+                                <i class="fas fa-calendar-plus text-slate-800"></i> 2. Detalles de la Interacción
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div class="form-group">
+                                    <label class="label-style">Fecha de la Visita *</label>
+                                    <input v-model="form.visita.fecha" type="date" class="form-input font-bold" required :disabled="loading">
+                                </div>
+                                <div class="form-group">
+                                    <label class="label-style">Persona Entrevistada *</label>
+                                    <input v-model="form.visita.persona_entrevistada" type="text" class="form-input font-bold" placeholder="¿Quién atendió?" required minlength="3" :disabled="loading">
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-6">
+                                <label class="label-style">Cargo / Puesto de la Persona *</label>
+                                <select v-model="form.visita.cargo" class="form-input font-bold" required :disabled="loading">
+                                    <option value="Director/Coordinador">Director/Coordinador</option>
+                                    <option value="Subdirector">Subdirector</option>
+                                    <option value="Jefe de Departamento">Jefe de Departamento</option>
+                                    <option value="Profesor">Profesor</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <div v-if="form.visita.cargo === 'Otro'" class="form-group mb-6 animate-fade-in">
+                                <label class="label-style">Especifique el Cargo *</label>
+                                <input v-model="form.visita.cargo_especifico" type="text" class="form-input font-bold border-red-100" placeholder="Escriba el puesto real..." required :disabled="loading">
+                            </div>
+                        </div>
+
+                        <!-- APARTADO A: LIBROS DE INTERÉS -->
+                        <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
+                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i> Apartado A: Libros de Interés (Venta)</label>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                    <div class="form-group">
+                                        <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Filtrar por Serie</label>
+                                        <select v-model="selectedSerieIdA" class="form-input font-bold text-xs" @change="handleSerieChange('interest')">
+                                            <option value="">Cualquier serie...</option>
+                                            <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
+                                            <option value="otro">VER TODAS</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group relative">
+                                        <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Buscar y Añadir Libro</label>
+                                        <div class="relative">
+                                            <input v-model="interestInput.titulo" type="text" class="form-input pr-10 font-bold" placeholder="Título o ISBN..." @input="searchBooks($event, 'interest')" autocomplete="off">
+                                            <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                        </div>
+                                        <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
+                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors flex flex-col">
+                                                <div class="flex justify-between items-center w-full">
+                                                    <span>{{ b.titulo }}</span>
+                                                    <span class="text-[7px] bg-slate-100 px-1.5 rounded">{{ b.type }}</span>
+                                                </div>
+                                                <span class="text-[8px] text-slate-400 italic">Serie: {{ getSerieNameById(b.serie_id) }}</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div v-if="selectedInterestBooks.length" class="table-container mt-6">
+                                   <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm">
+                                <table class="min-width-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="table-header">Material / Serie</th>
+                                            <th class="table-header text-center w-36">Formato</th>
+                                            <th class="px-6 py-3 w-12"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-100">
+                                        <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-gray-50 transition-colors">
+                                            <td class="table-cell">
+                                                <div class="text-xs font-black text-slate-800 uppercase leading-tight">
+                                                    {{ item.titulo }}
+                                                </div>
+                                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">
+                                                    Serie: {{ item.serie_nombre }}
+                                                </div>
+                                            </td>
+                                            <td class="table-cell text-center">
+                                                <select v-model="item.tipo" class="select-table">
+                                                    <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
+                                                    <template v-else>
+                                                        <option value="fisico">FÍSICO</option>
+                                                        <option value="paquete">PAQUETE</option>
+                                                        <option value="por_revisar">POR REVISAR</option>
+                                                    </template>
+                                                </select>
+                                            </td>
+                                            <td class="table-cell text-center">
+                                                <button type="button" @click="selectedInterestBooks.splice(idx, 1)" 
+                                                        class="btn-icon-delete-simple">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                                </div>
+                                <div v-else class="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50">
+                                    <p class="text-[10px] font-bold text-slate-300 uppercase italic">Sin libros añadidos</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- APARTADO B: PROMOCIÓN -->
+                        <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 mb-8 relative" style="overflow: visible !important;">
+                                <label class="label-mini mb-4 text-red-800 font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> Apartado B: Muestras de Promoción Entregadas</label>
+                                
+                                <div class="form-group relative mb-4">
+                                    <label class="label-mini">Buscar Libro de Promoción (Solo Material Físico)</label>
+                                    <div class="relative">
+                                        <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100 shadow-sm" placeholder="Escribe título o ISBN..." @input="searchBooks($event, 'delivered')" autocomplete="off">
+                                        <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
+                                    </div>
+                                    <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
+                                        <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors flex flex-col">
+                                            <span>{{ b.titulo }}</span>
+                                            <span class="text-[8px] text-slate-400 italic">Serie: {{ getSerieNameById(b.serie_id) }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <div v-if="selectedDeliveredBooks.length" class="table-container mt-6">
+                                    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm">
+                                    <table class="min-width-full divide-y divide-gray-200">
+                                        <thead class="bg-red-50">
+                                            <tr>
+                                                <th class="table-header text-red-900/60">Muestra Física</th>
+                                                <th class="table-header text-center w-32">Cantidad</th>
+                                                <th class="px-6 py-3 w-16"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-red-50">
+                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors">
+                                                <td class="table-cell">
+                                                    <div class="text-xs font-black text-slate-800 uppercase leading-tight">
+                                                        {{ item.titulo }}
+                                                    </div>
+                                                    <div class="text-[8px] font-black text-red-400 uppercase tracking-widest mt-1">
+                                                        Serie: {{ item.serie_nombre }}
+                                                    </div>
+                                                </td>
+                                                <td class="table-cell text-center">
+                                                    <div class="flex justify-center">
+                                                        <div class="quantity-control-wrapper">
+                                                            <input v-model.number="item.cantidad" 
+                                                                type="number" 
+                                                                min="1" 
+                                                                class="input-table text-center" />
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="table-cell text-right">
+                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" 
+                                                            class="btn-icon-delete">
+                                                        <i class="fas fa-trash-alt"></i> Quitar
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                </div>
+                                <div v-else class="text-center py-8 border-2 border-dashed border-red-100 rounded-3xl bg-white/50">
+                                    <p class="text-[10px] font-black text-red-300 uppercase tracking-widest">No se dejaron muestras hoy</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RESULTADO Y COMENTARIOS -->
+                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <div class="form-group mb-6">
+                                <label class="label-style">Resolución / Resultado Actual</label>
+                                <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required :disabled="loading">
+                                    <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
+                                    <option value="compra">DECISIÓN DE COMPRA</option>
+                                    <option value="rechazo">NO INTERESADO</option>
+                                </select>
+                            </div>
+
+                            <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
+                                <label class="text-orange-800 font-black uppercase text-[9px] mb-3 block tracking-widest">Próxima Acción Agendada *</label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold" required :disabled="loading">
+                                    <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold" :disabled="loading">
+                                        <option value="visita">Visita de Seguimiento</option>
+                                        <option value="presentacion">Presentación Académica</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-style">Comentarios y Acuerdos de la Sesión</label>
+                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de los puntos tratados (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-
-            </div>
+                <!-- BOTONES DE ACCIÓN -->
+                <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8 pb-20">
+                    <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest bg-white border-2 border-slate-200 text-black" :disabled="loading">Cancelar</button>
+                    <button type="submit" class="btn-primary-black px-20 py-4 shadow-xl shadow-red-900/10 transition-all active:scale-95" :disabled="loading || !selectedCliente || gettingLocation">
+                        <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
+                        {{ loading ? 'Sincronizando...' : 'Postear Seguimiento' }}
+                    </button>
+                </div>
+            </form>
         </div>
+
+        <!-- MODAL DE ÉXITO DINÁMICO -->
+        <Teleport to="body">
+            <Transition name="modal-fade">
+                <div v-if="showSuccessModal" class="modal-overlay-custom">
+                    <div class="modal-content-success animate-scale-in">
+                        <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
+                        <h2 class="modal-title-success">¡Seguimiento Exitoso!</h2>
+                        <p class="modal-text-success">La bitácora se guardó. El plantel ahora figura como <strong>{{ savedClientType }}</strong> activo.</p>
+                        <button @click="goToHistory" class="btn-primary-black w-full mt-8 bg-slate-900 border-none text-white uppercase font-black tracking-widest py-4">Regresar al Listado</button>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, reactive, onMounted, computed, nextTick } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import axios from '../axios';
 
-const route = useRoute();
 const router = useRouter();
-const visita = ref(null);
-const historial = ref([]);
-const loading = ref(true);
-const loadingHistory = ref(true);
-const error = ref(null);
+const route = useRoute();
 
-// Control Acordeón Historial
-const expandedId = ref(null);
+const loading = ref(false);
+const loadingPrecarga = ref(false);
+const loadingInitial = ref(true);
+const loadingHistory = ref(false);
+const gettingLocation = ref(false);
+const showSuccessModal = ref(false);
+const errorMessage = ref(null);
 
-const fetchVisitaDetail = async () => {
-    loading.value = true;
-    error.value = null;
-    try {
-        const response = await axios.get(`/visitas/${route.params.id}`);
-        visita.value = response.data;
-        
-        // Carga historial completo al tener datos del plantel
-        if (visita.value.cliente_id || visita.value.nombre_plantel) {
-            fetchFullHistory();
-        }
-    } catch (err) {
-        error.value = err.response?.data?.message || "No se pudo recuperar la información de la bitácora.";
-    } finally {
-        loading.value = false;
-    }
+const searchingInterest = ref(false);
+const searchingDelivered = ref(false);
+
+const estados = ref([]);
+const nivelesCatalog = ref([]); 
+const allSeries = ref([]); 
+const historialVisitas = ref([]);
+
+const searchQuery = ref('');
+const clientesSuggestions = ref([]);
+const selectedCliente = ref(null);
+
+const selectedSerieIdA = ref(''); 
+const interestSuggestions = ref([]);
+const deliveredSuggestions = ref([]);
+const selectedInterestBooks = ref([]);
+const selectedDeliveredBooks = ref([]);
+
+const interestInput = reactive({ titulo: '' });
+const deliveredInput = reactive({ titulo: '' });
+
+let bookTimer = null;
+let clientTimer = null;
+
+const form = reactive({
+    plantel: { name: '', rfc: '', niveles: [], direccion: '', estado_id: '', telefono: '', email: '', director: '', latitud: null, longitud: null },
+    visita: { fecha: new Date().toISOString().split('T')[0], persona_entrevistada: '', cargo: 'Director/Coordinador', cargo_especifico: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '', proxima_accion: 'visita' }
+});
+
+const seriesFiltradas = computed(() => {
+    if (form.plantel.niveles.length === 0) return [];
+    return allSeries.value.filter(serie => form.plantel.niveles.includes(serie.nivel_educativo_id));
+});
+
+const savedClientType = computed(() => form.visita.resultado_visita === 'compra' ? 'Cliente' : 'Prospecto');
+
+const getLocation = () => {
+    if (!navigator.geolocation) return alert("Navegador no soporta GPS.");
+    gettingLocation.value = true;
+    navigator.geolocation.getCurrentPosition(
+        (p) => { 
+            form.plantel.latitud = p.coords.latitude; 
+            form.plantel.longitud = p.coords.longitude; 
+            gettingLocation.value = false; 
+        },
+        () => { gettingLocation.value = false; alert("Permiso de GPS denegado."); },
+        { enableHighAccuracy: true }
+    );
 };
 
-const fetchFullHistory = async () => {
+const searchProspectos = () => {
+    if (searchQuery.value.length < 3) { clientesSuggestions.value = []; return; }
+    if (clientTimer) clearTimeout(clientTimer);
+    clientTimer = setTimeout(async () => {
+        try {
+            const res = await axios.get('/search/clientes', { params: { query: searchQuery.value, include_prospectos: true } });
+            clientesSuggestions.value = res.data;
+        } catch (e) { console.error(e); }
+    }, 400);
+};
+
+const selectProspecto = (c) => {
+    selectedCliente.value = c;
+    searchQuery.value = c.name;
+    clientesSuggestions.value = [];
+    
+    form.plantel.name = c.name;
+    form.plantel.rfc = c.rfc || '';
+    form.plantel.direccion = c.direccion || '';
+    form.plantel.estado_id = c.estado_id || '';
+    form.plantel.telefono = c.telefono || '';
+    form.plantel.email = c.email || '';
+    form.plantel.director = c.contacto || '';
+    
+    if (c.nivel_educativo) {
+        const nombres = c.nivel_educativo.split(',').map(n => n.trim());
+        form.plantel.niveles = nivelesCatalog.value
+            .filter(niv => nombres.includes(niv.nombre))
+            .map(niv => niv.id);
+    } else {
+        form.plantel.niveles = [];
+    }
+    
+    form.plantel.latitud = c.latitud || null;
+    form.plantel.longitud = c.longitud || null;
+
+    fetchHistorial(c.id);
+};
+
+const fetchHistorial = async (id) => {
     loadingHistory.value = true;
     try {
-        const term = visita.value.nombre_plantel || visita.value.cliente?.name;
-        
-        // Enviamos full_history=1 para que el controlador ignore el filtro de es_primera_visita=1
-        const response = await axios.get('/visitas', { 
-            params: { 
-                search: term,
-                full_history: 1 
-            } 
-        });
-        
-        const dataReceived = response.data.data || response.data;
-        
-        /**
-         * FILTRADO Y ORDENACIÓN:
-         * 1. Solo visitas subsecuentes: Number(h.es_primera_visita) === 0 (o false)
-         * 2. Ordenadas por ID de forma ascendente (a.id - b.id) para ver la secuencia histórica.
-         */
-        historial.value = Array.isArray(dataReceived) 
-            ? dataReceived
-                .filter(h => Number(h.es_primera_visita) === 0)
-                .sort((a,b) => a.id - b.id)
-            : [];
-            
-    } catch (e) {
-        console.error("Error cargando historial:", e);
-    } finally {
-        loadingHistory.value = false;
+        const res = await axios.get(`/visitas`, { params: { search: searchQuery.value } });
+        const dataReceived = res.data.data || res.data;
+        historialVisitas.value = Array.isArray(dataReceived) ? dataReceived.filter(v => v.cliente_id === id) : [];
+    } catch (e) { console.error(e); } finally { loadingHistory.value = false; }
+};
+
+const handleSerieChange = (type) => {
+    if (type === 'interest') { interestInput.titulo = ''; interestSuggestions.value = []; }
+};
+
+const searchBooks = (event, type) => {
+    const val = event.target.value;
+    if (val.length < 3) { type === 'interest' ? interestSuggestions.value = [] : deliveredSuggestions.value = []; return; }
+    
+    type === 'interest' ? searchingInterest.value = true : searchingDelivered.value = true;
+    if (bookTimer) clearTimeout(bookTimer);
+    
+    const serieId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? null : selectedSerieIdA.value) : null; 
+
+    bookTimer = setTimeout(async () => {
+        try {
+            const res = await axios.get('search/libros', { params: { query: val, serie_id: serieId } });
+            if (type === 'interest') {
+                interestSuggestions.value = res.data.filter(b => b.type !== 'promocion');
+            } else {
+                deliveredSuggestions.value = res.data.filter(b => b.type === 'promocion' && b.type !== 'digital');
+            }
+        } catch (e) { console.error(e); } 
+        finally { searchingInterest.value = false; searchingDelivered.value = false; }
+    }, 400);
+};
+
+/**
+ * REGLA ACTUALIZADA: Obtener nombre de serie del catálogo y asignar al objeto local
+ */
+const addMaterial = (book, type) => {
+    const serie = allSeries.value.find(s => s.id == book.serie_id);
+    const serieNombre = serie ? (serie.nombre || serie.serie) : 'Sin Serie';
+
+    if (type === 'interest') {
+        if (!selectedInterestBooks.value.find(b => b.id === book.id)) {
+            selectedInterestBooks.value.push({ 
+                id: book.id, titulo: book.titulo, serie_nombre: serieNombre, 
+                original_type: book.type, tipo: book.type === 'digital' ? 'digital' : 'fisico' 
+            });
+        }
+        interestInput.titulo = ''; interestSuggestions.value = [];
+    } else {
+        if (!selectedDeliveredBooks.value.find(b => b.id === book.id)) {
+            selectedDeliveredBooks.value.push({ 
+                id: book.id, titulo: book.titulo, serie_nombre: serieNombre, cantidad: 1 
+            });
+        }
+        deliveredInput.titulo = ''; deliveredSuggestions.value = [];
     }
 };
 
-const toggleExpand = (id) => {
-    expandedId.value = expandedId.value === id ? null : id;
+const getSerieNameById = (id) => {
+    const s = allSeries.value.find(x => x.id == id);
+    return s ? (s.nombre || s.serie) : 'Sin Serie';
 };
 
 const parseMateriales = (raw) => {
@@ -528,142 +564,180 @@ const parseMateriales = (raw) => {
     try { return JSON.parse(raw); } catch (e) { return { interes: [], entregado: [] }; }
 };
 
-const librosRaw = computed(() => {
-    if (!visita.value || !visita.value.libros_interes) return null;
-    if (typeof visita.value.libros_interes === 'object' && !Array.isArray(visita.value.libros_interes)) return visita.value.libros_interes;
-    try { return JSON.parse(visita.value.libros_interes); } catch (e) { return null; }
-});
+const handleSubmit = async () => {
+    if (!selectedCliente.value) return;
+    if (form.plantel.niveles.length === 0) {
+        errorMessage.value = "Selecciona niveles educativos para completar el expediente del plantel.";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
 
-const materialesInteres = computed(() => librosRaw.value?.interes || []);
-const materialesEntregados = computed(() => librosRaw.value?.entregado || []);
+    errorMessage.value = null;
+    loading.value = true;
 
-const formatLevels = (levels) => {
-    if (!levels) return ['General'];
-    if (Array.isArray(levels)) return levels;
-    return levels.split(',').map(l => l.trim()).filter(l => l.length > 0);
+    try {
+        const nivelNombres = nivelesCatalog.value.filter(n => form.plantel.niveles.includes(n.id)).map(n => n.nombre);
+        const materiales = {
+            interes: selectedInterestBooks.value.map(b => ({ titulo: b.titulo, tipo: b.tipo, serie_nombre: b.serie_nombre })),
+            entregado: selectedDeliveredBooks.value.map(b => ({ titulo: b.titulo, cantidad: b.cantidad, serie_nombre: b.serie_nombre }))
+        };
+
+        const finalCargo = form.visita.cargo === 'Otro' ? form.visita.cargo_especifico : form.visita.cargo;
+
+        const payload = { 
+            cliente_id: selectedCliente.value.id,
+            plantel: { ...form.plantel, niveles: nivelNombres }, 
+            visita: { ...form.visita, cargo: finalCargo, libros_interes: materiales },
+            fecha: form.visita.fecha,
+            persona_entrevistada: form.visita.persona_entrevistada,
+            cargo: finalCargo,
+            libros_interes: materiales,
+            comentarios: form.visita.comentarios,
+            resultado_visita: form.visita.resultado_visita,
+            proxima_visita: form.visita.proxima_visita,
+            proxima_accion: form.visita.proxima_accion
+        };
+        
+        await axios.post('visitas/seguimiento', payload);
+        showSuccessModal.value = true;
+    } catch (err) {
+        errorMessage.value = err.response?.data?.message || "Error al guardar el seguimiento.";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally { loading.value = false; }
 };
 
-/**
- * SOLUCIÓN AL BUG DE FECHA (Desfase de zona horaria):
- * Separamos la cadena por '-' y construimos el objeto Date LOCAL.
- */
-const formatDate = (dateString) => {
+const goToHistory = () => { showSuccessModal.value = false; router.push('/visitas'); };
+
+const verificarPrecarga = async () => {
+    const idParam = route.params.id;
+    if (!idParam) return;
+    loadingPrecarga.value = true;
+    try {
+        const res = await axios.get(`/visitas/${idParam}`);
+        const v = res.data;
+        if (v.cliente) selectProspecto(v.cliente);
+        else {
+            selectedCliente.value = { id: v.cliente_id, name: v.nombre_plantel };
+            searchQuery.value = v.nombre_plantel;
+            form.plantel.name = v.nombre_plantel;
+            form.plantel.rfc = v.rfc_plantel || '';
+            form.plantel.direccion = v.direccion_plantel || '';
+            form.plantel.estado_id = v.estado_id || '';
+            form.plantel.telefono = v.telefono_plantel || '';
+            form.plantel.email = v.email_plantel || '';
+            form.plantel.director = v.director_plantel || '';
+            form.plantel.latitud = v.latitud || null;
+            form.plantel.longitud = v.longitud || null;
+
+            if (v.nivel_educativo_plantel) {
+                const nombres = v.nivel_educativo_plantel.split(',').map(n => n.trim());
+                form.plantel.niveles = nivelesCatalog.value
+                    .filter(niv => nombres.includes(niv.nombre))
+                    .map(niv => niv.id);
+            }
+
+            fetchHistorial(v.cliente_id);
+        }
+    } catch (e) { console.error(e); } finally { loadingPrecarga.value = false; }
+};
+
+const formatDateShort = (dateString) => {
     if (!dateString) return '---';
     const cleanDate = dateString.split('T')[0];
     const [year, month, day] = cleanDate.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-};
-
-const getMonthShort = (dateString) => {
-    if (!dateString) return '---';
-    const cleanDate = dateString.split('T')[0];
-    const [year, month, day] = cleanDate.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase();
-};
-
-const getDay = (dateString) => {
-    if (!dateString) return '--';
-    const cleanDate = dateString.split('T')[0];
-    const [year, month, day] = cleanDate.split('-');
-    return day;
+    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }).toUpperCase();
 };
 
 const getOutcomeClass = (outcome) => {
-    const base = 'status-badge uppercase font-black tracking-widest ';
-    if (outcome === 'compra') return base + 'bg-green-100 text-green-700 border-green-200';
-    if (outcome === 'rechazo') return base + 'bg-red-100 text-red-700 border-red-200';
-    return base + 'bg-orange-100 text-orange-700 border-orange-200';
+    const base = 'status-badge ';
+    if (outcome === 'compra') return base + 'bg-green-100 text-green-700 border border-green-200';
+    if (outcome === 'rechazo') return base + 'bg-red-100 text-red-700 border border-red-200';
+    return base + 'bg-orange-100 text-orange-700 border border-orange-200';
 };
 
-onMounted(fetchVisitaDetail);
+const getOutcomeBorder = (outcome) => {
+    if (outcome === 'compra') return 'border-l-green-500';
+    if (outcome === 'rechazo') return 'border-l-red-500';
+    return 'border-l-orange-500';
+};
+
+onMounted(async () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    
+    await nextTick();
+    window.scrollTo(0, 0);
+
+    loadingInitial.value = true;
+    try {
+        const [resEst, resNiv, resSer] = await Promise.all([
+            axios.get('estados'), axios.get('search/niveles'), axios.get('search/series')
+        ]);
+        estados.value = resEst.data;
+        nivelesCatalog.value = resNiv.data;
+        allSeries.value = resSer.data;
+        
+        await verificarPrecarga();
+
+        await nextTick();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (e) { 
+        console.error(e); 
+    } finally { 
+        loadingInitial.value = false; 
+    }
+});
 </script>
 
 <style scoped>
-.info-card { background: white; padding: 40px; border-radius: 40px; border: 1px solid #f1f5f9; }
-.section-title { font-weight: 900; color: #000000; margin-bottom: 30px; border-bottom: 2px solid #f8fafc; padding-bottom: 15px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; }
+.form-section { background: #fff; padding: 30px; border-radius: 32px; border: 1px solid #f1f5f9; }
+.section-title { font-weight: 900; font-size: 1.1rem; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 1px; }
 
-.label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
-.value-text { font-weight: 800; color: #be5e5e; line-height: 1.4; }
+.label-style { @apply text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block; }
+.label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-widest; }
 
-.status-badge { padding: 6px 16px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; }
-.shadow-premium { box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.08); }
+.form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #000000; background: #fafbfc; transition: all 0.2s; font-size: 0.9rem; }
+.form-input:focus { border-color: #000000; background: white; outline: none; box-shadow: 0 0 0 4px rgba(0,0,0,0.02); }
+
+.btn-primary-black { background: #000000; color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; }
+.btn-primary-black:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+
+.btn-primary-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2); }
+
+.autocomplete-list { position: absolute; z-index: 2000; width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.2); max-height: 250px; overflow-y: auto; list-style: none; padding: 10px; margin: 8px 0 0; }
+.autocomplete-list li { padding: 12px 16px; cursor: pointer; border-radius: 12px; border-bottom: 1px solid #f8fafc; transition: all 0.2s; }
+
+.modal-overlay-custom { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.modal-content-success { background: white; padding: 45px; border-radius: 40px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #f1f5f9; }
+.success-icon-wrapper { width: 80px; height: 80px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; border: 4px solid white; }
+.modal-title-success { font-size: 1.75rem; font-weight: 900; color: #000000; margin-bottom: 12px; }
+.modal-text-success { color: #64748b; font-size: 0.95rem; line-height: 1.6; font-weight: 500; }
+
+.table-responsive { width: 100%; overflow-x: auto; background: white; border-radius: 20px; }
+.table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
+.table-cell { padding: 12px 16px; vertical-align: middle; }
+
+.input-table, .select-table { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 10px; font-weight: 900; color: #1e293b; padding: 6px 8px; text-transform: uppercase; transition: all 0.2s; width: 100%; }
+.input-table:focus, .select-table:focus { outline: none; border-color: #f87171; background-color: #fff; box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.1); }
+
+.btn-icon-delete { background: none; border: none; color: #cbd5e1; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: color 0.2s; display: inline-flex; align-items: center; gap: 4px; }
+.btn-icon-delete:hover { color: #dc2626; }
+.btn-icon-delete-simple { background: none; border: none; color: #cbd5e1; font-size: 0.9rem; cursor: pointer; transition: color 0.2s; }
+.btn-icon-delete-simple:hover { color: #dc2626; }
+
+.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; text-transform: uppercase; }
+
+.custom-scroll::-webkit-scrollbar { width: 4px; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #f1f5f9; border-radius: 10px; }
+
+.shadow-premium { box-shadow: 0 15px 35px -10px rgba(0,0,0,0.05); }
+
+.animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.table-responsive {
-    width: 100%;
-    background: white;
-    transition: all 0.3s ease;
-}
-
-.table-shadow-lg {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-}
-
-/* Cabecera Enterprise (Negra/Gris) */
-.table-header-enterprise {
-    padding: 14px 20px;
-    font-size: 0.65rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: #94a3b8; /* Slate-400 para cabeceras dark */
-}
-
-/* Celdas de Datos */
-.table-cell {
-    padding: 16px 20px;
-    vertical-align: middle;
-}
-
-/* Tipografía: Títulos en Negro, Datos en Rojo */
-.text-black {
-    color: #000000;
-}
-
-.text-red-700 {
-    color: #b91c1c;
-}
-
-/* Ajustes de Grid para las versiones de 2 columnas */
-.grid {
-    display: grid;
-    gap: 1.5rem;
-}
-
-@media (min-width: 1024px) {
-    .lg\:grid-cols-2 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-/* Animación de filas */
-tr {
-    transition: background-color 0.2s ease;
-}
-
-/* Truncado para títulos largos */
-.text-truncate {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-
-
-.btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-3 px-8 rounded-2xl text-sm font-black transition-all hover:bg-slate-50 text-black; }
-
-.btn-primary-action { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; padding: 14px 45px; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px; }
-
-.badge-red-outline { @apply bg-red-50 text-red-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border border-red-100; }
-
-.badge-blue-outline { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; padding: 4px 10px; border-radius: 10px; }
-
-.text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.bg1{ background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
-.bg2{ background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
 </style>
