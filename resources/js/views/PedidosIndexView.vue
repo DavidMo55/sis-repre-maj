@@ -12,7 +12,7 @@
                 </router-link>
             </div>
 
-            <div class="filter-section form-section shadow-premium border border-slate-100 rounded-[2rem] bg-white p-6 mb-8 animate-fade-in">
+            <div class="filter-section bkk form-section shadow-premium border border-slate-100 rounded-[2rem] bg-white p-6 mb-8 animate-fade-in">
                 <div class="section-title mb-4 font-black text-slate-700 uppercase tracking-widest text-xs flex items-center gap-2">
                     <i class="fas fa-filter text-red-600"></i> Filtros y Búsqueda
                 </div>
@@ -63,7 +63,7 @@
                     </div>
                 </div>
             </div>
-
+            <br>
             <div v-if="loading" class="loading-state mt-8 text-center py-10">
                 <i class="fas fa-spinner fa-spin text-3xl mb-2 text-red-600"></i>
                 <p class="text-gray-500 font-medium">Consultando base de datos...</p>
@@ -76,7 +76,7 @@
             <div v-else-if="filteredPedidos.length === 0" class="cart-empty-message mt-8 text-center py-12 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
                 <i class="fas fa-info-circle mb-2 text-3xl text-slate-300"></i>
                 <p class="text-slate-500 font-medium">No se encontraron pedidos con los filtros aplicados.</p>
-                <button @click="resetFilters" class="text-red-600 font-bold hover:underline mt-2">Ver todos los pedidos</button>
+                <button @click="resetFilters" class="text-red-600 btn-secondary font-bold hover:underline mt-2">Ver todos los pedidos</button>
             </div>
 
             <div v-else class="table-container mt-8">
@@ -94,9 +94,9 @@
                                 <th class="px-6 py-3"></th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-100">
+                        <tbody class="bg-white bk divide-y divide-gray-100">
                             <tr v-for="pedido in filteredPedidos" :key="pedido.id" class="hover:bg-gray-50 transition-colors">
-                                <td class="table-cell font-bold text-red-800">
+                                <td class="table-cell font-bold bld text-red-800">
                                     {{ pedido.display_id || pedido.numero_referencia || ('PED-' + pedido.id) }}
                                 </td>
                                 <td class="table-cell">
@@ -113,18 +113,18 @@
                                     </span>
                                 </td>
                                 <td class="table-cell text-center">
-                                    <span class="priority-badge" :class="getPriorityBadgeClass(pedido.prioridad)">
+                                    <span class="priority-badge bld " :class="getPriorityBadgeClass(pedido.prioridad)">
                                         {{ (pedido.prioridad || 'media').toUpperCase() }}
                                     </span>
                                 </td>
                                 <td class="table-cell text-gray-500 text-xs italic">
                                     {{ formatDate(pedido.created_at) }}
                                 </td>
-                                <td class="table-cell text-center font-bold text-gray-700">
+                                <td class="table-cell text-center bld font-bold text-gray-700">
                                     {{ calculateTotalItems(pedido.detalles) }}
                                 </td>
                                 <td class="table-cell">
-                                    <span class="status-badge" :class="getStatusClass(pedido.status)">
+                                    <span class="status-badge " :class="getStatusClass(pedido.status)">
                                         <i class="fas fa-circle text-[6px] mr-2"></i>
                                         {{ pedido.status.toUpperCase() }}
                                     </span>
@@ -150,6 +150,7 @@
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 15px;
     align-items: flex-end;
+    
 }
 
 @media (min-width: 1024px) {
@@ -160,7 +161,12 @@
 .label-header { 
     @apply text-[10px] uppercase font-black text-slate-400 mb-1.5 block tracking-widest; 
 }
-
+.bk{
+    background-color: white;
+}
+.bkk{
+     background-color: #fdfdfd; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;
+}
 .form-input { 
     padding: 10px 14px; 
     border-radius: 12px; 
@@ -215,6 +221,21 @@
 .text-red-link { color: #b91c1c; font-weight: 800; font-size: 0.75rem; }
 .animate-fade-in { animation: fadeIn 0.3s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+.bld{
+    font-weight: bold;
+}
 </style>
 
 <script setup>

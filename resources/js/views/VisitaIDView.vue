@@ -70,7 +70,7 @@
                         <!-- APARTADO A: LIBROS DE INTERÉS -->
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i>  Libros de Interés (Venta)</label>
+                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i>  Libros de Interés del Plantel por Serie</label>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                                     <div class="form-group">
@@ -113,7 +113,7 @@
                                                     {{ item.titulo }}
                                                 </div>
                                                 <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">
-                                                    Serie: {{ item.serie_nombre }}
+                                                {{ item.serie_nombre }}
                                                 </div>
                                             </td>
                                             <td class="table-cell text-center">
@@ -138,7 +138,7 @@
                             </div>
                                 </div>
                                 <div v-else class="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50">
-                                    <p class="text-[10px] font-bold text-slate-300 uppercase italic">Sin libros añadidos</p>
+                                    <p class="text-[10px] font-bold text-slate-300 uppercase italic">Sin libros de interés agregados</p>
                                 </div>
                             </div>
                         </div>
@@ -149,7 +149,7 @@
                                 <label class="label-mini mb-4 text-red-800 font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i>  Muestras de Promoción Entregadas</label>
                                 
                                 <div class="form-group relative mb-4">
-                                    <label class="label-mini">Buscar Libro de Promoción (Solo Material Físico)</label>
+                                    <label class="label-mini">Buscar Libro para Entrega Física</label>
                                     <div class="relative">
                                         <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100 shadow-sm" placeholder="Escribe título o ISBN..." @input="searchBooks($event, 'delivered')" autocomplete="off">
                                         <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
@@ -177,9 +177,7 @@
                                                     <div class="text-xs font-black text-slate-800 uppercase leading-tight">
                                                         {{ item.titulo }}
                                                     </div>
-                                                    <div class="text-[8px] font-black text-red-400 uppercase tracking-widest mt-1">
-                                                        Serie: {{ item.serie_nombre }}
-                                                    </div>
+                                                   
                                                 </td>
                                                 <td class="table-cell text-center">
                                                     <div class="flex justify-center">
@@ -203,7 +201,7 @@
                                 </div>
                                 </div>
                                 <div v-else class="text-center py-8 border-2 border-dashed border-red-100 rounded-3xl bg-white/50">
-                                    <p class="text-[10px] font-black text-red-300 uppercase tracking-widest">No se dejaron muestras hoy</p>
+                                    <p class="text-[10px] font-black text-red-300 uppercase tracking-widest">Sin muestras físicas registradas</p>
                                 </div>
                             </div>
                         </div>
@@ -223,7 +221,9 @@
                                 <label class="text-orange-800 font-black uppercase text-[9px] mb-3 block tracking-widest">Próxima Acción Agendada *</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold" required :disabled="loading">
+                                    <label class="label-style">Objetivo</label>
                                     <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold" :disabled="loading">
+                                        
                                         <option value="visita">Visita de Seguimiento</option>
                                         <option value="presentacion">Presentación Académica</option>
                                     </select>

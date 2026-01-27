@@ -43,17 +43,17 @@
                         <!-- Columna Datos Base -->
                         <div class="space-y-6">
                             <div class="data-row">
-                                <label class="label-large">Nombre Oficial de la Institución</label>
+                                <label class="label-large">Nombre del Plantel</label>
                                 <p class="value-text text-xl leading-none uppercase">{{ visita.nombre_plantel || visita.cliente?.name }}</p>
                             </div>
                             
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="data-row">
-                                    <label class="label-large">RFC Fiscal</label>
+                                    <label class="label-large">RFC del Plantel</label>
                                     <p class="value-text font-mono uppercase tracking-widest">{{ visita.rfc_plantel || visita.cliente?.rfc || 'No registrado' }}</p>
                                 </div>
                                 <div class="data-row">
-                                    <label class="label-large">Niveles Educativos</label>
+                                    <label class="label-large">Niveles Educativos del Plantel</label>
                                     <div class="flex flex-wrap gap-1.5 mt-1">
                                         <span v-for="n in formatLevels(visita.nivel_educativo_plantel || visita.cliente?.nivel_educativo)" :key="n" class="badge-red-outline">
                                             {{ n }} <br><br>
@@ -94,7 +94,7 @@
                         <!-- Columna Contacto -->
                         <div class="space-y-6">
                             <div class="data-row">
-                                <label class="label-large">Dirección de Entrega / Facturación</label>
+                                <label class="label-large">Nombre del Director / Coordinador</label>
                                 <p class="value-text italic leading-relaxed text-sm">{{ visita.direccion_plantel || visita.cliente?.direccion || 'Sin dirección registrada' }}</p>
                             </div>
                             
@@ -105,11 +105,11 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="data-row">
-                                    <label class="label-large">Teléfono de Contacto</label>
+                                    <label class="label-large">Celular / Teléfono</label>
                                     <p class="value-text tracking-tighter"><i class="fas fa-phone-alt mr-2 opacity-30"></i>{{ visita.telefono_plantel || visita.cliente?.telefono || 'N/A' }}</p>
                                 </div>
                                 <div class="data-row">
-                                    <label class="label-large">Email Institucional</label>
+                                    <label class="label-large">Correo Electrónico</label>
                                     <p class="value-text lowercase text-sm"><i class="fas fa-envelope mr-2 opacity-30"></i>{{ visita.email_plantel || visita.cliente?.email || 'N/A' }}</p>
                                 </div>
                             </div>
@@ -127,9 +127,9 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-6">
                                 <div class="data-row bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                                    <label class="label-large !text-red-700">Atendido por:</label>
+                                    <label class="label-large !text-red-700">Persona Entrevistada</label>
                                     <p class="value-text !text-xl !font-black uppercase !color-black">{{ visita.persona_entrevistada || 'N/A' }}</p>
-                                    <label class="label-large !text-red-700">Cargo:</label>
+                                    <label class="label-large !text-red-700">Cargo / Puesto de la Persona</label>
                                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{{ visita.cargo || 'Responsable' }}</p>
                                 </div>
                                 <div class="data-row">
@@ -171,20 +171,17 @@
                                 <p v-else class="text-white/20 italic text-[11px] font-black uppercase tracking-widest mt-4">Sin fecha programada</p>
                             </div>
 
-                            <button v-if="visita.resultado_visita === 'seguimiento' && visita.cliente?.tipo !== 'CLIENTE'" 
-                                @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
-                                class="w-full btn-primary-action shadow-2xl transition-all active:scale-95">
-                                <i class="fas fa-plus-circle mr-2 "></i> Registrar Nueva Visita
-                            </button>
                         </div>
                     </div>
                 </div>
-
+                    <br>
                 <!-- 4. EXPEDIENTE DE MATERIALES -->
-                <div class="space-y-6">
+                <div class="info-card pace-y-6">
                     <div class="flex items-center gap-3 px-2">
                         <div class="w-1.5 h-8 bg-black rounded-full"></div>
-                        <h2 class="text-2xl font-black text-black uppercase tracking-tight">Materiales de la Apertura</h2>
+                        <div class="section-title text-black !border-black/5">
+                            <i class="fas fa-handshake text-black"></i> 4. Detalles de la Entrevista (Apertura)
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 gap-8">
@@ -193,7 +190,7 @@
                             <div class="p-6 bg-slate-800 text-white flex justify-between items-center">
                                 <div class="flex items-center gap-3">
                                     <i class="fas fa-star text-yellow-400"></i>
-                                    <h3 class="text-[11px] font-black uppercase tracking-widest">Interés de Venta</h3>
+                                    <h3 class="text-[11px] font-black uppercase tracking-widest">Libros de Interés del Plantel por Serie</h3>
                                 </div>
                                 <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">{{ materialesInteres.length }} Títulos</span>
                             </div>
@@ -234,7 +231,7 @@
                             <div class="p-6 bg-red-900 text-white flex justify-between items-center">
                                 <div class="flex items-center gap-3">
                                     <i class="fas fa-box-open text-red-300"></i>
-                                    <h3 class="text-[11px] font-black uppercase tracking-widest">Muestras Entregadas</h3>
+                                    <h3 class="text-[11px] font-black uppercase tracking-widest">Muestras de Promoción Entregadas</h3>
                                 </div>
                                 <span class="text-[10px] font-black text-red-200 uppercase tracking-widest">{{ materialesEntregados.length }} Entrega(s)</span>
                             </div>
@@ -277,9 +274,10 @@
                 
                 <!-- OBSERVACIONES FINALES (Apertura) -->
                 <div v-if="visita.comentarios" class="info-card border-none bg-amber-50 p-10 rounded-[3rem] border border-amber-200 shadow-sm mt-8">
-                    <h3 class="text-[11px] font-black text-black uppercase mb-4 tracking-[0.3em] flex items-center gap-2">
-                        <i class="fas fa-comment-dots text-red-700"></i> Notas de la Apertura de Prospecto
-                    </h3>
+                   
+                     <div class="section-title !text-white !border-white/10">
+                            <i class="fas fa-calendar-check"></i> 5. Comentarios y Acuerdos de la Sesión
+                        </div>
                     <p class="text-base text-slate-700 italic leading-relaxed whitespace-pre-wrap font-medium">"{{ visita.comentarios }}"</p>
                 </div>
                     <br>
@@ -288,7 +286,9 @@
                 <div class="info-card space-y-6 mt-16">
                     <div class="flex items-center gap-3 px-2">
                         <div class="w-2 h-8 bg-red-700 rounded-full"></div>
-                        <h2 class="text-2xl font-black text-black uppercase tracking-tight">Historial de Visitas Subsecuentes</h2>
+                        <div class="section-title text-black !border-black/5">
+                            <i class="fas fa-handshake text-black"></i> 6. Historial de Visitas Subsecuentes
+                        </div>
                     </div>
 
                     <div v-if="loadingHistory" class="py-10 text-center animate-pulse">
@@ -444,8 +444,25 @@
                         <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest italic">Aún no se han registrado seguimientos posteriores.</p>
                     </div>
                 </div>
+                <br>
+
+                <div class="info-card border-none bg-slate-100 p-10 rounded-[3rem] border border-slate-200 shadow-sm mt-8 text-center">
+                    <div class="flex items-center gap-3 px-2">
+                        <div class="w-2 h-8 bg-red-700 rounded-full"></div>
+                        
+                         <div class="section-title text-black !border-black/5">
+                            <i class="fas fa-handshake text-black"></i> 7. Registra una nueva Visita
+                        </div>
+                    </div>
+
+                            <button v-if="visita.resultado_visita === 'seguimiento' && visita.cliente?.tipo !== 'CLIENTE'" 
+                                @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
+                                class="w-full btn-primary-action shadow-2xl transition-all active:scale-95">
+                                <i class="fas fa-plus-circle mr-2 "></i> Registrar Nueva Visita
+                            </button>
 
 
+            </div>
             </div>
         </div>
     </div>
@@ -585,7 +602,7 @@ onMounted(fetchVisitaDetail);
 .section-title { font-weight: 900; color: #000000; margin-bottom: 30px; border-bottom: 2px solid #f8fafc; padding-bottom: 15px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; }
 
 .label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
-.value-text { font-weight: 800; color: #be5e5e; line-height: 1.4; }
+.value-text {  color: #be5e5e; line-height: 1.4; }
 
 .status-badge { padding: 6px 16px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; }
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.08); }

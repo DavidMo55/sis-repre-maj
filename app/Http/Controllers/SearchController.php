@@ -140,4 +140,29 @@ class SearchController extends Controller
             return response()->json([], 500);
         }
     }
+
+
+    /**
+ * Busca un receptor por RFC en la tabla pedido_receptores.
+ */
+public function searchReceptorByRFC(Request $request)
+{
+    $rfc = $request->input('rfc');
+
+    if (!$rfc) {
+        return response()->json(['message' => 'RFC requerido'], 400);
+    }
+
+    $receptor = \App\Models\PedidoReceptor::where('rfc', strtoupper($rfc))
+        ->orderBy('created_at', 'desc')
+        ->first();
+
+    if (!$receptor) {
+        return response()->json(['message' => 'No encontrado'], 404);
+    }
+
+    return response()->json($receptor);
+}
+
+
 }

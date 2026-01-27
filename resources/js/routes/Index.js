@@ -124,21 +124,31 @@ router.beforeEach((to, from, next) => {
     const sessionStart = localStorage.getItem('session_start_time');
     const now = new Date().getTime();
     const TWO_HOURS = 2 * 60 * 60 * 1000;
-
     if (token && sessionStart) {
-        if (now - parseInt(sessionStart) > TWO_HOURS) {
-            localStorage.clear(); 
-            return next('/login');
+        const elapsed = now - parseInt(sessionStart);
+
+        if (elapsed > TWO_HOURS) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('session_start_time');
+            localStorage.removeItem('user_data');
+            return next({ name: 'Login' });
         }
     }
 
-    // 2. Reglas de redirección
+    // 3. Reglas de Protección de Rutas
     if (to.meta.requiresAuth && !token) {
-        next('/login');
+        next({ name: 'Login' });
     } else if (to.path === '/login' && token) {
-        next('/dashboard');
+        next({ name: 'Dashboard' });
     } else {
         next();
+    }
+});
+
+router.afterEach((to) => {
+    // Si el usuario navegó con éxito y tiene un token, actualizamos su hora de inicio
+    if (localStorage.getItem('auth_token')) {
+        localStorage.setItem('session_start_time', new Date().getTime().toString());
     }
 });
 

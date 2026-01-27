@@ -72,13 +72,15 @@
                 </div>
 
                 <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
-                    <button @click="resetFilters" class="btn-secondary" title="Limpiar Filtros">
-                        <i class="fas fa-eraser mr-1"></i> Limpiar
-                    </button>
                     <button @click="fetchVisitas" class="btn-primary py-2 px-8" :disabled="loading">
                         <i class="fas fa-sync-alt mr-1" :class="{'fa-spin': loading}"></i> 
                         {{ loading ? 'Buscando...' : 'Buscar' }}
                     </button>
+                    <br><br>
+                    <button @click="resetFilters" class="btn-secondary" title="Limpiar Filtros">
+                        <i class="fas fa-eraser mr-1"></i> Borrar Filtros
+                    </button>
+                    
                 </div>
             </div>
             
@@ -274,9 +276,21 @@ onMounted(fetchVisitas);
 table {
     table-layout: fixed;
     width: 100%;
+    
 }
 
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
 </style>

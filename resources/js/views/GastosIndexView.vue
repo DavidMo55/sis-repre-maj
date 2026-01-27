@@ -15,7 +15,7 @@
                 </button>
             </div>
 
-            <div class="filter-section form-section">
+            <div class="filter-section form-section bck">
                 <div class="section-title">
                     <i class="fas fa-filter"></i> Filtros y Búsqueda
                 </div>
@@ -62,7 +62,7 @@
                 </div>
             </div>
 
-
+            <br>
             <!-- TABLA DE GASTOS -->
             <div v-if="loading" class="loading-state mt-8 text-center py-10">
                 <i class="fas fa-spinner fa-spin text-3xl mb-2 text-red-600"></i>
@@ -237,6 +237,9 @@ onMounted(() => {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 15px;
     align-items: flex-end;
+}
+.bck{
+ background-color: #fdfdfd; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;
 }
 
 @media (min-width: 1024px) {

@@ -372,7 +372,7 @@ onMounted(() => {
 
 <style scoped>
 .info-card { background: white; font-weight: bold; padding: 25px; border-radius: 24px; border: 1px solid #f1f5f9; }
-.section-title { font-weight: bold; color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+.section-title {  color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
 .label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-[0.1em]; }
 .status-badge { padding: 4px 14px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; text-transform: uppercase; }
 
@@ -381,7 +381,6 @@ onMounted(() => {
 .table-responsive {
     width: 100%;
     background: white;
-    font-weight: bold;
     border-radius: 1.5rem;
 }
 
@@ -389,7 +388,7 @@ table {
     table-layout: auto;
     width: 100%;
     border-collapse: collapse;
-    border-radius: 1.5rem;
+
 }
 
 .table-cell {
@@ -448,6 +447,5 @@ table {
 }
 .lbb{
     color: black;
-    font-weight: bold;
 }
 </style>

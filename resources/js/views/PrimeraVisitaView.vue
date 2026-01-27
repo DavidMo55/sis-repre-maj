@@ -80,11 +80,11 @@
                         <div class="bg-red-50/20 p-6 rounded-[2rem] border  mb-6 shadow-sm">
                             <div class="flex items-center justify-between mb-4">
                                 <label class="text-[10px] text-white uppercase tracking-[0.2em]">
-                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica (GPS)
+                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica (GPS) *
                                 </label>
                                 <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase">✓ Capturada</span>
                             </div>
-                            <button type="button" @click="getLocation" class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-all" :disabled="gettingLocation || loading">
+                            <button type="button" @click="getLocation" required class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-all" :disabled="gettingLocation || loading">
                                 <i class="fas" :class="gettingLocation ? 'fa-spinner fa-spin' : 'fa-crosshairs'"></i>
                                 <span class=" uppercase tracking-widest text-[11px]">{{ form.plantel.latitud ? 'Actualizar Coordenadas GPS' : 'Capturar GPS de este Plantel' }}</span>
                             </button>
@@ -196,7 +196,7 @@
 
                             <div v-if="form.visita.cargo === 'Otro'" class="form-group mb-6 animate-fade-in">
                                 <label class="label-style">Especifique el Cargo *</label>
-                                <input v-model="form.visita.cargo_especifico" type="text" class="form-input font-bold border-red-100" placeholder="Escriba el puesto real..." required :disabled="loading">
+                                <input v-model="form.visita.cargo_especifico" type="text" minlength="10" required class="form-input font-bold border-red-100" placeholder="Escriba el puesto real..." :disabled="loading">
                             </div>
                         </div>
 
@@ -252,7 +252,7 @@
                                                 <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-gray-50 transition-colors">
                                                     <td class="table-cell">
                                                         <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">Serie: {{ item.serie_nombre }}</div>
+                                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">{{ item.serie_nombre }}</div>
                                                     </td>
                                                     <td class="table-cell text-center">
                                                         <select v-model="item.tipo" class="select-table">
