@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Cliente;
 use App\Models\Libro;
 use App\Models\Estado;
+use App\Models\PedidoReceptor;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
@@ -142,23 +143,35 @@ class SearchController extends Controller
     }
 
 
-    /**
- * Busca un receptor por RFC en la tabla pedido_receptores.
+/**
+ * Verifica si un RFC, Correo o Teléfono ya existe en la tabla pedido_receptores.
+ * Se usa para prevenir duplicados exactos.
  */
 public function searchReceptorByRFC(Request $request)
 {
-    $rfc = $request->input('rfc');
+    // Obtenemos los posibles parámetros
+    $rfc = $request->query('rfc');
+    $correo = $request->query('correo');
+    $telefono = $request->query('telefono');
 
-    if (!$rfc) {
-        return response()->json(['message' => 'RFC requerido'], 400);
+    $query = PedidoReceptor::query();
+
+    // Regla: Si se envía uno, buscamos por ese específicamente
+    if ($rfc) {
+        $query->where('rfc', strtoupper($rfc));
+    } elseif ($correo) {
+        $query->where('correo', strtolower($correo));
+    } elseif ($telefono) {
+        $query->where('telefono', $telefono);
+    } else {
+        return response()->json([]);
     }
 
-    $receptor = \App\Models\PedidoReceptor::where('rfc', strtoupper($rfc))
-        ->orderBy('created_at', 'desc')
-        ->first();
+    // Retornamos el primero que encuentre (orden reciente)
+    $receptor = $query->orderBy('created_at', 'desc')->first();
 
     if (!$receptor) {
-        return response()->json(['message' => 'No encontrado'], 404);
+        return response()->json(['message' => 'Disponible'], 404);
     }
 
     return response()->json($receptor);

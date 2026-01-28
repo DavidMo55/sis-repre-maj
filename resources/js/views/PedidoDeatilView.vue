@@ -38,46 +38,42 @@
                     <!-- Datos del Receptor (Mapeado con tu SQL) -->
                     <div class="info-card shadow-premium border-t-4 border-t-red-700 bg-white p-6 rounded-3xl">
                         <div class="section-title !mb-6">
-                            <i class="fas fa-user-tag text-red-700"></i> 1. Información del Receptor
+                            <i class="fas sct fa-user-tag text-red-700"></i> 1. Información del Cliente
                         </div>
                         <div class="space-y-4">
                             <!-- Datos del Plantel Base -->
                             <div class="pb-3 border-b border-slate-50">
-                                <label class="label-mini text-slate-400">Plantel / Cliente Origen</label>
-                                <p class="text-sm font-black text-slate-800  lbb uppercase leading-tight truncate" :title="pedido.cliente?.name">
+                                <label class="label-mini  label-large  text-slate-400">Plantel / Distribuidor</label>
+                                <p class="text-sm font-black text-slate-800   value-text      uppercase leading-tight truncate" :title="pedido.cliente?.name">
                                     {{ pedido.cliente?.name || 'No disponible' }}
                                 </p>
                             </div>
 
                             <!-- Datos del Destinatario (Extraídos de pedido_receptores si es nuevo) -->
                             <div>
-                                <label class="label-mini text-red-800 font-bold">Consignatario / Recibe:</label>
-                                <p class="text-base font-black lbb text-slate-900 uppercase break-words leading-tight">
+                                <label class="label-mini text-red-800 label-large  font-bold">Datos Fiscales y Dirección:</label>
+                                <p class="text-base font-black  value-text  text-slate-900 uppercase break-words leading-tight">
                                     {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.nombre || 'Datos no cargados') : (pedido.cliente?.contacto || 'Titular de Cuenta') }}
                                 </p>
-                                <span class="text-[8px] font-black uppercase px-2  py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 mt-1.5 inline-block">
-                                    {{ pedido.receiver_type === 'nuevo' ? 'Datos Temporales de Entrega' : 'Datos Registrados en Sistema' }}
-                                </span>
                             </div>
-
                             <div class="grid grid-cols-2 gap-4 pt-2">
                                 <div>
-                                    <label class="label-mini">RFC Fiscal</label>
-                                    <p class="text-[10px] font-mono font-black text-slate-700 lbb uppercase tracking-tighter truncate">
+                                    <label class="label-mini label-large">RFC</label>
+                                    <p class="text-[10px] font-mono font-black text-slate-700   value-text     uppercase tracking-tighter truncate">
                                         {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.rfc || 'N/A') : (pedido.cliente?.rfc || 'N/A') }}
                                     </p>
                                 </div>
                                 <div>
-                                    <label class="label-mini">Teléfono</label>
-                                    <p class="text-[10px] font-black lbb text-slate-700 truncate">
+                                    <label class="label-mini label-large">Teléfono</label>
+                                    <p class="text-[10px] font-black        text-slate-700 truncate">
                                         {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.telefono || 'N/A') : (pedido.cliente?.telefono || 'N/A') }}
                                     </p>
                                 </div>
                             </div>
 
                             <div v-if="pedido.receiver_type === 'nuevo' || pedido.cliente?.email" class="pt-3 border-t border-slate-50 min-w-0">
-                                <label class="label-mini">Email de Contacto</label>
-                                <p class="text-xs font-bold text-red-600 lbb truncate" :title="pedido.receiver_type === 'nuevo' ? pedido.receptor?.correo : pedido.cliente?.email">
+                                <label class="label-mini label-large">Correo Electrónico</label>
+                                <p class="text-xs font-bold text-red-600    value-text    truncate" :title="pedido.receiver_type === 'nuevo' ? pedido.receptor?.correo : pedido.cliente?.email">
                                     {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.correo || '---') : (pedido.cliente?.email || '---') }}
                                 </p>
                             </div>
@@ -86,86 +82,145 @@
 
                     <!-- Logística y Dirección -->
                     <div class="info-card shadow-premium border-t-4 border-t-slate-800 bg-white p-6 rounded-3xl">
-                        <div class="section-title !mb-6">
+                        <div class="section-title  !mb-6">
                             <i class="fas fa-truck text-slate-800"></i> 2. Logística y Destino
                         </div>
                         <div class="space-y-4">
                             <div>
-                                <label class="label-mini text-slate-400 uppercase">Dirección de Envío</label>
-                                <div class="text-[11px] lbb text-slate-600 leading-relaxed font-medium italic bg-slate-50 p-3 rounded-xl border border-slate-100 break-words">
-                                    <i class="fas  lbb fa-map-marker-alt text-red-500 mr-1"></i> 
+                                <label class="label-mini label-large text-slate-400 uppercase">Dirección de Envío</label>
+                                <div class="text-[11px]        text-slate-600 leading-relaxed font-medium italic bg-slate-50 p-3 rounded-xl border border-slate-100 break-words">
+                                    <i class="fas   value-text      fa-map-marker-alt text-red-500 mr-1"></i> 
                                     {{ formatFullAddress(pedido) }}
                                 </div>
                             </div>
                             <br>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="bg-red-50/30 p-2.5 rounded-xl border border-red-100 min-w-0">
-                                    <label class="label-mini">Método</label>
-                                    <br>
-                                    <span class="text-[10px] font-black text-red-700  lbb uppercase truncate block">{{ getDeliveryOption(pedido.delivery_option) }}</span>
+                                    <label class="label-mini label-large">Método</label>
+                                   
+                                    <span class="text-[10px] font-black text-red-700    value-text     uppercase truncate block">{{ getDeliveryOption(pedido.delivery_option) }}</span>
                                 </div>
                                 <br>
                                 <div v-if="pedido.paqueteria_nombre" class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 min-w-0">
-                                    <label class="label-mini">Empresa</label>
-                                    <br>
-                                    <span class="text-[10px] font-black text-slate-800 lbb uppercase truncate block">{{ pedido.paqueteria_nombre }}</span>
+                                    <label class="label-mini label-large">Empresa de Paquetería</label>
+                                    
+                                    <span class="text-[10px] font-black text-slate-800    value-text    uppercase truncate block">{{ pedido.paqueteria_nombre }}</span>
                                 </div>
                             </div>
                             <div>
                                 <br>
-                                <label class="label-mini">Estatus del Envío</label>
-                                <br>
-                                <span :class="getStatusClass(pedido.status)" class="status-badge w-full text-center py-2 shadow-sm">
+                                <label class="label-mini label-large">Estatus del Envío</label>
+                                <span :class="getStatusClass(pedido.status)" class="status-badge w-full text-center value-text py-2 shadow-sm">
                                     {{ pedido.status }}
                                 </span>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Finanzas y Prioridad -->
-                    <div class="info-card shadow-premium border-t-4 border-t-red-800 bg-slate-50/50 p-6 rounded-3xl">
-                        <div class="section-title !mb-6">
-                            <i class="fas fa-wallet text-red-800"></i> 3. Resumen Financiero
-                        </div>
-                        <div class="space-y-5">
+                            <div class="space-y-5">
                             <div class="flex justify-between items-start gap-2">
-                                <div class="min-w-0">
-                                    <label class="label-mini">Tipo Pedido</label>
-                                    <p class="text-[10px] lbb font-black uppercase truncate" :class="pedido.tipo_pedido === 'promocion' ? 'text-purple-600' : 'text-slate-800'">
-                                        {{ pedido.tipo_pedido === 'promocion' ? 'PROMOCIÓN' : 'VENTA NORMAL' }}
-                                    </p>
-                                </div>
-                                <br>
-                                <div class="text-right shrink-0">
-                                    <label class="label-mini">Prioridad</label>
-                                    <br>
-                                    <span :class="getPriorityClass(pedido.prioridad)" class="status-badge !px-3 !py-1">
+                            <br>
+                                <div class="text-left shrink-0">
+                                    <label class="label-mini label-large text-left">Prioridad</label>
+                                  
+                                    <span :class="getPriorityClass(pedido.prioridad)" class="value-text  !px-3 !py-1">
                                         {{ (pedido.prioridad || 'media').toUpperCase() }}
                                     </span>
                                 </div>
-                            </div><br>
+                            </div>
                             
                             <div class="pt-4 border-t border-slate-200 space-y-4">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unidades:</span>
-                                    <br>
-                                    <span class="text-sm lbb font-black text-slate-700">{{ calculateTotalItems(pedido.detalles) }} Libros</span>
-                                </div>
                                 <br>
-                                <div>
-                                    <label class="label-mini text-red-900 font-bold mb-0">Total Inversión:</label>
-                                    <p class="text-3xl font-black text-red-700 lbb tracking-tighter leading-none truncate">{{ totalOrderCost }}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] font-black text-slate-400 label-large uppercase tracking-widest">Unidades:</span>
+                                  
+                                    <span class="text-sm    value-text    font-black text-slate-700">{{ calculateTotalItems(pedido.detalles) }} Libros</span>
                                 </div>
-                               
                             </div>
+                        </div>
                         </div>
                     </div>
                 </div>
 
+                
+                <!-- 3. DESGLOSE DE MATERIALES -->
+                <div class="mt-8">
+                    <div class="flex info-card items-center justify-between mb-4 px-2">
+                        <h2 class="text-xl font-black section-title  text-slate-800 uppercase tracking-tight">
+                            <i class="fas fa-book text-red-800 mr-1"></i> 3. Selección de Materiales
+                        </h2>
+                    
+                    
+                    <div class="table-responsive shadow-premium border border-slate-200 rounded-[2.5rem] bg-white overflow-hidden">
+                        <div class="overflow-x-auto">
+                           <div class="table-responsive table-shadow-lg mt-6 border rounded-[2rem] overflow-hidden shadow-sm bg-white">
+                            <table class="w-full text-sm border-collapse bgw min-w-[800px]">
+                                <thead class="bg-slate-900 text-white uppercase text-[9px] font-black tracking-[0.15em]">
+                                    <tr>
+                                        <th class="px-6 py-5 gltt text-left">Libro </th>
+                                        <th class="px-6 py-5 gltt text-center w-32">Formato</th>
+                                        <th class="px-6 py-5 gltt text-center w-40">Tipo</th>
+                                        <th class="px-6 py-5 gltt text-center w-24">Cantidad</th>
+                                        <th class="px-6 py-5 gltt text-right w-32">Precio Unitario</th>
+                                        <th class="px-6 py-5 gltt text-right w-32">Subtotal</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    <tr v-for="detalle in pedido.detalles" :key="detalle.id" class="hover:bg-slate-50 transition-colors">
+                                        <td class="px-6 py-5">
+                                            <p class="font-black text-black label-large text-[13px] uppercase leading-tight">
+                                                {{ detalle.libro?.titulo || 'Material no encontrado' }}
+                                            </p>
+                                            <p class="text-[9px] font-mono font-black text-red-600 mt-1 uppercase tracking-widest bg-red-50/50 px-2 py-0.5 rounded border border-red-100 inline-block">
+                                                ISBN: {{ detalle.libro?.ISBN || 'N/A' }}
+                                            </p>
+                                        </td>
+                                        <td class="px-6 py-5 text-center">
+                                            <span class="badge-format-red">{{ detalle.tipo_licencia }}</span>
+                                        </td>
+                                        <td class="px-6 py-5 text-center">
+                                            <span class="badge-format-red">{{ detalle.tipo }}</span>
+                                        </td>
+                                        <td class="px-6 py-5 text-center font-black text-red-700 text-lg">
+                                            {{ detalle.cantidad }}
+                                        </td>
+                                        <td class="px-6 py-5 text-right font-mono text-[11px] text-red-600 font-black">
+                                            {{ formatCurrency(detalle.precio_unitario) }}
+                                        </td>
+                                        <td class="px-6 py-5 text-right font-black text-red-700 text-[14px]">
+                                            {{ formatCurrency(detalle.costo_total) }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+
+                                <tfoot class="bg-slate-900 border-t border-white/10">
+                                    <tr>
+                                        <td colspan="4" class="px-8 py-8 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+                                            Total del Pedido:
+                                        </td>
+                                        <td class="px-6 py-8 text-right font-black text-3xl text-red-400 leading-none tracking-tighter">
+                                            {{ formatCurrency(totalOrderCost) }}
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div v-if="pedido.comments" class="info-card border-none bg-amber-50/50 p-8 rounded-[2.5rem] border border-amber-100 shadow-sm mb-10">
+                    <h3 class="text-[10px] section-title  font-black text-amber-600 uppercase mb-3 tracking-widest flex items-center gap-2">
+                        <i class="fas  fa-comment-dots"></i> 4. Comentarios Generales del Pedido
+                    </h3>
+                    <p class="text-sm      value-text  text-slate-700 italic leading-relaxed">{{ pedido.comments }}</p>
+                </div>
+
                 <!-- 2. EXPEDIENTE DIGITAL -->
                 <div class="info-card shadow-premium border-l-8 border-l-slate-800 bg-white p-6 rounded-3xl overflow-hidden">
-                    <div class="section-title !border-b-0 mb-6">
-                        <i class="fas fa-folder-open text-slate-800"></i> Expediente Digital y Documentos
+                    <div class="section-title section-title  !border-b-0 mb-6">
+                        <i class="fas fa-folder-open text-slate-800 "></i> 5. Expediente Digital y Documentos
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -176,8 +231,8 @@
                                     <i class="fas fa-file-invoice text-xl" :class="pedido.factura_path ? 'text-red-600' : 'text-slate-300'"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Factura</p>
-                                    <p class="text-xs font-bold lbb text-slate-700 truncate">{{ pedido.factura_path ? 'PDF Disponible' : 'No cargada' }}</p>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate label-large">Factura</p>
+                                    <p class="text-xs font-bold  value-text      text-slate-700 truncate">{{ pedido.factura_path ? 'PDF Disponible' : 'No cargada' }}</p>
                                 </div>
                             </div>
                             <a v-if="pedido.factura_path" :href="pedido.factura_url" target="_blank" class="btn-icon-action bg-red-600 shrink-0">
@@ -192,8 +247,8 @@
                                     <i class="fas fa-shipping-fast text-xl" :class="pedido.guia_envio_path ? 'text-blue-600' : 'text-slate-300'"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">Guía</p>
-                                    <p class="text-xs font-bold lbb text-slate-700 truncate">{{ pedido.guia_envio_path ? 'Rastreo Listo' : 'Pendiente' }}</p>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate label-large">Guía</p>
+                                    <p class="text-xs font-bold   value-text     text-slate-700 truncate">{{ pedido.guia_envio_path ? 'Rastreo Listo' : 'Pendiente' }}</p>
                                 </div>
                             </div>
                             <a v-if="pedido.guia_envio_path" :href="pedido.guia_url" target="_blank" class="btn-icon-action bg-blue-600 shrink-0">
@@ -201,79 +256,6 @@
                             </a>
                         </div>
                     </div>
-                </div>
-
-                <!-- 3. DESGLOSE DE MATERIALES -->
-                <div class="mt-8">
-                    <div class="flex items-center justify-between mb-4 px-2">
-                        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">
-                            <i class="fas fa-book text-red-800 mr-1"></i> Libros Solicitados
-                        </h2>
-                    </div>
-                    
-                    <div class="table-responsive shadow-premium border border-slate-200 rounded-[2.5rem] bg-white overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm border-collapse min-w-[800px]">
-                                <thead class="bg-slate-900 text-white uppercase text-[9px] font-black tracking-[0.15em]">
-                                    <tr>
-                                        <th class="px-6 py-5 text-left">Material / Libro</th>
-                                        <th class="px-6 py-5 text-center w-40">Tipo/Licencia</th>
-                                        <th class="px-6 py-5 text-center w-24">Cant.</th>
-                                        <th class="px-6 py-5 text-right w-32">Unitario</th>
-                                        <th class="px-6 py-5 text-right w-32">Subtotal</th>
-                                        <th class="px-6 py-5 text-center w-24">Adjunto</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <tr v-for="detalle in pedido.detalles" :key="detalle.id" class="hover:bg-slate-50 transition-colors">
-                                        <td class="px-6 py-5">
-                                            <p class="font-black text-slate-800 text-[13px] uppercase leading-tight">
-                                                {{ detalle.libro?.titulo || 'Material no encontrado' }}
-                                            </p>
-                                            <p class="text-[9px] font-mono lbb text-slate-400 mt-1 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded border inline-block">
-                                                ISBN: {{ detalle.libro?.ISBN || 'N/A' }}
-                                            </p>
-                                        </td>
-                                        <td class="px-6 py-5 text-center">
-                                            <span class="badge-format">{{ detalle.tipo_licencia }}</span>
-                                        </td>
-                                        <td class="px-6 py-5 text-center font-black text-red-700 text-lg">
-                                            {{ detalle.cantidad }}
-                                        </td>
-                                        <td class="px-6 py-5 text-right font-mono text-[11px] text-slate-500 font-bold">
-                                            {{ formatCurrency(detalle.precio_unitario) }}
-                                        </td>
-                                        <td class="px-6 py-5 text-right font-black text-slate-800 text-[14px]">
-                                            {{ formatCurrency(detalle.costo_total) }}
-                                        </td>
-                                        <td class="px-6 py-5 text-center">
-                                            <a v-if="detalle.archivo_path" :href="detalle.archivo_url" target="_blank" class="link-pdf-icon">
-                                                <i class="fas fa-file-pdf fa-lg"></i>
-                                            </a>
-                                            <span v-else class="text-slate-200 text-[10px] italic">--</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                                <tfoot class="bg-slate-900 border-t lbb border-white/10">
-                                    <tr>
-                                        <td colspan="4" class="px-8 py-8 text-right lbb font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">Total Acumulado del Pedido:</td>
-                                        <td class="px-6 py-8 text-right font-black lbb text-3xl text-red-400 leading-none">
-                                            {{ formatCurrency(totalOrderCost) }}
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Observaciones -->
-                <div v-if="pedido.comments" class="info-card border-none bg-amber-50/50 p-8 rounded-[2.5rem] border border-amber-100 shadow-sm mb-10">
-                    <h3 class="text-[10px] font-black text-amber-600 uppercase mb-3 tracking-widest flex items-center gap-2">
-                        <i class="fas fa-comment-dots"></i> Notas Adicionales de Gestión
-                    </h3>
-                    <p class="text-sm lbb text-slate-700 italic leading-relaxed">{{ pedido.comments }}</p>
                 </div>
 
             </div>
@@ -371,8 +353,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.info-card { background: white; font-weight: bold; padding: 25px; border-radius: 24px; border: 1px solid #f1f5f9; }
-.section-title {  color: #1e293b; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+.info-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f1f5f9; }
+.section-title { font-weight: 900; color: #000000; margin-bottom: 25px; border-bottom: 2px solid #fee2e2; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; }
 .label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-[0.1em]; }
 .status-badge { padding: 4px 14px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; text-transform: uppercase; }
 
@@ -380,20 +362,65 @@ onMounted(() => {
 
 .table-responsive {
     width: 100%;
-    background: white;
-    border-radius: 1.5rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-table {
-    table-layout: auto;
-    width: 100%;
-    border-collapse: collapse;
-
+/* Sombra suave y profunda */
+.table-shadow-lg {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
 }
 
-.table-cell {
-    padding: 16px 20px;
-    vertical-align: middle;
+/* Títulos de cabecera */
+thead th {
+    letter-spacing: 0.15em;
+    border: none;
+}
+
+/* Estilo de Badge para Formato (Rojo sobre fondo suave) */
+.badge-format-red {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 900;
+    color: #b91c1c; /* Rojo 700 */
+    text-transform: uppercase;
+    background-color: #ffffff; /* Rojo 50 */
+    padding: 4px 12px;
+    border-radius: 8px;
+    border: 1px solid #fee2e2;
+    letter-spacing: 0.05em;
+}
+
+/* Alineaciones */
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+
+/* Pie de tabla oscuro para contraste */
+tfoot {
+    background-color: #ffffff; /* Slate 900 */
+}
+
+/* Animación de filas al pasar el mouse */
+.transition-colors {
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Forzar que el footer no se rompa en pantallas pequeñas */
+tfoot td {
+    white-space: nowrap;
+}
+
+.bgw{
+    background-color: white;
+}
+.gltt{
+     padding: 14px 20px;
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #94a3b8; /* Slate-400 para cabeceras dark */
 }
 
 .badge-format {
@@ -445,7 +472,7 @@ table {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.lbb{
-    color: black;
-}
+
+.value-text {  color: #be5e5e; line-height: 1.4; }
+.label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 </style>

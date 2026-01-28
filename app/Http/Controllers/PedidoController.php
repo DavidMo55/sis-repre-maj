@@ -85,14 +85,15 @@ class PedidoController extends Controller
     /**
      * Registro de pedido con lógica de Receptores y Clientes centralizada.
      */
-    public function store(Request $request)
+public function store(Request $request)
     {
         $validatedData = $request->validate([
             'clientId' => 'required|exists:clientes,id',
             'prioridad' => 'required|in:baja,media,alta',
             'receiverType' => 'required|in:cliente,nuevo',
+            'tipo_pedido' => 'nullable|string',
             
-            // Datos del Receptor (Indispensables)
+            // Datos del Receptor
             'receiver.persona_recibe' => 'required|string|max:255',
             'receiver.rfc' => 'required|string|min:12|max:13',
             'receiver.regimen_fiscal' => 'nullable|string',
@@ -109,93 +110,97 @@ class PedidoController extends Controller
             'logistics.comentarios_logistica' => 'nullable|string',
             
             'comments' => 'nullable|string|max:1000',
+
+            // REGLAS PARA ITEMS (CORREGIDO)
             'items' => 'required|array|min:1',
             'items.*.bookId' => 'required|exists:libros,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.price' => 'nullable|numeric',
+            'items.*.sub_type' => 'required|string',      // <--- AÑADIDO: Ahora no se perderá
+            'items.*.tipo_material' => 'required|string', // <--- AÑADIDO: Para guardar venta/promo
         ]);
 
         try {
             return DB::transaction(function () use ($validatedData, $request) {
-                
                 $user = $request->user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
                 $receptorId = null;
 
                 $direccionFormateada = $validatedData['receiver']['calle_num'] . ", Col. " . $validatedData['receiver']['colonia'] . ", " . $validatedData['receiver']['municipio'] . ", CP " . $validatedData['receiver']['cp'];
 
-                // 1. GESTIÓN SEGÚN EL ORIGEN (cliente vs nuevo)
-                if ($validatedData['receiverType'] === 'cliente') {
-                    // Si es 'cliente', actualizamos la tabla maestra de clientes
-                    $cliente = Cliente::findOrFail($validatedData['clientId']);
-                    $cliente->update([
-                        'contacto'        => $validatedData['receiver']['persona_recibe'],
-                        'rfc'             => strtoupper($validatedData['receiver']['rfc']),
-                        'regimen_fiscal'  => $validatedData['receiver']['regimen_fiscal'],
-                        'telefono'        => $validatedData['receiver']['telefono'],
-                        'email'           => $validatedData['receiver']['correo'],
-                        'cp'              => $validatedData['receiver']['cp'],
-                        'municipio'       => $validatedData['receiver']['municipio'],
-                        'colonia'         => $validatedData['receiver']['colonia'],
-                        'calle_num'       => $validatedData['receiver']['calle_num'],
-                        'direccion'       => $direccionFormateada
-                    ]);
-                } else {
-                    // Si es 'nuevo', creamos un registro en la tabla pedido_receptores
+               if ($validatedData['receiverType'] === 'nuevo') {
+            // VERIFICACIÓN DE SEGURIDAD FINAL (BACKEND)
+            $duplicado = PedidoReceptor::where('rfc', strtoupper($validatedData['receiver']['rfc']))
+                ->orWhere('correo', strtolower($validatedData['receiver']['correo']))
+                ->orWhere('telefono', $validatedData['receiver']['telefono'])
+                ->first();
+
+            if ($duplicado) {
+                // Si existe, abortamos la transacción y avisamos al usuario
+                throw new \Exception("Los datos ingresados (RFC, Correo o Teléfono) ya pertenecen a un registro existente ({$duplicado->nombre}). No se permiten duplicados.");
+            }
+
+            // Si no hay duplicados, creamos
+            $receptor = PedidoReceptor::create([
+                'cliente_id' => $validatedData['clientId'],
+                'nombre'     => $validatedData['receiver']['persona_recibe'],
+                'rfc'        => strtoupper($validatedData['receiver']['rfc']),
+                'telefono'   => $validatedData['receiver']['telefono'],
+                'correo'     => $validatedData['receiver']['correo'],
+                'direccion'  => $direccionFormateada
+            ]);
+            $receptorId = $receptor->id;
+        }else {
                     $receptor = PedidoReceptor::create([
                         'cliente_id' => $validatedData['clientId'],
-                        'nombre'     => $validatedData['receiver']['persona_recibe'],
-                        'rfc'        => strtoupper($validatedData['receiver']['rfc']),
-                        'telefono'   => $validatedData['receiver']['telefono'],
-                        'correo'     => $validatedData['receiver']['correo'],
-                        'direccion'  => $direccionFormateada
+                        'nombre' => $validatedData['receiver']['persona_recibe'],
+                        'rfc' => strtoupper($validatedData['receiver']['rfc']),
+                        'telefono' => $validatedData['receiver']['telefono'],
+                        'correo' => $validatedData['receiver']['correo'],
+                        'direccion' => $direccionFormateada
                     ]);
                     $receptorId = $receptor->id;
                 }
 
-                // 2. CREAR EL PEDIDO (Usando solo columnas existentes en la tabla 'pedidos')
                 $pedido = Pedido::create([
-                    'user_id'           => $ownerId,
-                    'cliente_id'        => $validatedData['clientId'],
-                    'prioridad'         => $validatedData['prioridad'],
-                    'tipo_pedido'       => $request->tipo_pedido ?? 'normal',
-                    'receptor_id'       => $receptorId, // Solo se llena si receiverType = 'nuevo'
-                    'receiver_type'     => $validatedData['receiverType'],
-                    'delivery_option'   => $validatedData['logistics']['deliveryOption'],
+                    'user_id' => $ownerId,
+                    'cliente_id' => $validatedData['clientId'],
+                    'prioridad' => $validatedData['prioridad'],
+                    'tipo_pedido' => $validatedData['tipo_pedido'] ?? 'normal',
+                    'receptor_id' => $receptorId,
+                    'receiver_type' => $validatedData['receiverType'],
+                    'delivery_option' => $validatedData['logistics']['deliveryOption'],
                     'paqueteria_nombre' => $validatedData['logistics']['paqueteria_nombre'] ?? null,
-                    'delivery_address'  => $direccionFormateada,
-                    'comments'          => $validatedData['comments'] ?? $validatedData['logistics']['comentarios_logistica'],
-                    'status'            => 'PENDIENTE',
+                    'delivery_address' => $direccionFormateada,
+                    'comments' => $validatedData['comments'] ?? $validatedData['logistics']['comentarios_logistica'],
+                    'status' => 'PENDIENTE',
                 ]);
                 
-                // Generar Folio
                 $referencia = "PED" . Carbon::now()->format('dmy') . $pedido->id; 
                 $pedido->update(['numero_referencia' => $referencia]);
 
-                // 3. REGISTRAR DETALLES
                 foreach ($validatedData['items'] as $item) {
                     PedidoDetalle::create([
-                        'pedido_id'       => $pedido->id,
-                        'libro_id'        => $item['bookId'],
-                        'tipo'            => $item['tipo_material'] ?? 'venta', 
-                        'tipo_licencia'   => $item['sub_type'] ?? 'Solo Físico',
-                        'cantidad'        => $item['quantity'],
+                        'pedido_id' => $pedido->id,
+                        'libro_id' => $item['bookId'],
+                        'tipo' => $item['tipo_material'], // Ahora toma el valor real de la tabla
+                        'tipo_licencia' => $item['sub_type'], // Ahora toma el valor real de la tabla
+                        'cantidad' => $item['quantity'],
                         'precio_unitario' => $item['price'] ?? 0,
-                        'costo_total'     => $item['quantity'] * ($item['price'] ?? 0)
+                        'costo_total' => $item['quantity'] * ($item['price'] ?? 0)
                     ]);
                 }
 
-            return response()->json([
-                'message' => 'Pedido generado correctamente.',
-                'order_id' => $referencia
-            ], 201);
-        });
-
-    } catch (\Exception $e) {
-        Log::error("Error en store Pedido: " . $e->getMessage());
-        return response()->json(['message' => 'Error técnico: ' . $e->getMessage()], 500);
+                return response()->json([
+                    'message' => 'Pedido generado correctamente.',
+                    'order_id' => $referencia
+                ], 201);
+            });
+        } catch (\Exception $e) {
+            Log::error("Error en store Pedido: " . $e->getMessage());
+            return response()->json(['message' => 'Error técnico: ' . $e->getMessage()], 500);
+        }
     }
-}
 
 /**
  * Actualización de pedido (Solo permitido en estatus PENDIENTE).

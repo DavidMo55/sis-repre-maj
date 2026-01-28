@@ -45,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/search/niveles', [SearchController::class, 'getNiveles']); 
     Route::get('/search/series', [SearchController::class, 'getSeries']);  
     Route::get('/estados', [SearchController::class, 'getEstados']);
-    Route::get('/search/receptores/rfc', [SearchController::class, 'searchReceptorByRFC']);
+   Route::get('/search/receptores/rfc', [SearchController::class, 'searchReceptorByRFC']);
 
     // Visitas y Prospectos
     Route::get('/visitas', [VisitaController::class, 'index']);
