@@ -85,7 +85,7 @@ class PedidoController extends Controller
     /**
      * Registro de pedido con lógica de Receptores y Clientes centralizada.
      */
- public function store(Request $request)
+public function store(Request $request)
     {
         $validatedData = $request->validate([
             'clientId' => 'required|exists:clientes,id',
@@ -95,7 +95,7 @@ class PedidoController extends Controller
             // Datos del Receptor (Indispensables)
             'receiver.persona_recibe' => 'required|string|max:255',
             'receiver.rfc' => 'required|string|min:12|max:13',
-            'receiver.regimen_fiscal' => 'nullable|string|max:255', // Ajustado a texto largo
+            'receiver.regimen_fiscal' => 'nullable|string|max:255', // Soporta el texto completo
             'receiver.telefono' => 'required|string',
             'receiver.correo' => 'required|email',
             'receiver.cp' => 'required|string|size:5',
@@ -131,14 +131,14 @@ class PedidoController extends Controller
                                        ", " . $validatedData['receiver']['estado'] . 
                                        ", CP " . $validatedData['receiver']['cp'];
 
-                // Compatibilidad de entrega directa
+                // Compatibilidad de entrega directa para evitar error de truncado
                 $deliveryValue = $validatedData['logistics']['deliveryOption'];
                 if ($deliveryValue === 'entrega') {
                     $deliveryValue = 'none'; 
                 }
 
                 if ($validatedData['receiverType'] === 'nuevo') {
-                    // VERIFICACIÓN DE SEGURIDAD (DUPLICADOS)
+                    // VERIFICACIÓN DE SEGURIDAD (DUPLICADOS EN RECEPTORES)
                     $duplicado = PedidoReceptor::where('rfc', strtoupper($validatedData['receiver']['rfc']))
                         ->orWhere('correo', strtolower($validatedData['receiver']['correo']))
                         ->orWhere('telefono', $validatedData['receiver']['telefono'])
@@ -158,12 +158,12 @@ class PedidoController extends Controller
                     ]);
                     $receptorId = $receptor->id;
                 } else {
-                    // MODO CLIENTE: Sincronizamos la ficha maestra
+                    // MODO CLIENTE: Sincronizamos la ficha maestra (Tabla 'clientes')
                     $cliente = Cliente::findOrFail($validatedData['clientId']);
                     $cliente->update([
                         'contacto'       => $validatedData['receiver']['persona_recibe'],
                         'rfc'            => strtoupper($validatedData['receiver']['rfc']),
-                        'regimen_fiscal' => $validatedData['receiver']['regimen_fiscal'], // Guarda el texto completo
+                        'regimen_fiscal' => $validatedData['receiver']['regimen_fiscal'], // Guarda el texto completo del régimen
                         'email'          => $validatedData['receiver']['correo'],
                         'telefono'       => $validatedData['receiver']['telefono'],
                         'direccion'      => $direccionFormateada
@@ -177,7 +177,7 @@ class PedidoController extends Controller
                     'tipo_pedido'            => $request->tipo_pedido ?? 'normal',
                     'receptor_id'            => $receptorId,
                     'receiver_type'          => $validatedData['receiverType'],
-                    'receiver_regimen_fiscal'=> $validatedData['receiver']['regimen_fiscal'], // Se añade al pedido
+                    'receiver_regimen_fiscal'=> $validatedData['receiver']['regimen_fiscal'], // Se añade al pedido (Folio fiscal)
                     'delivery_option'        => $deliveryValue,
                     'paqueteria_nombre'      => $validatedData['logistics']['paqueteria_nombre'] ?? null,
                     'delivery_address'       => $direccionFormateada,

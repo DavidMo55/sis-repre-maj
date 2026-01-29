@@ -2,28 +2,14 @@
     <div class="content-wrapper p-2 md:p-6 bg-slate-50 min-h-screen">
         <div class="module-page max-w-7xl mx-auto">
             <!-- Encabezado -->
-            <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <div class="header-info min-w-0">
-                    <h1 class="text-2xl md:text-3xl font-black text-black tracking-tight uppercase">Registro de Primera Visita</h1>
-                    <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest italic mt-1">Alta de prospecto en sistema y captura de necesidades iniciales con inventario de muestras.</p>
+            <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-black uppercase tracking-tighter">Registro de Primera Visita</h1>
+                    <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest mt-1">Alta de prospecto: La captura de coordenadas GPS es obligatoria.</p>
                 </div>
-                <button @click="$router.push('/visitas')" class="btn-secondary flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black shadow-sm shrink-0 w-full sm:w-auto bg-white border-2 border-slate-200 text-black uppercase" :disabled="loading">
+                <button @click="$router.push('/visitas')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto">
                     <i class="fas fa-arrow-left"></i> Volver al Historial
                 </button>
-            </div>
-
-            <!-- Mensaje de Error de Validación (Más Concreto) -->
-            <div v-if="errorMessage" class="error-message-container mb-6 p-5 bg-red-50 border-2 border-red-200 rounded-[2rem] animate-fade-in shadow-md">
-                <div class="flex items-start gap-4">
-                    <div class="w-10 h-10 bg-red-600 text-white rounded-full flex items-center justify-center shrink-0 shadow-lg">
-                        <i class="fas fa-ban"></i>
-                    </div>
-                    <div>
-                        <p class="text-red-900 font-black uppercase text-xs tracking-widest">Restricción de Seguridad / Duplicidad</p>
-                        <p class="text-red-700 text-sm mt-1 font-bold leading-tight">{{ errorMessage }}</p>
-                        <p class="text-[10px] text-red-400 mt-2 font-black uppercase italic tracking-tighter">Acción requerida: Verifique los datos o localice el registro existente en el historial.</p>
-                    </div>
-                </div>
             </div>
 
             <form @submit.prevent="handleSubmit">
@@ -64,7 +50,7 @@
                                     @blur="checkDuplicate('rfc')"
                                     type="text" 
                                     class="form-input uppercase font-mono border-red-100 font-black text-red-900" 
-                                    :class="{'border-red-500 bg-red-50': checkStates.rfc.isDuplicate}"
+                                    :class="{'border-red-600 bg-red-50 ring-2 ring-red-100': checkStates.rfc.isDuplicate}"
                                     placeholder="XXXXXXXXXXXXX" 
                                     required 
                                     minlength="12" 
@@ -76,19 +62,32 @@
                             </div>
                         </div>
 
-                        <!-- GPS -->
-                        <div class="bg-red-50/20 p-6 rounded-[2rem] border  mb-6 shadow-sm">
+                        <!-- GPS REQUERIDO -->
+                        <div class="p-6 rounded-[2rem] border transition-all duration-300 mb-6 shadow-sm"
+                             :class="{
+                                 'border-red-600 bg-red-50 ring-4 ring-red-100': attemptedSubmit && !form.plantel.latitud,
+                                 'border-blue-100 bg-blue-50/20': !attemptedSubmit || form.plantel.latitud
+                             }">
                             <div class="flex items-center justify-between mb-4">
-                                <label class="text-[10px] text-white uppercase tracking-[0.2em]">
+                                <label class="text-[10px] font-black uppercase tracking-[0.2em]" 
+                                       :class="attemptedSubmit && !form.plantel.latitud ? 'text-red-700' : 'text-blue-800'">
                                     <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica (GPS) *
                                 </label>
-                                <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase">✓ Capturada</span>
+                                <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase shadow-sm">✓ Coordenadas Capturadas</span>
+                                <span v-else-if="attemptedSubmit" class="text-[9px] bg-red-600 text-white px-3 py-1 rounded-full font-black uppercase animate-bounce">Requerido</span>
                             </div>
-                            <button type="button" @click="getLocation" required class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-all" :disabled="gettingLocation || loading">
-                                <i class="fas" :class="gettingLocation ? 'fa-spinner fa-spin' : 'fa-crosshairs'"></i>
-                                <span class=" uppercase tracking-widest text-[11px]">{{ form.plantel.latitud ? 'Actualizar Coordenadas GPS' : 'Capturar GPS de este Plantel' }}</span>
+                            <br>
+                            <button type="button" @click="getLocation" class="btn-primary w-full py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all" 
+                                    :class="form.plantel.latitud ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'"
+                                    :disabled="gettingLocation || loading">
+                                <i class="fas" :class="gettingLocation ? 'fa-spinner fa-spin' : (form.plantel.latitud ? 'fa-check-double' : 'fa-crosshairs')"></i>
+                                <span class="font-black uppercase tracking-widest text-[11px]">
+                                    {{ form.plantel.latitud ? 'Actualizar Coordenadas GPS' : 'Capturar Ubicación Obligatoria' }}
+                                </span>
                             </button>
+                            
                         </div>
+                        <br>
 
                         <!-- NIVELES -->
                         <div class="form-group mb-6">
@@ -119,7 +118,6 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- TELÉFONO -->
                             <div class="form-group relative">
                                 <label class="label-style">Celular / Teléfono *</label>
                                 <div class="relative">
@@ -135,11 +133,9 @@
                                         :disabled="loading"
                                     >
                                     <i v-if="checkStates.phone.checking" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
-                                    <i v-if="checkStates.phone.verified && !checkStates.phone.isDuplicate" class="fas fa-check-circle absolute right-4 top-1/2 -translate-y-1/2 text-green-500"></i>
                                 </div>
                             </div>
 
-                            <!-- EMAIL -->
                             <div class="form-group relative">
                                 <label class="label-style">Correo Electrónico *</label>
                                 <div class="relative">
@@ -154,7 +150,6 @@
                                         :disabled="loading"
                                     >
                                     <i v-if="checkStates.email.checking" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
-                                    <i v-if="checkStates.email.verified && !checkStates.email.isDuplicate" class="fas fa-check-circle absolute right-4 top-1/2 -translate-y-1/2 text-green-500"></i>
                                 </div>
                             </div>
                         </div>
@@ -200,7 +195,7 @@
                             </div>
                         </div>
 
-                        <!-- LIBROS DE INTERÉS -->
+                        <!-- LIBROS DE INTERÉS Y MUESTRAS -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
                                 <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i> Libros de Interés del Plantel por Serie</label>
@@ -231,7 +226,6 @@
                                             <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors">
                                                 <div class="flex justify-between items-center w-full">
                                                     <span class="truncate uppercase">{{ b.titulo }}</span>
-                                                    <span> Serie: {{ b.serie_nombre }}</span>
                                                 </div>
                                             </li>
                                         </ul>
@@ -272,10 +266,9 @@
                                         </table>
                                     </div>
                                 </div>
-                                <div v-else class="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50 text-[10px] font-bold text-slate-300 uppercase italic">Sin libros de interés agregados</div>
                             </div>
-                        </div>
-                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            </div>
+                            <div class="mt-6 form-section ">
                             <!-- MUESTRAS ENTREGADAS -->
                             <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
                                 <label class="label-mini mb-4 text-red-800 font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> Muestras de Promoción Entregadas </label>
@@ -297,7 +290,6 @@
                                         <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
                                             <div class="flex justify-between items-center w-full">
                                                 <span class="truncate uppercase">{{ b.titulo }}</span>
-                                               
                                             </div>
                                         </li>
                                     </ul>
@@ -333,7 +325,6 @@
                                         </table>
                                     </div>
                                 </div>
-                                <div v-else class="text-center py-8 border-2 border-dashed border-red-100 rounded-3xl bg-white/50 text-[10px] font-black text-red-300 uppercase tracking-widest">Sin muestras físicas registradas</div>
                             </div>
                         </div>
 
@@ -397,6 +388,21 @@
                 </div>
             </Transition>
         </Teleport>
+
+        <!-- MENSAJE DE ERROR GENERAL -->
+         <Teleport to="body">
+            <Transition name="modal-fade">
+                <div v-if="errorMessage" class="modal-overlay-custom">
+                    <div class="modal-content-error modal-content-success animate-scale-in">
+                        <div class="error-icon-wrapper shadow-lg shadow-red-100"><i class="fas fa-exclamation-triangle"></i></div>  
+                        <h2 class="modal-title-error">¡Atención!</h2>
+                        <p class="modal-text-error" v-html="errorMessage"></p>
+                        <button @click="errorMessage = null" class="btn-primary w-full mt-8 bg-red-600 border-none text-white font-black uppercase text-xs tracking-widest py-4">Cerrar Mensaje</button>
+                    </div>
+                </div>
+            </Transition>
+
+         </Teleport>
     </div>
 </template>
 
@@ -411,12 +417,9 @@ const loadingInitial = ref(true);
 const gettingLocation = ref(false);
 const showSuccessModal = ref(false);
 const errorMessage = ref(null);
-const isProcessingCheck = ref(false); // Bloqueo mientras valida
+const isProcessingCheck = ref(false); 
+const attemptedSubmit = ref(false); // Rastreo para validación visual de GPS
 
-/**
- * ESTADO DE VERIFICACIÓN DE DUPLICADOS
- * Controla: Nombre, RFC, Email y Teléfono
- */
 const checkStates = reactive({
     name:  { checking: false, isDuplicate: false, verified: false },
     rfc:   { checking: false, isDuplicate: false, verified: false },
@@ -461,10 +464,6 @@ const seriesFiltradas = computed(() => {
 
 const savedClientType = computed(() => form.visita.resultado_visita === 'compra' ? 'Cliente' : 'Prospecto');
 
-/**
- * VERIFICACIÓN DE DUPLICADOS INTEGRAL
- * Comprueba RFC y otros campos para evitar duplicidad incluso con nombres distintos.
- */
 const checkDuplicate = async (field) => {
     let val = '';
     let minLen = 5;
@@ -530,8 +529,16 @@ const getLocation = () => {
     if (!navigator.geolocation) return alert("Navegador no soporta GPS.");
     gettingLocation.value = true;
     navigator.geolocation.getCurrentPosition(
-        (p) => { form.plantel.latitud = p.coords.latitude; form.plantel.longitud = p.coords.longitude; gettingLocation.value = false; },
-        () => { gettingLocation.value = false; alert("Permiso de GPS denegado."); },
+        (p) => { 
+            form.plantel.latitud = p.coords.latitude; 
+            form.plantel.longitud = p.coords.longitude; 
+            gettingLocation.value = false; 
+            errorMessage.value = null; // Limpiar error si se capturó con éxito
+        },
+        () => { 
+            gettingLocation.value = false; 
+            alert("Permiso de GPS denegado o error de señal. Las coordenadas son obligatorias para el registro."); 
+        },
         { enableHighAccuracy: true }
     );
 };
@@ -589,6 +596,15 @@ const addMaterial = (book, type) => {
 };
 
 const handleSubmit = async () => {
+    attemptedSubmit.value = true; // Marcar que se intentó enviar para activar validaciones visuales
+
+    // REGLA DE ORO: Validar coordenadas GPS antes de cualquier otra cosa
+    if (!form.plantel.latitud || !form.plantel.longitud) {
+        errorMessage.value = "LA UBICACIÓN GEOGRÁFICA (GPS) ES OBLIGATORIA. POR FAVOR, CAPTURE EL PUNTO GPS DEL PLANTEL ANTES DE FINALIZAR.";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+
     if (anyDuplicate.value) {
         errorMessage.value = "ACCIÓN BLOQUEADA: EXISTEN DATOS DUPLICADOS EN CAMPOS OBLIGATORIOS. POR FAVOR REVISE EL RFC O EL NOMBRE.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -655,7 +671,8 @@ onMounted(async () => {
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
-.btn-gps { background: linear-gradient(135deg, #ef4444 0%, #e4e1e1 100%); color: white; border: none; font-weight: 900; cursor: pointer; border-radius: 16px; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.15); }
+.btn-gps-action { color: white; border: none; font-weight: 900; cursor: pointer; border-radius: 16px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+.btn-gps-action:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .autocomplete-list { position: absolute; z-index: 2000; width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.2); max-height: 250px; overflow-y: auto; list-style: none; padding: 10px; margin: 8px 0 0; }
 .autocomplete-list li { padding: 12px 16px; cursor: pointer; border-radius: 12px; border-bottom: 1px solid #f8fafc; transition: all 0.2s; }
@@ -675,7 +692,7 @@ onMounted(async () => {
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23dc2626' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
+select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23dc2626' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
 
 .table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
 .table-cell { padding: 12px 16px; vertical-align: middle; }
@@ -687,4 +704,6 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 .btn-icon-delete:hover { color: #dc2626; }
 .btn-icon-delete-simple { background: none; border: none; color: #cbd5e1; font-size: 0.9rem; cursor: pointer; transition: color 0.2s; }
 .btn-icon-delete-simple:hover { color: #dc2626; }
+
+.btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-3 px-8 rounded-2xl text-sm font-black transition-all hover:bg-slate-50 text-black; }
 </style>

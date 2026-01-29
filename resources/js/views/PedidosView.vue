@@ -487,9 +487,9 @@ const errors = reactive({
 // Validación de Unicidad
 const validatingFields = reactive({ rfc: false, correo: false, telefono: false });
 const fieldValidation = reactive({
-    rfc: { error: false },
-    correo: { error: false },
-    telefono: { error: false }
+    rfc: { error: false, message: '' },
+    correo: { error: false, message: '' },
+    telefono: { error: false, message: '' }
 });
 
 const isFormBlockedByDuplicates = computed(() => {
