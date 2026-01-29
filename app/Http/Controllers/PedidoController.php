@@ -95,11 +95,11 @@ class PedidoController extends Controller
             // Datos del Receptor (Indispensables)
             'receiver.persona_recibe' => 'required|string|max:255',
             'receiver.rfc' => 'required|string|min:12|max:13',
-            'receiver.regimen_fiscal' => 'nullable|string',
+            'receiver.regimen_fiscal' => 'nullable|string|max:255', // Ajustado a texto largo
             'receiver.telefono' => 'required|string',
             'receiver.correo' => 'required|email',
             'receiver.cp' => 'required|string|size:5',
-            'receiver.estado' => 'required|string', // <--- AGREGADO: Validación de estado
+            'receiver.estado' => 'required|string', 
             'receiver.municipio' => 'required|string',
             'receiver.colonia' => 'required|string',
             'receiver.calle_num' => 'required|string',
@@ -124,19 +124,16 @@ class PedidoController extends Controller
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
                 $receptorId = null;
 
-                // ACTUALIZACIÓN: Se incluye el campo 'estado' en la dirección formateada para persistencia
+                // Construcción de la dirección completa incluyendo el estado
                 $direccionFormateada = $validatedData['receiver']['calle_num'] . 
                                        ", Col. " . $validatedData['receiver']['colonia'] . 
                                        ", " . $validatedData['receiver']['municipio'] . 
-                                       ", " . $validatedData['receiver']['estado'] . // <--- AÑADIDO
+                                       ", " . $validatedData['receiver']['estado'] . 
                                        ", CP " . $validatedData['receiver']['cp'];
 
-                // SOLUCIÓN AL ERROR DE TRUNCADO: 
-                // Si la base de datos no tiene 'entrega', lo mapeamos a 'none' para evitar el crash
-                // mientras el usuario actualiza su migración.
+                // Compatibilidad de entrega directa
                 $deliveryValue = $validatedData['logistics']['deliveryOption'];
                 if ($deliveryValue === 'entrega') {
-                    // Verificamos si el motor de DB soporta 'entrega', si no, enviamos 'none'
                     $deliveryValue = 'none'; 
                 }
 
@@ -148,7 +145,7 @@ class PedidoController extends Controller
                         ->first();
 
                     if ($duplicado) {
-                        throw new \Exception("Los datos ingresados ya pertenecen a un registro existente ({$duplicado->nombre}).");
+                        throw new \Exception("Los datos ingresados pertenecen a un registro existente ({$duplicado->nombre}).");
                     }
 
                     $receptor = PedidoReceptor::create([
@@ -161,28 +158,31 @@ class PedidoController extends Controller
                     ]);
                     $receptorId = $receptor->id;
                 } else {
-                    // MODO CLIENTE: Actualizamos la ficha maestra en lugar de crear un receptor nuevo duplicado
+                    // MODO CLIENTE: Sincronizamos la ficha maestra
                     $cliente = Cliente::findOrFail($validatedData['clientId']);
                     $cliente->update([
-                        'rfc' => strtoupper($validatedData['receiver']['rfc']),
-                        'email' => $validatedData['receiver']['correo'],
-                        'telefono' => $validatedData['receiver']['telefono'],
-                        'direccion' => $direccionFormateada
+                        'contacto'       => $validatedData['receiver']['persona_recibe'],
+                        'rfc'            => strtoupper($validatedData['receiver']['rfc']),
+                        'regimen_fiscal' => $validatedData['receiver']['regimen_fiscal'], // Guarda el texto completo
+                        'email'          => $validatedData['receiver']['correo'],
+                        'telefono'       => $validatedData['receiver']['telefono'],
+                        'direccion'      => $direccionFormateada
                     ]);
                 }
 
                 $pedido = Pedido::create([
-                    'user_id'           => $ownerId,
-                    'cliente_id'        => $validatedData['clientId'],
-                    'prioridad'         => $validatedData['prioridad'],
-                    'tipo_pedido'       => $request->tipo_pedido ?? 'normal',
-                    'receptor_id'       => $receptorId,
-                    'receiver_type'     => $validatedData['receiverType'],
-                    'delivery_option'   => $deliveryValue, // Valor corregido para evitar error 1265
-                    'paqueteria_nombre' => $validatedData['logistics']['paqueteria_nombre'] ?? null,
-                    'delivery_address'  => $direccionFormateada,
-                    'comments'          => $validatedData['comments'] ?? $validatedData['logistics']['comentarios_logistica'],
-                    'status'            => 'PENDIENTE',
+                    'user_id'                => $ownerId,
+                    'cliente_id'             => $validatedData['clientId'],
+                    'prioridad'              => $validatedData['prioridad'],
+                    'tipo_pedido'            => $request->tipo_pedido ?? 'normal',
+                    'receptor_id'            => $receptorId,
+                    'receiver_type'          => $validatedData['receiverType'],
+                    'receiver_regimen_fiscal'=> $validatedData['receiver']['regimen_fiscal'], // Se añade al pedido
+                    'delivery_option'        => $deliveryValue,
+                    'paqueteria_nombre'      => $validatedData['logistics']['paqueteria_nombre'] ?? null,
+                    'delivery_address'       => $direccionFormateada,
+                    'comments'               => $validatedData['comments'] ?? $validatedData['logistics']['comentarios_logistica'],
+                    'status'                 => 'PENDIENTE',
                 ]);
                 
                 $referencia = "PED" . Carbon::now()->format('dmy') . $pedido->id; 
@@ -204,7 +204,7 @@ class PedidoController extends Controller
             });
         } catch (\Exception $e) {
             Log::error("Error en store Pedido: " . $e->getMessage());
-            return response()->json(['message' => 'Error: ' . $e->getMessage()], 422);
+            return response()->json(['message' => 'Fallo de Servidor: ' . $e->getMessage()], 422);
         }
     }
 

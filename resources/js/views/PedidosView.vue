@@ -174,11 +174,11 @@
 
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal</label>
-                                    <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs text-red-700 uppercase">
+                                    <select v-model="orderForm.receiver.regimen_fiscal" class="form-input font-bold text-xs text-red-700 uppercase">
                                         <option value="">Seleccionar...</option>
-                                        <option value="601">601 - General Morales</option>
-                                        <option value="612">612 - PF Act. Empresarial</option>
-                                        <option value="626">626 - RESICO</option>
+                                        <option value="601 - General de Ley Personas Morales">601 - General Morales</option>
+                                        <option value="612 - Personas Físicas con Actividades Empresariales y Profesionales">612 - PF Act. Empresarial</option>
+                                        <option value="626 - Régimen Simplificado de Confianza">626 - RESICO</option>
                                     </select>
                                 </div>
                             </div>
@@ -484,7 +484,7 @@ const errors = reactive({
     colonia: false, calle_num: false, items: false
 });
 
-// Validación de Unicidad (Para evitar duplicados en 'nuevo')
+// Validación de Unicidad
 const validatingFields = reactive({ rfc: false, correo: false, telefono: false });
 const fieldValidation = reactive({
     rfc: { error: false },
@@ -660,9 +660,9 @@ const addItemToCart = () => {
         systemModal.title = 'Material Incompleto';
         systemModal.type = 'error';
         systemModal.errorList = [
-            !currentOrderItem.bookId ? "Debe seleccionar un libro de la lista." : null,
-            currentOrderItem.sub_type === '' ? "Debe elegir el formato." : null,
-            currentOrderItem.quantity < 1 ? "La cantidad debe ser mayor a 0." : null
+            !currentOrderItem.bookId ? "Debe seleccionar un libro de la lista de resultados." : null,
+            currentOrderItem.sub_type === '' ? "Debe elegir el formato o tipo de licencia." : null,
+            currentOrderItem.quantity < 1 ? "La cantidad debe ser al menos 1 unidad." : null
         ].filter(msg => msg !== null);
         systemModal.visible = true;
         return;
@@ -740,6 +740,9 @@ const submitOrder = async () => {
         const finalData = JSON.parse(JSON.stringify(orderForm));
         
         if (orderForm.receiverType === 'cliente') {
+            const estadoObj = estados.value.find(e => e.id === selectedCliente.value.estado_id);
+            const nombreEstado = estadoObj ? estadoObj.estado : 'No definido';
+
             finalData.receiver = {
                 persona_recibe: selectedCliente.value.contacto || selectedCliente.value.name,
                 rfc: selectedCliente.value.rfc,
@@ -747,7 +750,7 @@ const submitOrder = async () => {
                 telefono: selectedCliente.value.telefono,
                 correo: selectedCliente.value.email,
                 cp: selectedCliente.value.cp,
-                estado: selectedCliente.value.estado?.estado || '',
+                estado: nombreEstado,
                 municipio: selectedCliente.value.municipio,
                 colonia: selectedCliente.value.colonia,
                 calle_num: selectedCliente.value.calle_num || selectedCliente.value.direccion
@@ -784,6 +787,7 @@ onMounted(async () => {
     } catch (e) { console.error(e); }
 });
 </script>
+
 <style scoped>
 .label-style { @apply text-xs font-black text-red-600 uppercase tracking-widest mb-2 block; }
 .label-mini { @apply text-[9px] uppercase font-black text-red-500 mb-1 block; }
