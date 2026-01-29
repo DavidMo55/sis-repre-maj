@@ -15,6 +15,7 @@ class PedidoReceptor extends Model
         'cliente_id',
         'nombre',
         'rfc',
+        'receiver_regimen_fiscal',
         'telefono',
         'correo',
         'direccion',

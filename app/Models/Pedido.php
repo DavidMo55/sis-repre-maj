@@ -17,6 +17,7 @@ class Pedido extends Model
         'numero_referencia',
         'user_id',
         'cliente_id',
+        'receiver_regimen_fiscal',
         'tipo_pedido',
         'prioridad',
         'receptor_id',      // Enlace a pedido_receptores

@@ -92,10 +92,9 @@ public function store(Request $request)
             'prioridad' => 'required|in:baja,media,alta',
             'receiverType' => 'required|in:cliente,nuevo',
             
-            // Datos del Receptor (Indispensables)
             'receiver.persona_recibe' => 'required|string|max:255',
             'receiver.rfc' => 'required|string|min:12|max:13',
-            'receiver.regimen_fiscal' => 'nullable|string|max:255', // Soporta el texto completo
+            'receiver.regimen_fiscal' => 'required|string|max:255', 
             'receiver.telefono' => 'required|string',
             'receiver.correo' => 'required|email',
             'receiver.cp' => 'required|string|size:5',
@@ -104,7 +103,6 @@ public function store(Request $request)
             'receiver.colonia' => 'required|string',
             'receiver.calle_num' => 'required|string',
             
-            // Logística
             'logistics.deliveryOption' => 'required|in:paqueteria,recoleccion,entrega',
             'logistics.paqueteria_nombre' => 'nullable|required_if:logistics.deliveryOption,paqueteria|string',
             'logistics.comentarios_logistica' => 'nullable|string',
@@ -124,46 +122,46 @@ public function store(Request $request)
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
                 $receptorId = null;
 
-                // Construcción de la dirección completa incluyendo el estado
                 $direccionFormateada = $validatedData['receiver']['calle_num'] . 
                                        ", Col. " . $validatedData['receiver']['colonia'] . 
                                        ", " . $validatedData['receiver']['municipio'] . 
                                        ", " . $validatedData['receiver']['estado'] . 
                                        ", CP " . $validatedData['receiver']['cp'];
 
-                // Compatibilidad de entrega directa para evitar error de truncado
                 $deliveryValue = $validatedData['logistics']['deliveryOption'];
                 if ($deliveryValue === 'entrega') {
                     $deliveryValue = 'none'; 
                 }
 
                 if ($validatedData['receiverType'] === 'nuevo') {
-                    // VERIFICACIÓN DE SEGURIDAD (DUPLICADOS EN RECEPTORES)
+                    // VERIFICACIÓN DE SEGURIDAD
                     $duplicado = PedidoReceptor::where('rfc', strtoupper($validatedData['receiver']['rfc']))
                         ->orWhere('correo', strtolower($validatedData['receiver']['correo']))
                         ->orWhere('telefono', $validatedData['receiver']['telefono'])
                         ->first();
 
                     if ($duplicado) {
-                        throw new \Exception("Los datos ingresados pertenecen a un registro existente ({$duplicado->nombre}).");
+                        throw new \Exception("Los datos ya pertenecen a un receptor existente ({$duplicado->nombre}).");
                     }
 
+                    // FIX: Incluimos el campo 'receiver_regimen_fiscal' para evitar error 1364
                     $receptor = PedidoReceptor::create([
-                        'cliente_id' => $validatedData['clientId'],
-                        'nombre'     => $validatedData['receiver']['persona_recibe'],
-                        'rfc'        => strtoupper($validatedData['receiver']['rfc']),
-                        'telefono'   => $validatedData['receiver']['telefono'],
-                        'correo'     => $validatedData['receiver']['correo'],
-                        'direccion'  => $direccionFormateada
+                        'cliente_id'              => $validatedData['clientId'],
+                        'nombre'                  => $validatedData['receiver']['persona_recibe'],
+                        'rfc'                     => strtoupper($validatedData['receiver']['rfc']),
+                        'receiver_regimen_fiscal' => $validatedData['receiver']['regimen_fiscal'], // <--- AGREGADO
+                        'telefono'                => $validatedData['receiver']['telefono'],
+                        'correo'                  => $validatedData['receiver']['correo'],
+                        'direccion'               => $direccionFormateada
                     ]);
                     $receptorId = $receptor->id;
                 } else {
-                    // MODO CLIENTE: Sincronizamos la ficha maestra (Tabla 'clientes')
+                    // MODO CLIENTE: Actualizamos la ficha del cliente y NO creamos receptor extra
                     $cliente = Cliente::findOrFail($validatedData['clientId']);
                     $cliente->update([
                         'contacto'       => $validatedData['receiver']['persona_recibe'],
                         'rfc'            => strtoupper($validatedData['receiver']['rfc']),
-                        'regimen_fiscal' => $validatedData['receiver']['regimen_fiscal'], // Guarda el texto completo del régimen
+                        'regimen_fiscal' => $validatedData['receiver']['regimen_fiscal'],
                         'email'          => $validatedData['receiver']['correo'],
                         'telefono'       => $validatedData['receiver']['telefono'],
                         'direccion'      => $direccionFormateada
@@ -177,7 +175,7 @@ public function store(Request $request)
                     'tipo_pedido'            => $request->tipo_pedido ?? 'normal',
                     'receptor_id'            => $receptorId,
                     'receiver_type'          => $validatedData['receiverType'],
-                    'receiver_regimen_fiscal'=> $validatedData['receiver']['regimen_fiscal'], // Se añade al pedido (Folio fiscal)
+                    'receiver_regimen_fiscal'=> $validatedData['receiver']['regimen_fiscal'],
                     'delivery_option'        => $deliveryValue,
                     'paqueteria_nombre'      => $validatedData['logistics']['paqueteria_nombre'] ?? null,
                     'delivery_address'       => $direccionFormateada,
@@ -185,7 +183,7 @@ public function store(Request $request)
                     'status'                 => 'PENDIENTE',
                 ]);
                 
-                $referencia = "PED" . Carbon::now()->format('dmy') . $pedido->id; 
+                $referencia = "PED" . Carbon::now()->format('ymd') . $pedido->id; 
                 $pedido->update(['numero_referencia' => $referencia]);
 
                 foreach ($validatedData['items'] as $item) {
@@ -200,11 +198,11 @@ public function store(Request $request)
                     ]);
                 }
 
-                return response()->json(['message' => 'Pedido generado correctamente.', 'order_id' => $referencia], 201);
+                return response()->json(['message' => 'Pedido generado.', 'order_id' => $referencia], 201);
             });
         } catch (\Exception $e) {
             Log::error("Error en store Pedido: " . $e->getMessage());
-            return response()->json(['message' => 'Fallo de Servidor: ' . $e->getMessage()], 422);
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 422);
         }
     }
 

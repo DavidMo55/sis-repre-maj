@@ -71,7 +71,7 @@
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'recoleccion'}">
                                     <input type="radio" value="recoleccion" v-model="orderForm.logistics.deliveryOption" class="hidden">
                                     <i class="fas fa-warehouse"></i>
-                                    <span>Recolección</span>
+                                    <span>Recolección en Almacén</span>
                                 </label>
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'entrega'}">
                                     <input type="radio" value="entrega" v-model="orderForm.logistics.deliveryOption" class="hidden">
@@ -87,7 +87,7 @@
                                 </div>
                                 <div v-if="['recoleccion', 'entrega'].includes(orderForm.logistics.deliveryOption)">
                                     <label class="label-mini">Instrucciones / Referencias Logísticas:</label>
-                                    <textarea v-model="orderForm.logistics.comentarios_logistica" class="form-input text-red-600 font-medium" rows="2" placeholder="Ej: Pasará el chofer el viernes..."></textarea>
+                                    <textarea v-model="orderForm.logistics.comentarios_logistica" class="form-input text-red-600 font-medium" rows="2" required minlength="10" placeholder="Ej: Pasará el chofer el viernes..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -99,17 +99,17 @@
                             <div class="flex gap-6">
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="cliente" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600" :disabled="!orderForm.clientId">
-                                    <span class="text-sm font-bold text-red-700 group-hover:text-black transition-colors">Último registro</span>
+                                    <span class="text-sm font-bold text-red-700 group-hover:text-black transition-colors">Usar datos del cliente</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="nuevo" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
-                                    <span class="text-sm font-bold text-red-700 group-hover:text-black transition-colors">Ingresar nuevos</span>
+                                    <span class="text-sm font-bold text-red-700 group-hover:text-black transition-colors">Ingresar datos</span>
                                 </label>
                             </div>
                         </div>
 
                         <!-- FICHA RESUMEN DEL CLIENTE -->
-                        <div v-if="orderForm.receiverType === 'cliente'" class="animate-fade-in">
+                   <div v-if="orderForm.receiverType === 'cliente'" class="animate-fade-in">
                             <div v-if="selectedCliente" class="receiver-summary-card shadow-sm border border-red-100 rounded-[2.5rem] p-8 bg-white relative overflow-hidden group">
                                 <div class="relative z-10 space-y-1">
                                     <p class="text-[10px] font-black text-red-400 uppercase tracking-[0.2em] mb-3">Información de Envío Registrada</p>
@@ -119,8 +119,17 @@
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span :class="selectedCliente.rfc ? 'text-black font-black' : 'text-red-500 italic font-black'">{{ selectedCliente.rfc || 'FALTA RFC EN SISTEMA' }}</span></p>
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-envelope mr-2 text-red-300"></i> {{ selectedCliente.email || 'SIN CORREO' }}</p>
                                     </div>
+
+                                    <!-- Régimen Fiscal como Texto Informativo -->
+                                    <div class="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Régimen Fiscal Registrado</label>
+                                        <p class="text-xs font-bold text-slate-800 uppercase flex items-center">
+                                            <i class="fas fa-file-invoice text-red-700 mr-2"></i>
+                                            {{ selectedCliente.regimen_fiscal || 'Sin régimen registrado en el sistema' }}
+                                        </p>
+                                    </div>
                                     
-                                    <p class="text-xs text-red-500 mt-4 italic font-medium leading-relaxed">
+                                   <p class="text-xs text-red-500 mt-4 italic font-medium leading-relaxed">
                                         <i class="fas fa-map-marker-alt mr-2 text-red-400"></i> 
                                         {{ selectedCliente.direccion || 'Sin dirección registrada en la ficha maestra' }}
                                     </p>
@@ -130,11 +139,11 @@
                             <div v-else class="text-center py-16 border-2 border-dashed border-red-100 rounded-[2.5rem] bg-red-50/10">
                                 <i class="fas fa-exclamation-triangle text-red-300 text-6xl mb-4"></i>
                                 <p class="text-red-800 font-black uppercase text-xs tracking-[0.3em] italic">
-                                    No se ha seleccionado ningún cliente.<br>
-                                    Por favor, busque y seleccione un plantel o distribuidor.
+                                    No se ha seleccionado ningún cliente.
                                 </p>
                             </div>
                         </div>
+
 
                         <!-- FORMULARIO: DATOS NUEVOS (Con bloqueo de duplicados) -->
                         <div v-if="orderForm.receiverType === 'nuevo'" class="animate-fade-in space-y-6 bg-white border border-red-100 p-8 rounded-[3rem] shadow-sm">
@@ -173,8 +182,8 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="label-style">Régimen Fiscal</label>
-                                    <select v-model="orderForm.receiver.regimen_fiscal" class="form-input font-bold text-xs text-red-700 uppercase">
+                                    <label class="label-style">Régimen Fiscal *</label>
+                                    <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs text-red-700 uppercase">
                                         <option value="">Seleccionar...</option>
                                         <option value="601 - General de Ley Personas Morales">601 - General Morales</option>
                                         <option value="612 - Personas Físicas con Actividades Empresariales y Profesionales">612 - PF Act. Empresarial</option>
@@ -229,20 +238,18 @@
                                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                                     <div class="form-group relative">
                                         <label class="label-mini">C.P. *</label>
-                                        <input v-model="orderForm.receiver.cp" required type="text" class="form-input font-mono font-black text-red-700 shadow-sm" :class="{'border-red-600 bg-red-50': errors.cp}" maxlength="5" @input="handleCPInput" placeholder="00000">
+                                        <input v-model="orderForm.receiver.cp" required type="text" class="form-input font-mono font-black" maxlength="5" @input="handleCPInput" placeholder="00000">
                                         <i v-if="searchingCP" class="fas fa-spinner fa-spin absolute right-3 top-10 text-red-600"></i>
                                     </div>
-                                    <div class="form-group"><label class="label-mini">Estado</label><input v-model="orderForm.receiver.estado" type="text" placeholder="Ingrese CP" class="form-input bg-white font-bold text-red-700" readonly></div>
-                                    <div class="form-group md:col-span-2"><label class="label-mini">Municipio / Alcaldía</label><input v-model="orderForm.receiver.municipio" type="text" placeholder="Ingrese CP" class="form-input bg-white font-bold text-red-700" readonly></div>
+                                    <div class="form-group"><label class="label-mini">Estado</label><input v-model="orderForm.receiver.estado" type="text" placeholder="Ingrese CP" class="form-input bg-white font-bold text-red-800" readonly></div>
+                                    <div class="form-group md:col-span-2"><label class="label-mini">Municipio / Alcaldía</label><input v-model="orderForm.receiver.municipio" type="text" placeholder="Ingrese CP" class="form-input bg-white font-bold text-red-800" readonly></div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="form-group">
                                         <label class="label-mini">Colonia / Asentamiento *</label>
                                         <select v-model="orderForm.receiver.colonia" required class="form-input font-bold text-red-700 uppercase" :class="{'border-red-600 bg-red-50': errors.colonia}" :disabled="!colonias.length">
                                             <option value="" disabled>{{ colonias.length ? 'Seleccione colonia...' : 'Ingrese CP' }}</option>
-                                            <option v-for="(col, idx) in colonias" :key="idx" :value="col.colonia || col">
-                                                {{ col.colonia || col }}
-                                            </option>
+                                            <option v-for="(col, idx) in colonias" :key="idx" :value="col">{{ col }}</option>
                                         </select>
                                     </div>
                                     <div class="form-group"><label  class="label-mini">Calle y Número *</label><input required minlength="10" v-model="orderForm.receiver.calle_num" type="text" class="form-input font-bold text-red-700" :class="{'border-red-600 bg-red-50': errors.calle_num}" placeholder="Ej: Av. Juárez 123"></div>
@@ -471,7 +478,6 @@ const loading = ref(false);
 const searchingLibros = ref(false);
 const searchingClients = ref(false);
 const searchingCP = ref(false);
-const generatedOrderId = ref('');
 const clientSuggestions = ref([]);
 const estados = ref([]);
 const colonias = ref([]);
@@ -519,6 +525,17 @@ const currentOrderItem = reactive({
     bookSuggestions: [],
 });
 
+/**
+ * REGLA: Mapeo de Texto de Estado (Sincronización Reactiva)
+ * Resuelve el ID foráneo de la ficha del cliente a un nombre legible.
+ */
+const selectedClienteEstadoNombre = computed(() => {
+    if (!selectedCliente.value || !selectedCliente.value.estado_id) return 'No definido';
+    // Conversión a Number para asegurar comparación correcta
+    const match = estados.value.find(e => Number(e.id) === Number(selectedCliente.value.estado_id));
+    return match ? match.estado : 'No definido';
+});
+
 watch(() => currentOrderItem.tipo_material, (val) => {
     currentOrderItem.bookName = '';
     currentOrderItem.bookId = null;
@@ -529,6 +546,7 @@ watch(() => currentOrderItem.tipo_material, (val) => {
 
 /**
  * REGLA: Verificación de Unicidad campo por campo
+ * Bloquea el formulario si encuentra una coincidencia exacta en la BD de receptores.
  */
 const validateUniqueness = async (field) => {
     let val = '';
@@ -601,11 +619,11 @@ const fetchAddressByCP = async (cp, preserveColonia = false) => {
 const resetAddress = () => { orderForm.receiver.estado = ''; orderForm.receiver.municipio = ''; orderForm.receiver.colonia = ''; colonias.value = []; };
 
 const searchClients = () => {
-    let clientTimeout = null;
-    clearTimeout(clientTimeout);
+    let clientTimer = null;
     if (orderForm.clientName.length < 3) { clientSuggestions.value = []; return; }
     searchingClients.value = true;
-    clientTimeout = setTimeout(async () => {
+    if (clientTimer) clearTimeout(clientTimer);
+    clientTimer = setTimeout(async () => {
         try {
             const res = await axios.get('/search/clientes', { params: { query: orderForm.clientName, include_prospectos: true } });
             clientSuggestions.value = res.data;
@@ -620,6 +638,9 @@ const selectClient = (c) => {
     orderForm.clientName = c.name;
     selectedCliente.value = c; 
     clientSuggestions.value = [];
+    
+    // REGLA: Cargar el Régimen Fiscal actual del cliente al formulario para sincronización interna
+    orderForm.receiver.regimen_fiscal = c.regimen_fiscal || '';
 };
 
 const searchBooks = async () => {
@@ -681,7 +702,7 @@ const addItemToCart = () => {
     });
 
     const lastType = currentOrderItem.tipo_material;
-    Object.assign(currentOrderItem, { bookId: null, bookName: '', sub_type: '', category: '', quantity: 1, price: 0, bookSuggestions: [], tipo_material: lastType });
+    Object.assign(currentOrderItem, { bookId: null, bookName: '', sub_type: '', category: '', quantity: 1, price: 0, bookSuggestions: [] });
 };
 
 const orderTotal = computed(() => orderForm.orderItems.reduce((s, i) => s + i.totalCost, 0));
@@ -699,6 +720,7 @@ const validateForm = () => {
         if (!orderForm.receiver.cp || orderForm.receiver.cp.length !== 5) { errors.cp = true; list.push("Sección 2: C.P. obligatorio."); }
         if (!orderForm.receiver.colonia) { errors.colonia = true; list.push("Sección 2: Colonia obligatoria."); }
         if (!orderForm.receiver.calle_num) { errors.calle_num = true; list.push("Sección 2: Calle y número."); }
+        if (!orderForm.receiver.regimen_fiscal) { list.push("Sección 2: El régimen fiscal es obligatorio."); }
         
         if (isFormBlockedByDuplicates.value) {
             list.push("Existen datos duplicados (RFC, Correo o Teléfono) que ya pertenecen a un registro guardado.");
@@ -706,6 +728,7 @@ const validateForm = () => {
     } else {
         if (!selectedCliente.value?.rfc) list.push("La ficha del cliente no tiene RFC registrado.");
         if (!selectedCliente.value?.direccion) list.push("La ficha del cliente no tiene dirección registrada.");
+        if (!orderForm.receiver.regimen_fiscal) list.push("El cliente no tiene un régimen fiscal asignado en su ficha maestra.");
     }
 
     if (orderForm.orderItems.length === 0) { errors.items = true; list.push("Sección 3: No hay libros en la canasta."); }
@@ -740,21 +763,21 @@ const submitOrder = async () => {
         const finalData = JSON.parse(JSON.stringify(orderForm));
         
         if (orderForm.receiverType === 'cliente') {
-            const estadoObj = estados.value.find(e => e.id === selectedCliente.value.estado_id);
-            const nombreEstado = estadoObj ? estadoObj.estado : 'No definido';
-
             finalData.receiver = {
                 persona_recibe: selectedCliente.value.contacto || selectedCliente.value.name,
                 rfc: selectedCliente.value.rfc,
-                regimen_fiscal: selectedCliente.value.regimen_fiscal,
+                regimen_fiscal: orderForm.receiver.regimen_fiscal, 
                 telefono: selectedCliente.value.telefono,
                 correo: selectedCliente.value.email,
                 cp: selectedCliente.value.cp,
-                estado: nombreEstado,
+                estado: selectedClienteEstadoNombre.value,
                 municipio: selectedCliente.value.municipio,
                 colonia: selectedCliente.value.colonia,
                 calle_num: selectedCliente.value.calle_num || selectedCliente.value.direccion
             };
+        } else {
+            // MODO NUEVO: Sincronizar el campo esperado por el backend
+            finalData.receiver.regimen_fiscal = orderForm.receiver.regimen_fiscal;
         }
 
         const itemsPayload = orderForm.orderItems.map(i => ({
@@ -766,7 +789,6 @@ const submitOrder = async () => {
         }));
 
         const res = await axios.post('/pedidos', { ...finalData, items: itemsPayload });
-        generatedOrderId.value = res.data.order_id;
         systemModal.type = 'success';
         systemModal.visible = true;
     } catch (e) { 

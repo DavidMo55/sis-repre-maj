@@ -17,7 +17,7 @@ class SearchController extends Controller
      * Filtra estrictamente por tipos autorizados para venta y estatus activo.
      */
     public function searchClientes(Request $request)
-{
+    {   
     $query = $request->input('query');
 
     if (empty($query) || strlen($query) < 3) {
@@ -33,12 +33,13 @@ class SearchController extends Controller
                 'contacto', 
                 'telefono', 
                 'email',
-                'rfc',            // <--- AGREGADO
-                'regimen_fiscal', // <--- AGREGADO
-                'cp',             // <--- AGREGADO
-                'municipio',      // <--- AGREGADO
-                'colonia',        // <--- AGREGADO
-                'calle_num'       // <--- AGREGADO
+                'rfc',            
+                'regimen_fiscal', 
+                'cp',             
+                'municipio',      
+                'colonia',        
+                'calle_num',      
+                'estado_id'
             )
             ->where('name', 'like', "%{$query}%")
             ->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR'])

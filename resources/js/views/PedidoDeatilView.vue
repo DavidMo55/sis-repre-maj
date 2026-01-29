@@ -48,9 +48,6 @@
                                     {{ pedido.cliente?.name || 'No disponible' }}
                                 </p>
                             </div>
-
-                            <!-- Datos del Destinatario (Extraídos de pedido_receptores si es nuevo) -->
-                            
                         </div>
                     </div>
 
@@ -103,7 +100,7 @@
                             <br>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="bg-red-50/30 p-2.5 rounded-xl border border-red-100 min-w-0">
-                                    <label class="label-mini label-large">Método</label>
+                                    <label class="label-mini label-large">Método de Envío</label>
                                    
                                     <span class="text-[10px] font-black text-red-700    value-text     uppercase truncate block">{{ getDeliveryOption(pedido.delivery_option) }}</span>
                                 </div>
@@ -347,9 +344,9 @@ const formatFullAddress = (p) => {
 const getDeliveryOption = (option) => {
     switch (option) {
         case 'recoleccion': return 'ALMACÉN';
-        case 'paqueteria': return 'PAQUETERÍA';
-        case 'entrega': return 'DIRECTA';
-        default: return 'SUCURSAL';
+        case 'paqueteria': return 'Paquetería';
+        case 'entrega': return 'Entrega Directa';
+        default: return 'Recolección en Almacén';
     }
 };
 
