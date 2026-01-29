@@ -50,6 +50,16 @@
                             </div>
 
                             <!-- Datos del Destinatario (Extraídos de pedido_receptores si es nuevo) -->
+                            
+                        </div>
+                    </div>
+
+                    <!-- Logística y Dirección -->
+                    <div class="info-card shadow-premium border-t-4 border-t-slate-800 bg-white p-6 rounded-3xl">
+                        <div class="section-title  !mb-6">
+                            <i class="fas fa-truck text-slate-800"></i> 2. Logística y Destino
+                        </div>
+                        <div class="space-y-4">
                             <div>
                                 <label class="label-mini text-red-800 label-large  font-bold">Datos Fiscales y Dirección:</label>
                                 <p class="text-base font-black  value-text  text-slate-900 uppercase break-words leading-tight">
@@ -63,6 +73,12 @@
                                         {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.rfc || 'N/A') : (pedido.cliente?.rfc || 'N/A') }}
                                     </p>
                                 </div>
+                                <div class="pb-3 border-b border-slate-50">
+                                <label class="label-mini  label-large  text-slate-400">Regimen Fiscal</label>
+                                <p class="text-sm font-black text-slate-800   value-text      uppercase leading-tight truncate" :title="pedido.cliente?.name">
+                                    {{ pedido.cliente?.regimen_fiscal || 'No disponible' }}
+                                </p>
+                            </div>
                                 <div>
                                     <label class="label-mini label-large">Teléfono</label>
                                     <p class="text-[10px] font-black        text-slate-700 truncate">
@@ -77,15 +93,6 @@
                                     {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.correo || '---') : (pedido.cliente?.email || '---') }}
                                 </p>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Logística y Dirección -->
-                    <div class="info-card shadow-premium border-t-4 border-t-slate-800 bg-white p-6 rounded-3xl">
-                        <div class="section-title  !mb-6">
-                            <i class="fas fa-truck text-slate-800"></i> 2. Logística y Destino
-                        </div>
-                        <div class="space-y-4">
                             <div>
                                 <label class="label-mini label-large text-slate-400 uppercase">Dirección de Envío</label>
                                 <div class="text-[11px]        text-slate-600 leading-relaxed font-medium italic bg-slate-50 p-3 rounded-xl border border-slate-100 break-words">

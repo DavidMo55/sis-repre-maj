@@ -87,7 +87,7 @@
                                 </div>
                                 <div v-if="['recoleccion', 'entrega'].includes(orderForm.logistics.deliveryOption)">
                                     <label class="label-mini">Instrucciones / Referencias Logísticas:</label>
-                                    <textarea v-model="orderForm.logistics.comentarios_logistica" class="form-input text-red-600 font-medium" rows="2" required minlength="10" placeholder="Ej: Pasará el chofer el viernes..."></textarea>
+                                    <textarea v-model="orderForm.logistics.comentarios_logistica" class="form-input text-red-600 font-medium" rows="2" placeholder="Ej: Pasará el chofer el viernes..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -484,12 +484,12 @@ const errors = reactive({
     colonia: false, calle_num: false, items: false
 });
 
-// Validación de Unicidad
+// Validación de Unicidad (Para evitar duplicados en 'nuevo')
 const validatingFields = reactive({ rfc: false, correo: false, telefono: false });
 const fieldValidation = reactive({
-    rfc: { error: false, message: '' },
-    correo: { error: false, message: '' },
-    telefono: { error: false, message: '' }
+    rfc: { error: false },
+    correo: { error: false },
+    telefono: { error: false }
 });
 
 const isFormBlockedByDuplicates = computed(() => {
@@ -529,7 +529,6 @@ watch(() => currentOrderItem.tipo_material, (val) => {
 
 /**
  * REGLA: Verificación de Unicidad campo por campo
- * Bloquea el formulario si encuentra una coincidencia exacta en la BD de receptores.
  */
 const validateUniqueness = async (field) => {
     let val = '';
@@ -785,7 +784,6 @@ onMounted(async () => {
     } catch (e) { console.error(e); }
 });
 </script>
-
 <style scoped>
 .label-style { @apply text-xs font-black text-red-600 uppercase tracking-widest mb-2 block; }
 .label-mini { @apply text-[9px] uppercase font-black text-red-500 mb-1 block; }
