@@ -20,9 +20,11 @@ class GastoController extends Controller
     private $maxFileSize = 3072; // 3MB
 
     /**
-     * Listado de gastos del representante (o sus delegados) con carga de comprobantes.
+     * Listado de gastos.
+     * REGLA: Ordenamos por ID descendente para que el registro recién creado 
+     * aparezca siempre al principio, incluso si tiene una fecha de gasto antigua.
      */
-  public function index(Request $request)
+    public function index(Request $request)
     {
         try {
             $user = $request->user();
@@ -34,18 +36,19 @@ class GastoController extends Controller
                 $query->whereBetween('fecha', [$request->fecha_desde, $request->fecha_hasta]);
             }
             
-            return response()->json($query->orderBy('fecha', 'desc')->paginate(15));
+            // CORRECCIÓN: Cambiado de 'fecha' a 'id' para empujar nuevos registros arriba
+            return response()->json($query->orderBy('id', 'desc')->paginate(15));
         } catch (\Exception $e) {
+            Log::error("Error en index de gastos: " . $e->getMessage());
             return response()->json(['message' => 'Error al obtener gastos'], 500);
         }
     }
 
     /**
-     * Registro inicial de un gasto.
+     * Registro inicial de un paquete de gastos.
      */
-public function store(Request $request)
+    public function store(Request $request)
     {
-        // Validamos la nueva estructura
         $request->validate([
             'fecha'         => 'required|date',
             'estado_nombre' => 'required|string',
@@ -60,18 +63,16 @@ public function store(Request $request)
             $user = $request->user();
             $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-            // Determinamos si el paquete tiene facturas (Si al menos un subgasto es facturado)
             $tieneFactura = collect($request->conceptos)->contains('es_facturado', true);
 
-            // Creamos el registro "Padre"
             $gasto = Gasto::create([
                 'user_id'       => $ownerId,
                 'fecha'         => $request->fecha,
                 'estado_nombre' => $request->estado_nombre,
-                'concepto'      => $request->estado_nombre,
+                'concepto'      => "Paquete de gastos: " . $request->estado_nombre,
                 'monto'         => $request->monto_total,
                 'facturado'     => $tieneFactura,
-                'detalles'      => $request->conceptos, // Guardamos el desglose JSON
+                'detalles'      => $request->conceptos, 
             ]);
 
             return response()->json([
@@ -166,10 +167,7 @@ public function store(Request $request)
         }
     }
 
-    /**
-     * Muestra el detalle de un gasto específico.
-     */
-public function show(Request $request, $id)
+    public function show(Request $request, $id)
     {
         $user = $request->user();
         $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
