@@ -69,7 +69,7 @@ class GastoController extends Controller
                 'user_id'       => $ownerId,
                 'fecha'         => $request->fecha,
                 'estado_nombre' => $request->estado_nombre,
-                'concepto'      => "Paquete de gastos: " . $request->estado_nombre,
+                'concepto'      => $request->estado_nombre,
                 'monto'         => $request->monto_total,
                 'facturado'     => $tieneFactura,
                 'detalles'      => $request->conceptos, 
