@@ -183,9 +183,10 @@ public function store(Request $request)
                     'status'                 => 'PENDIENTE',
                 ]);
                 
-                $referencia = "PED -" . Carbon::now()->format('ymd')."-" . $pedido->id; 
-                $pedido->update(['numero_referencia' => $referencia]);
-
+                    $idFormateado = str_pad($pedido->id, 4, '0', STR_PAD_LEFT);
+                    $referencia = 'PED-' . Carbon::now()->format('ymd') . '-' . $idFormateado;
+                    $pedido->update(['numero_referencia' => $referencia]);
+                    
                 foreach ($validatedData['items'] as $item) {
                     PedidoDetalle::create([
                         'pedido_id'       => $pedido->id,
