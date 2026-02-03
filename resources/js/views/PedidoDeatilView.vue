@@ -105,11 +105,22 @@
                                     <span class="text-[10px] font-black text-red-700    value-text     uppercase truncate block">{{ getDeliveryOption(pedido.delivery_option) }}</span>
                                 </div>
                                 <br>
-                                <div v-if="pedido.paqueteria_nombre" class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 min-w-0">
-                                    <label class="label-mini label-large">Empresa de Paquetería</label>
-                                    
-                                    <span class="text-[10px] font-black text-slate-800    value-text    uppercase truncate block">{{ pedido.paqueteria_nombre }}</span>
+                                <!-- Mostrar Empresa si es Paquetería -->
+                                <div v-if="pedido.delivery_option === 'paqueteria'" class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 min-w-0">
+                                    <label class="label-mini label-large">Empresa de Paquetería sugerida por el cliente</label>
+                                    <span class="text-[10px] font-black text-slate-800 value-text uppercase truncate block" :title="pedido.paqueteria_nombre">
+                                        {{ pedido.paqueteria_nombre || 'No especificada' }}
+                                    </span>
                                 </div>
+
+                                <!-- Mostrar Comentario Específico si es Almacén o Entrega -->
+                                <div v-else-if="pedido.commentary_delivery_option" class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 min-w-0">
+                                    <label class="label-mini label-large">Instrucciones / Referencias Logísticas</label>
+                                    <span class="text-[10px] font-black text-slate-800 value-text uppercase truncate block" :title="pedido.commentary_delivery_option">
+                                        {{ pedido.commentary_delivery_option }}
+                                    </span>
+                                </div>
+                                
                             </div>
                             <div>
                                 <br>
@@ -346,7 +357,7 @@ const getDeliveryOption = (option) => {
         case 'recoleccion': return 'ALMACÉN';
         case 'paqueteria': return 'Paquetería';
         case 'entrega': return 'Entrega Directa';
-        default: return 'Recolección en Almacén';
+        default: return 'Entrega Directa';
     }
 };
 

@@ -154,6 +154,7 @@ public function searchReceptorByRFC(Request $request)
     $rfc = $request->query('rfc');
     $correo = $request->query('correo');
     $telefono = $request->query('telefono');
+    $name = $request->query('nombre');
 
     $query = PedidoReceptor::query();
 
@@ -164,6 +165,8 @@ public function searchReceptorByRFC(Request $request)
         $query->where('correo', strtolower($correo));
     } elseif ($telefono) {
         $query->where('telefono', $telefono);
+    } elseif ($name) {
+        $query->where('nombre', strtoupper($name));
     } else {
         return response()->json([]);
     }

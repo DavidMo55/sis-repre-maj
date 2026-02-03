@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute; 
-use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class Pedido extends Model
 {
@@ -17,16 +17,30 @@ class Pedido extends Model
         'numero_referencia',
         'user_id',
         'cliente_id',
-        'receiver_regimen_fiscal',
         'tipo_pedido',
         'prioridad',
-        'receptor_id',      // Enlace a pedido_receptores
-        'receiver_type',    // 'cliente' o 'nuevo'
-        'delivery_option',  // 'recoleccion', 'paqueteria', 'none'
-        'paqueteria_nombre',
+        'receptor_id',
+        'receiver_type',
+        // Datos del Receptor (Snapshot en el pedido)
+        'receiver_nombre',
+        'receiver_rfc',
+        'receiver_regimen_fiscal',
+        'receiver_telefono',
+        'receiver_correo',
+        // Dirección desglosada
+        'delivery_cp',
+        'delivery_municipio',
+        'delivery_colonia',
+        'delivery_calle_num',
         'delivery_address',
+        // Logística
+        'delivery_option',
+        'paqueteria_nombre',
+        'commentary_delivery_option',
+        'comentarios_logistica',
         'comments',
         'status',
+        'factura_path'
     ];
     
     protected $appends = ['display_id', 'total_unidades', 'total_costo']; 

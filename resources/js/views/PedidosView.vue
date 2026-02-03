@@ -63,6 +63,7 @@
                         <div class="form-group">
                             <label class="label-style">Método de Envío:</label>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                                
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'paqueteria'}">
                                     <input type="radio" value="paqueteria" v-model="orderForm.logistics.deliveryOption" class="hidden">
                                     <i class="fas fa-box"></i>
@@ -143,17 +144,18 @@
                                 </p>
                             </div>
                         </div>
-
+                            <br><br>
 
                         <!-- FORMULARIO: DATOS NUEVOS (Con bloqueo de duplicados) -->
-                        <div v-if="orderForm.receiverType === 'nuevo'" class="animate-fade-in space-y-6 bg-white border border-red-100 p-8 rounded-[3rem] shadow-sm">
-                            
-                            <div v-if="isFormBlockedByDuplicates" class="p-4 bg-red-600 text-white rounded-2xl flex items-center gap-4 animate-fade-in shadow-lg">
+                        <div v-if="orderForm.receiverType === 'nuevo'" class="animate-fade-in lbb space-y-6 bg-white border border-red-100 p-8 rounded-[3rem] shadow-sm">
+                            <div classname="mb-4 bg22"> 
+                            <div v-if="isFormBlockedByDuplicates" class="p-4 text-white bg22  rounded-2xl flex items-center gap-4 animate-fade-in shadow-lg">
                                 <i class="fas fa-ban text-2xl"></i>
                                 <div>
-                                    <p class="text-xs font-black uppercase tracking-widest">Acción Prohibida: Datos Duplicados Detectados</p>
-                                    <p class="text-[10px] font-bold opacity-80 mt-1 uppercase italic tracking-tighter">No se permite registrar información (RFC, Correo o Teléfono) que ya pertenezca a otro receptor.</p>
+                                    <p class="text-xs lbb1  uppercase tracking-widest">Acción Prohibida: Datos Duplicados Detectados</p>
+                                    <p class="text-[10px] lbb1 font-bold opacity-80 mt-1 uppercase italic tracking-tighter">No se permite registrar información (RFC, Correo, Nombre o Teléfono) que ya pertenezca a otro receptor.</p>
                                 </div>
+                            </div>
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -176,9 +178,24 @@
                                     </p>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="form-group relative">
                                     <label class="label-style">Destinatario *</label>
-                                    <input v-model="orderForm.receiver.persona_recibe" type="text" required minlength="2" maxlength="255" class="form-input font-bold text-black" :class="{'border-red-600 bg-red-50': errors.persona_recibe}" placeholder="Nombre completo">
+                                    <div class="relative">
+                                        <input 
+                                            v-model="orderForm.receiver.persona_recibe" 
+                                            @blur="validateUniqueness('persona_recibe')" 
+                                            type="text" 
+                                            class="form-input font-bold" 
+                                            :class="{'border-red-600 bg-red-50 ring-2 ring-red-100': fieldValidation.persona_recibe.error}" 
+                                            placeholder="Nombre completo"
+                                            required
+                                            minlength="5"
+                                        >
+                                        <i v-if="validatingFields.persona_recibe" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    </div>
+                                    <p v-if="fieldValidation.persona_recibe.error" class="text-[9px] text-red-600 font-black mt-1 uppercase tracking-tighter italic">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i> Este nombre ya está registrado.
+                                    </p>
                                 </div>
 
                                 <div class="form-group">
@@ -426,7 +443,6 @@
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
                         <h2 class="text-2xl font-black text-black mb-3 uppercase tracking-tighter">¡Pedido Registrado!</h2>
                         <p class="text-sm text-red-600 mb-4 font-bold">La orden ha sido enviada al área de revisión.</p>
-                        <p class="text-xs font-mono font-black text-white bg-red-700 py-2.5 px-6 rounded-xl inline-block mb-8 uppercase tracking-widest">FOLIO: {{ generatedOrderId }}</p>
                         <button @click="closeAndRedirect" class="btn-primary w-full py-5 bg-black border-none shadow-none text-white font-black uppercase tracking-widest">Regresar al Historial</button>
                     </div>
 
@@ -482,148 +498,84 @@ const clientSuggestions = ref([]);
 const estados = ref([]);
 const colonias = ref([]);
 const selectedCliente = ref(null); 
+const generatedOrderId = ref('');
+const manualCloseBlocked = ref(false);
 
-// Estado de errores para señalización visual (Bordes rojos)
-const errors = reactive({
-    clientId: false, persona_recibe: false, rfc: false,
-    correo: false, telefono: false, cp: false,
-    colonia: false, calle_num: false, items: false
-});
-
-// Validación de Unicidad
-const validatingFields = reactive({ rfc: false, correo: false, telefono: false });
-const fieldValidation = reactive({
-    rfc: { error: false, message: '' },
-    correo: { error: false, message: '' },
-    telefono: { error: false, message: '' }
-});
+const errors = reactive({ clientId: false, persona_recibe: false, rfc: false, correo: false, telefono: false, cp: false, colonia: false, calle_num: false, items: false });
+const validatingFields = reactive({ rfc: false, correo: false, telefono: false, persona_recibe: false });
+const fieldValidation = reactive({ rfc: { error: false }, correo: { error: false }, telefono: { error: false }, persona_recibe: { error: false } });
 
 const isFormBlockedByDuplicates = computed(() => {
     if (orderForm.receiverType === 'cliente') return false;
-    return fieldValidation.rfc.error || fieldValidation.correo.error || fieldValidation.telefono.error;
+    return fieldValidation.rfc.error || fieldValidation.correo.error || fieldValidation.telefono.error || fieldValidation.persona_recibe.error;
 });
 
-// Modal de Sistema
 const systemModal = reactive({ visible: false, type: 'success', title: '', errorList: [] });
 
 const orderForm = reactive({
-    prioridad: 'media',
-    clientId: null,
-    clientName: '',
-    receiverType: 'cliente',
-    receiver: { 
-        persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' 
-    },
+    prioridad: 'media', clientId: null, clientName: '', receiverType: 'cliente',
+    receiver: { persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' },
     logistics: { deliveryOption: 'paqueteria', paqueteria_nombre: '', comentarios_logistica: '' },
-    comments: '',
-    orderItems: [], 
+    comments: '', orderItems: [], 
 });
 
-const currentOrderItem = reactive({
-    bookId: null, bookName: '', tipo_material: 'venta', 
-    category: '', sub_type: '', quantity: 1, price: 0,
-    bookSuggestions: [],
-});
+const currentOrderItem = reactive({ bookId: null, bookName: '', tipo_material: 'venta', category: '', sub_type: '', quantity: 1, price: 0, bookSuggestions: [] });
 
-/**
- * REGLA: Mapeo de Texto de Estado (Sincronización Reactiva)
- * Resuelve el ID foráneo de la ficha del cliente a un nombre legible.
- */
 const selectedClienteEstadoNombre = computed(() => {
     if (!selectedCliente.value || !selectedCliente.value.estado_id) return 'No definido';
-    // Conversión a Number para asegurar comparación correcta
     const match = estados.value.find(e => Number(e.id) === Number(selectedCliente.value.estado_id));
     return match ? match.estado : 'No definido';
 });
 
 watch(() => currentOrderItem.tipo_material, (val) => {
-    currentOrderItem.bookName = '';
-    currentOrderItem.bookId = null;
-    currentOrderItem.bookSuggestions = [];
-    currentOrderItem.sub_type = '';
+    currentOrderItem.bookName = ''; currentOrderItem.bookId = null; currentOrderItem.bookSuggestions = []; currentOrderItem.sub_type = '';
     if (val === 'promocion') currentOrderItem.price = 0;
 });
 
-/**
- * REGLA: Verificación de Unicidad campo por campo
- * Bloquea el formulario si encuentra una coincidencia exacta en la BD de receptores.
- */
+watch(() => [orderForm.receiver.rfc, orderForm.receiver.correo, orderForm.receiver.telefono, orderForm.receiver.persona_recibe], () => { manualCloseBlocked.value = false; });
+
 const validateUniqueness = async (field) => {
     let val = '';
-    if (field === 'rfc') val = orderForm.receiver.rfc?.trim().toUpperCase();
-    if (field === 'correo') val = orderForm.receiver.correo?.trim().toLowerCase();
-    if (field === 'telefono') val = orderForm.receiver.telefono?.trim();
+    let queryParam = field; 
+    if (field === 'persona_recibe') { val = orderForm.receiver.persona_recibe?.trim(); queryParam = 'nombre'; }
+    else if (field === 'rfc') val = orderForm.receiver.rfc?.trim().toUpperCase();
+    else if (field === 'correo') val = orderForm.receiver.correo?.trim().toLowerCase();
+    else if (field === 'telefono') val = orderForm.receiver.telefono?.trim();
 
-    if (!val || val.length < 5) {
-        fieldValidation[field].error = false;
-        return;
-    }
-
+    if (!val || val.length < 5) { if(fieldValidation[field]) fieldValidation[field].error = false; return; }
     validatingFields[field] = true;
-    fieldValidation[field].error = false;
-
     try {
-        const res = await axios.get('/search/receptores/rfc', { params: { [field]: val } });
-        if (res.data && res.data.id) {
-            fieldValidation[field].error = true;
-        }
-    } catch (e) {
-        fieldValidation[field].error = false;
-    } finally {
-        validatingFields[field] = false;
-    }
+        const res = await axios.get('/search/receptores/rfc', { params: { [queryParam]: val } });
+        fieldValidation[field].error = !!(res.data && res.data.id);
+    } catch (e) { fieldValidation[field].error = false; }
+    finally { validatingFields[field] = false; }
 };
 
 const availableSubTypes = computed(() => {
     if (!currentOrderItem.bookId) return [];
     const category = currentOrderItem.category?.toLowerCase() || '';
-    const isDigital = category === 'digital';
-    const isPromo = currentOrderItem.tipo_material === 'promocion';
-    
-    if (isPromo) {
-        return isDigital 
-            ? ['Licencia Digital', 'Demo Digital'] 
-            : ['Físico (Muestra Promoción)'];
-    } else {
-        return isDigital 
-            ? ['Libro Digital'] 
-            : ['Pack (Físico + Digital)', 'Solo Físico'];
-    }
+    if (currentOrderItem.tipo_material === 'promocion') return category === 'digital' ? ['Licencia Digital', 'Demo Digital'] : ['Físico (Muestra Promoción)'];
+    return category === 'digital' ? ['Libro Digital'] : ['Pack (Físico + Digital)', 'Solo Físico'];
 });
 
-const handleCPInput = () => {
-    const cp = orderForm.receiver.cp;
-    if (cp && cp.length === 5) fetchAddressByCP(cp);
-    else resetAddress();
-};
+const handleCPInput = () => { if (orderForm.receiver.cp?.length === 5) fetchAddressByCP(orderForm.receiver.cp); };
 
-const fetchAddressByCP = async (cp, preserveColonia = false) => {
+const fetchAddressByCP = async (cp) => {
     searchingCP.value = true;
-    if (!preserveColonia) orderForm.receiver.colonia = '';
-    colonias.value = [];
-    
     try {
-        const res = await axios.get(`/proxy/dipomex`, { params: { cp: cp } });
-        if (res.data && !res.data.error && res.data.codigo_postal) {
-            const data = res.data.codigo_postal;
-            orderForm.receiver.estado = data.estado || '';
-            orderForm.receiver.municipio = data.municipio || '';
-            if (data.colonias && Array.isArray(data.colonias)) {
-                colonias.value = data.colonias.map(c => c.colonia || c);
-                if (!preserveColonia && colonias.value.length === 1) orderForm.receiver.colonia = colonias.value[0];
-            }
+        const res = await axios.get(`/proxy/dipomex`, { params: { cp } });
+        if (res.data && res.data.codigo_postal) {
+            orderForm.receiver.estado = res.data.codigo_postal.estado;
+            orderForm.receiver.municipio = res.data.codigo_postal.municipio;
+            colonias.value = res.data.codigo_postal.colonias.map(c => c.colonia || c);
         }
-    } catch (e) { console.warn("Fallo Dipomex."); } finally { searchingCP.value = false; }
+    } catch (e) { console.warn(e); } finally { searchingCP.value = false; }
 };
-
-const resetAddress = () => { orderForm.receiver.estado = ''; orderForm.receiver.municipio = ''; orderForm.receiver.colonia = ''; colonias.value = []; };
 
 const searchClients = () => {
-    let clientTimer = null;
     if (orderForm.clientName.length < 3) { clientSuggestions.value = []; return; }
     searchingClients.value = true;
-    if (clientTimer) clearTimeout(clientTimer);
-    clientTimer = setTimeout(async () => {
+    setTimeout(async () => {
         try {
             const res = await axios.get('/search/clientes', { params: { query: orderForm.clientName, include_prospectos: true } });
             clientSuggestions.value = res.data;
@@ -633,13 +585,7 @@ const searchClients = () => {
 
 const selectClient = (c) => {
     if (!c) return;
-    errors.clientId = false;
-    orderForm.clientId = c.id;
-    orderForm.clientName = c.name;
-    selectedCliente.value = c; 
-    clientSuggestions.value = [];
-    
-    // REGLA: Cargar el Régimen Fiscal actual del cliente al formulario para sincronización interna
+    errors.clientId = false; orderForm.clientId = c.id; orderForm.clientName = c.name; selectedCliente.value = c; clientSuggestions.value = [];
     orderForm.receiver.regimen_fiscal = c.regimen_fiscal || '';
 };
 
@@ -648,120 +594,41 @@ const searchBooks = async () => {
     searchingLibros.value = true;
     try {
         const res = await axios.get('/search/libros', { params: { query: currentOrderItem.bookName } });
-        const isPromo = currentOrderItem.tipo_material === 'promocion';
         currentOrderItem.bookSuggestions = res.data.filter(b => {
             const bType = b.type?.toLowerCase() || '';
-            return isPromo ? (bType === 'promocion' || bType === 'digital') : (bType === 'venta' || bType === 'digital');
+            return currentOrderItem.tipo_material === 'promocion' ? (bType === 'promocion' || bType === 'digital') : (bType === 'venta' || bType === 'digital');
         });
     } catch (e) { console.error(e); } finally { searchingLibros.value = false; }
 };
 
 const selectBook = (book) => {
-    currentOrderItem.bookId = book.id;
-    currentOrderItem.bookName = book.titulo;
-    currentOrderItem.category = book.type; 
-    currentOrderItem.bookSuggestions = [];
-    currentOrderItem.sub_type = ''; 
-    
-    setTimeout(() => { 
-        if (availableSubTypes.value.length === 1) {
-            currentOrderItem.sub_type = availableSubTypes.value[0];
-        }
-    }, 100);
+    currentOrderItem.bookId = book.id; currentOrderItem.bookName = book.titulo; currentOrderItem.category = book.type; currentOrderItem.bookSuggestions = [];
+    setTimeout(() => { if (availableSubTypes.value.length === 1) currentOrderItem.sub_type = availableSubTypes.value[0]; }, 100);
 };
 
-const isCurrentItemValid = computed(() => {
-    return currentOrderItem.bookId !== null && 
-           currentOrderItem.sub_type !== '' && 
-           currentOrderItem.quantity >= 1;
-});
-
 const addItemToCart = () => {
-    if (!isCurrentItemValid.value) {
-        systemModal.title = 'Material Incompleto';
-        systemModal.type = 'error';
-        systemModal.errorList = [
-            !currentOrderItem.bookId ? "Debe seleccionar un libro de la lista de resultados." : null,
-            currentOrderItem.sub_type === '' ? "Debe elegir el formato o tipo de licencia." : null,
-            currentOrderItem.quantity < 1 ? "La cantidad debe ser al menos 1 unidad." : null
-        ].filter(msg => msg !== null);
-        systemModal.visible = true;
-        return;
-    }
-
-    errors.items = false;
+    if (!currentOrderItem.bookId || !currentOrderItem.sub_type || currentOrderItem.quantity < 1) return;
     orderForm.orderItems.push({
-        id: Date.now(),
-        bookId: currentOrderItem.bookId,
-        bookName: currentOrderItem.bookName,
-        tipo_material: currentOrderItem.tipo_material,
-        sub_type: currentOrderItem.sub_type, 
-        quantity: currentOrderItem.quantity,
-        price: currentOrderItem.price || 0,
-        totalCost: (currentOrderItem.price || 0) * currentOrderItem.quantity
+        id: Date.now(), bookId: currentOrderItem.bookId, bookName: currentOrderItem.bookName, tipo_material: currentOrderItem.tipo_material,
+        sub_type: currentOrderItem.sub_type, quantity: currentOrderItem.quantity, price: currentOrderItem.price || 0, totalCost: (currentOrderItem.price || 0) * currentOrderItem.quantity
     });
-
-    const lastType = currentOrderItem.tipo_material;
     Object.assign(currentOrderItem, { bookId: null, bookName: '', sub_type: '', category: '', quantity: 1, price: 0, bookSuggestions: [] });
 };
 
-const orderTotal = computed(() => orderForm.orderItems.reduce((s, i) => s + i.totalCost, 0));
 const totalUnits = computed(() => orderForm.orderItems.reduce((s, i) => s + i.quantity, 0));
-const formatCurrency = (v) => v.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-
-const validateForm = () => {
-    Object.keys(errors).forEach(key => errors[key] = false);
-    const list = [];
-    if (!orderForm.clientId) { errors.clientId = true; list.push("Sección 1: Seleccione Cliente."); }
-    
-    if (orderForm.receiverType === 'nuevo') {
-        if (!orderForm.receiver.persona_recibe) { errors.persona_recibe = true; list.push("Sección 2: Destinatario obligatorio."); }
-        if (!orderForm.receiver.rfc || orderForm.receiver.rfc.length < 12) { errors.rfc = true; list.push("Sección 2: RFC válido obligatorio."); }
-        if (!orderForm.receiver.cp || orderForm.receiver.cp.length !== 5) { errors.cp = true; list.push("Sección 2: C.P. obligatorio."); }
-        if (!orderForm.receiver.colonia) { errors.colonia = true; list.push("Sección 2: Colonia obligatoria."); }
-        if (!orderForm.receiver.calle_num) { errors.calle_num = true; list.push("Sección 2: Calle y número."); }
-        if (!orderForm.receiver.regimen_fiscal) { list.push("Sección 2: El régimen fiscal es obligatorio."); }
-        
-        if (isFormBlockedByDuplicates.value) {
-            list.push("Existen datos duplicados (RFC, Correo o Teléfono) que ya pertenecen a un registro guardado.");
-        }
-    } else {
-        if (!selectedCliente.value?.rfc) list.push("La ficha del cliente no tiene RFC registrado.");
-        if (!selectedCliente.value?.direccion) list.push("La ficha del cliente no tiene dirección registrada.");
-        if (!orderForm.receiver.regimen_fiscal) list.push("El cliente no tiene un régimen fiscal asignado en su ficha maestra.");
-    }
-
-    if (orderForm.orderItems.length === 0) { errors.items = true; list.push("Sección 3: No hay libros en la canasta."); }
-    
-    if (list.length > 0) {
-        systemModal.type = 'error';
-        systemModal.title = 'Datos Incompletos / Duplicados';
-        systemModal.errorList = list;
-        systemModal.visible = true;
-        return false;
-    }
-    return true;
-};
+const orderTotal = computed(() => orderForm.orderItems.reduce((s, i) => s + i.totalCost, 0));
+const formatCurrency = (v) => Number(v).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
 const submitOrder = async () => {
     if (orderForm.receiverType === 'nuevo') {
-        loading.value = true; 
-        await Promise.all([
-            validateUniqueness('rfc'),
-            validateUniqueness('correo'),
-            validateUniqueness('telefono')
-        ]);
+        loading.value = true; await Promise.all([validateUniqueness('rfc'), validateUniqueness('correo'), validateUniqueness('telefono'), validateUniqueness('persona_recibe')]);
     }
-
-    if (!validateForm()) {
-        loading.value = false;
-        return;
+    if (!orderForm.clientId || orderForm.orderItems.length === 0 || isFormBlockedByDuplicates.value) {
+        loading.value = false; return;
     }
-
     loading.value = true;
     try {
         const finalData = JSON.parse(JSON.stringify(orderForm));
-        
         if (orderForm.receiverType === 'cliente') {
             finalData.receiver = {
                 persona_recibe: selectedCliente.value.contacto || selectedCliente.value.name,
@@ -775,40 +642,21 @@ const submitOrder = async () => {
                 colonia: selectedCliente.value.colonia,
                 calle_num: selectedCliente.value.calle_num || selectedCliente.value.direccion
             };
-        } else {
-            // MODO NUEVO: Sincronizar el campo esperado por el backend
-            finalData.receiver.regimen_fiscal = orderForm.receiver.regimen_fiscal;
         }
-
-        const itemsPayload = orderForm.orderItems.map(i => ({
-            bookId: i.bookId,
-            quantity: i.quantity,
-            price: i.price,
-            sub_type: i.sub_type, 
-            tipo_material: i.tipo_material
-        }));
-
+        const itemsPayload = orderForm.orderItems.map(i => ({ bookId: i.bookId, quantity: i.quantity, price: i.price, sub_type: i.sub_type, tipo_material: i.tipo_material }));
         const res = await axios.post('/pedidos', { ...finalData, items: itemsPayload });
-        systemModal.type = 'success';
-        systemModal.visible = true;
-    } catch (e) { 
-        console.error(e);
-        systemModal.type = 'error';
-        systemModal.title = 'Fallo de Servidor';
-        systemModal.errorList = [e.response?.data?.message || "Ocurrió un error inesperado al intentar guardar el pedido profesional."];
-        systemModal.visible = true;
-    } finally { loading.value = false; }
+        generatedOrderId.value = res.data.order_id;
+        systemModal.type = 'success'; systemModal.visible = true;
+    } catch (e) {
+        loading.value = false;
+    }
 };
 
 const closeAndRedirect = () => { systemModal.visible = false; router.push('/pedidos'); };
-
-onMounted(async () => {
-    try {
-        const res = await axios.get('/estados');
-        estados.value = res.data;
-    } catch (e) { console.error(e); }
-});
+onMounted(async () => { try { const res = await axios.get('/estados'); estados.value = res.data; } catch (e) { console.error(e); } });
 </script>
+
+
 
 <style scoped>
 .label-style { @apply text-xs font-black text-red-600 uppercase tracking-widest mb-2 block; }
@@ -854,6 +702,8 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 table { width: 100%; border-collapse: collapse; }
 .lbb { color: #000000; }
 
+.lbb1 { color: #ff0000; }
+
 .table-header-dark { padding: 20px 24px; font-size: 0.7rem; font-weight: 900; color: #ffffff; text-transform: uppercase; letter-spacing: 0.25em; }
 .table-cell { padding: 20px 24px; vertical-align: middle; color: #dc2626; font-weight: 700; }
 
@@ -883,4 +733,8 @@ input:disabled {
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
+.bg22{
+   background: white; padding: 30px; border-radius: 40px; border: 1px solid #fee2e2; margin-bottom: 30px; transition: all 0.2s ease; 
+   color: black;
+}
 </style>
