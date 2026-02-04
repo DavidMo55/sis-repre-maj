@@ -354,8 +354,8 @@ const formatFullAddress = (p) => {
 
 const getDeliveryOption = (option) => {
     switch (option) {
-        case 'recoleccion': return 'ALMACÉN';
-        case 'paqueteria': return 'Paquetería';
+        case 'recoleccion': return 'Recolección en Almacen';
+        case 'paqueteria': return 'Paquetería Sugerida';
         case 'entrega': return 'Entrega Directa';
         default: return 'Entrega Directa';
     }
