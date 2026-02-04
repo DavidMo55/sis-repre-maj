@@ -485,7 +485,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed, onMounted, watch } from 'vue';
+import { reactive, ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios';
 
@@ -506,7 +506,7 @@ const validatingFields = reactive({ rfc: false, correo: false, telefono: false, 
 const fieldValidation = reactive({ rfc: { error: false }, correo: { error: false }, telefono: { error: false }, persona_recibe: { error: false } });
 
 const isFormBlockedByDuplicates = computed(() => {
-    if (orderForm.receiverType === 'cliente') return false;
+    if (orderForm.receiverType === 'cliente' || manualCloseBlocked.value) return false;
     return fieldValidation.rfc.error || fieldValidation.correo.error || fieldValidation.telefono.error || fieldValidation.persona_recibe.error;
 });
 
@@ -532,7 +532,9 @@ watch(() => currentOrderItem.tipo_material, (val) => {
     if (val === 'promocion') currentOrderItem.price = 0;
 });
 
-watch(() => [orderForm.receiver.rfc, orderForm.receiver.correo, orderForm.receiver.telefono, orderForm.receiver.persona_recibe], () => { manualCloseBlocked.value = false; });
+watch(() => [orderForm.receiver.rfc, orderForm.receiver.correo, orderForm.receiver.telefono, orderForm.receiver.persona_recibe], () => {
+    manualCloseBlocked.value = false;
+});
 
 const validateUniqueness = async (field) => {
     let val = '';
@@ -563,7 +565,7 @@ const handleCPInput = () => { if (orderForm.receiver.cp?.length === 5) fetchAddr
 const fetchAddressByCP = async (cp) => {
     searchingCP.value = true;
     try {
-        const res = await axios.get(`/proxy/dipomex`, { params: { cp } });
+        const res = await axios.get(`/proxy/dipomex`, { params: { cp: cp } });
         if (res.data && res.data.codigo_postal) {
             orderForm.receiver.estado = res.data.codigo_postal.estado;
             orderForm.receiver.municipio = res.data.codigo_postal.municipio;
@@ -586,7 +588,7 @@ const searchClients = () => {
 const selectClient = (c) => {
     if (!c) return;
     errors.clientId = false; orderForm.clientId = c.id; orderForm.clientName = c.name; selectedCliente.value = c; clientSuggestions.value = [];
-    orderForm.receiver.regimen_fiscal = c.regimen_fiscal || '';
+    orderForm.receiver.regimen_fiscal = c.regimen_fiscal ? c.regimen_fiscal.split(' ')[0] : '';
 };
 
 const searchBooks = async () => {
@@ -606,8 +608,14 @@ const selectBook = (book) => {
     setTimeout(() => { if (availableSubTypes.value.length === 1) currentOrderItem.sub_type = availableSubTypes.value[0]; }, 100);
 };
 
+const isCurrentItemValid = computed(() => {
+    return currentOrderItem.bookId !== null && 
+           currentOrderItem.sub_type !== '' && 
+           currentOrderItem.quantity >= 1;
+});
+
 const addItemToCart = () => {
-    if (!currentOrderItem.bookId || !currentOrderItem.sub_type || currentOrderItem.quantity < 1) return;
+    if (!isCurrentItemValid.value) return;
     orderForm.orderItems.push({
         id: Date.now(), bookId: currentOrderItem.bookId, bookName: currentOrderItem.bookName, tipo_material: currentOrderItem.tipo_material,
         sub_type: currentOrderItem.sub_type, quantity: currentOrderItem.quantity, price: currentOrderItem.price || 0, totalCost: (currentOrderItem.price || 0) * currentOrderItem.quantity
@@ -623,17 +631,30 @@ const submitOrder = async () => {
     if (orderForm.receiverType === 'nuevo') {
         loading.value = true; await Promise.all([validateUniqueness('rfc'), validateUniqueness('correo'), validateUniqueness('telefono'), validateUniqueness('persona_recibe')]);
     }
-    if (!orderForm.clientId || orderForm.orderItems.length === 0 || isFormBlockedByDuplicates.value) {
+    const list = [];
+    if (!orderForm.clientId) list.push("Seleccione Cliente.");
+    if (orderForm.orderItems.length === 0) list.push("Canasta vacía.");
+    if (isFormBlockedByDuplicates.value) list.push("Datos duplicados detectados.");
+    
+    if (['recoleccion', 'entrega'].includes(orderForm.logistics.deliveryOption) && !orderForm.logistics.comentarios_logistica) {
+        list.push("Las instrucciones de logística son obligatorias.");
+    }
+
+    if (list.length > 0) {
+        systemModal.visible = true; systemModal.type = 'error'; systemModal.title = 'Revisar Datos'; systemModal.errorList = list;
         loading.value = false; return;
     }
+
     loading.value = true;
     try {
         const finalData = JSON.parse(JSON.stringify(orderForm));
+        
         if (orderForm.receiverType === 'cliente') {
             finalData.receiver = {
                 persona_recibe: selectedCliente.value.contacto || selectedCliente.value.name,
                 rfc: selectedCliente.value.rfc,
-                regimen_fiscal: orderForm.receiver.regimen_fiscal, 
+                // CORRECCIÓN: Se usa la clave esperada por la tabla de receptores
+                receiver_regimen_fiscal: selectedCliente.value.regimen_fiscal ? selectedCliente.value.regimen_fiscal.split(' ')[0] : '', 
                 telefono: selectedCliente.value.telefono,
                 correo: selectedCliente.value.email,
                 cp: selectedCliente.value.cp,
@@ -642,14 +663,32 @@ const submitOrder = async () => {
                 colonia: selectedCliente.value.colonia,
                 calle_num: selectedCliente.value.calle_num || selectedCliente.value.direccion
             };
+        } else {
+            // MODO NUEVO: Aseguramos que la clave coincida con la DB
+            finalData.receiver.receiver_regimen_fiscal = orderForm.receiver.regimen_fiscal ? orderForm.receiver.regimen_fiscal.split(' ')[0] : '';
         }
+
         const itemsPayload = orderForm.orderItems.map(i => ({ bookId: i.bookId, quantity: i.quantity, price: i.price, sub_type: i.sub_type, tipo_material: i.tipo_material }));
-        const res = await axios.post('/pedidos', { ...finalData, items: itemsPayload });
+        
+        const payload = {
+            ...finalData,
+            items: itemsPayload,
+            commentary_delivery_option: orderForm.logistics.comentarios_logistica 
+        };
+
+        const res = await axios.post('/pedidos', payload);
         generatedOrderId.value = res.data.order_id;
         systemModal.type = 'success'; systemModal.visible = true;
     } catch (e) {
-        loading.value = false;
-    }
+        systemModal.type = 'error'; 
+        systemModal.title = 'Error de Validación Servidor';
+        if (e.response?.status === 422 && e.response.data.errors) {
+            systemModal.errorList = Object.values(e.response.data.errors).flat();
+        } else {
+            systemModal.errorList = [e.response?.data?.message || "Error inesperado de comunicación."];
+        }
+        systemModal.visible = true;
+    } finally { loading.value = false; }
 };
 
 const closeAndRedirect = () => { systemModal.visible = false; router.push('/pedidos'); };

@@ -124,33 +124,17 @@ class PedidoController extends Controller
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
                 $receptorId = null;
 
-                // Construcción de la dirección completa
                 $direccionFormateada = $validatedData['receiver']['calle_num'] . 
                                        ", Col. " . $validatedData['receiver']['colonia'] . 
                                        ", " . $validatedData['receiver']['municipio'] . 
                                        ", " . $validatedData['receiver']['estado'] . 
                                        ", CP " . $validatedData['receiver']['cp'];
 
-                // PROCESAMIENTO DE LOGÍSTICA PARA COMPATIBILIDAD CON ENUM
                 $deliveryValue = $validatedData['logistics']['deliveryOption'];
-                if ($deliveryValue === 'entrega') {
-                    $deliveryValue = 'none'; // 'entrega' no existe en tu ENUM, se mapea a 'none'
-                }
-
-                // UNIFICACIÓN DE COMENTARIOS (Ya que no tienes columna comentarios_logistica)
-                $notaLogistica = $validatedData['logistics']['comentarios_logistica'] ?? '';
-                $comentarioGeneral = $validatedData['comments'] ?? '';
-                $comentariosFinales = trim($comentarioGeneral);
-                
-                if ($notaLogistica) {
-                    $comentariosFinales .= ($comentariosFinales ? " | " : "") . "NOTAS DE ENVÍO: " . $notaLogistica;
-                }
+                if ($deliveryValue === 'entrega') { $deliveryValue = 'none'; }
 
                 if ($validatedData['receiverType'] === 'nuevo') {
-                    // VERIFICACIÓN DE SEGURIDAD (DUPLICADOS)
                     $duplicado = PedidoReceptor::where('rfc', strtoupper($validatedData['receiver']['rfc']))
-                        ->orWhere('correo', strtolower($validatedData['receiver']['correo']))
-                        ->orWhere('telefono', $validatedData['receiver']['telefono'])
                         ->orWhere('nombre', $validatedData['receiver']['persona_recibe'])
                         ->first();
 
@@ -158,14 +142,15 @@ class PedidoController extends Controller
                         throw new \Exception("Los datos ya pertenecen a un receptor existente ({$duplicado->nombre}).");
                     }
 
+                    // CORRECCIÓN: Se usa 'receiver_regimen_fiscal' para coincidir con la DB
                     $receptor = PedidoReceptor::create([
-                        'cliente_id'     => $validatedData['clientId'],
-                        'nombre'         => $validatedData['receiver']['persona_recibe'],
-                        'rfc'            => strtoupper($validatedData['receiver']['rfc']),
-                        'regimen_fiscal' => $validatedData['receiver']['regimen_fiscal'],
-                        'telefono'       => $validatedData['receiver']['telefono'],
-                        'correo'         => $validatedData['receiver']['correo'],
-                        'direccion'      => $direccionFormateada
+                        'cliente_id'              => $validatedData['clientId'],
+                        'nombre'                  => $validatedData['receiver']['persona_recibe'],
+                        'rfc'                     => strtoupper($validatedData['receiver']['rfc']),
+                        'receiver_regimen_fiscal' => $validatedData['receiver']['regimen_fiscal'], 
+                        'telefono'                => $validatedData['receiver']['telefono'],
+                        'correo'                  => $validatedData['receiver']['correo'],
+                        'direccion'               => $direccionFormateada
                     ]);
                     $receptorId = $receptor->id;
                 } else {
@@ -174,13 +159,10 @@ class PedidoController extends Controller
                         'contacto'       => $validatedData['receiver']['persona_recibe'],
                         'rfc'            => strtoupper($validatedData['receiver']['rfc']),
                         'regimen_fiscal' => $validatedData['receiver']['regimen_fiscal'],
-                        'email'          => $validatedData['receiver']['correo'],
-                        'telefono'       => $validatedData['receiver']['telefono'],
                         'direccion'      => $direccionFormateada
                     ]);
                 }
 
-                // CREACIÓN DEL PEDIDO
                 $pedido = Pedido::create([
                     'user_id'                 => $ownerId,
                     'cliente_id'              => $validatedData['clientId'],
@@ -189,11 +171,11 @@ class PedidoController extends Controller
                     'receptor_id'             => $receptorId,
                     'receiver_type'           => $validatedData['receiverType'],
                     'receiver_regimen_fiscal' => $validatedData['receiver']['regimen_fiscal'],
-                    'delivery_option'         => $deliveryValue, // Guardará 'recoleccion' o 'paqueteria' o 'none'
+                    'delivery_option'         => $deliveryValue,
                     'paqueteria_nombre'       => $validatedData['logistics']['paqueteria_nombre'] ?? null,
-                    'commentary_delivery_option' => $validatedData['logistics']['comentarios_logistica'] ?? 'Sin notas específicas',
+                    'commentary_delivery_option' => $request->commentary_delivery_option ?? 'Sin notas específicas',
                     'delivery_address'        => $direccionFormateada,
-                    'comments'                => $comentariosFinales, 
+                    'comments'                => $validatedData['comments'], 
                     'status'                  => 'PENDIENTE',
                 ]);
                 
@@ -217,7 +199,7 @@ class PedidoController extends Controller
             });
         } catch (\Exception $e) {
             Log::error("Error en store Pedido: " . $e->getMessage());
-            return response()->json(['message' => 'Error: ' . $e->getMessage()], 422);
+            return response()->json(['message' => 'Fallo de Servidor: ' . $e->getMessage()], 422);
         }
     }
     /**
