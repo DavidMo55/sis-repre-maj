@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute; 
 use Carbon\Carbon;
+use App\Traits\FormatsAttributes;
 
 class Pedido extends Model
 {
-    use HasFactory;
+    use HasFactory, FormatsAttributes; 
 
     protected $table = 'pedidos'; 
 

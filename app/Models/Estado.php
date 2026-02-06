@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Traits\FormatsAttributes;
 class Estado extends Model
 {
     protected $table = 'estados';

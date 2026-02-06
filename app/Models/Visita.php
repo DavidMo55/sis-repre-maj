@@ -5,22 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-
-// Importaciones necesarias para las relaciones
+use App\Traits\FormatsAttributes;
 use App\Models\User;
 use App\Models\Cliente;
 use App\Models\Estado;
 
 class Visita extends Model
 {
-    use HasFactory;
+    use HasFactory, FormatsAttributes;
 
     protected $table = 'visitas';
 
-    /**
-     * Atributos habilitados para asignación masiva.
-     * El 'user_id' almacena el ID del Representante dueño de la información.
-     */
+  
+
     protected $fillable = [
         'user_id',
         'cliente_id', 
@@ -47,10 +44,7 @@ class Visita extends Model
         'es_primera_visita',
     ];
 
-    /**
-     * Conversión de tipos automática.
-     * CRÍTICO: 'libros_interes' como 'array' permite manejar JSON desde Vue automáticamente.
-     */
+  
     protected $casts = [
         'fecha' => 'date',
         'proxima_visita_estimada' => 'date',
@@ -59,12 +53,7 @@ class Visita extends Model
         'libros_interes' => 'array',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | SCOPES (Filtros de Consulta)
-    |--------------------------------------------------------------------------
-    */
-
+ 
     /**
      * Buscador avanzado por nombre de plantel o persona entrevistada.
      */

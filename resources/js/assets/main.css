@@ -11,6 +11,12 @@ img {
     display: block;
 }
 
+label {
+  text-transform: uppercase;
+}
+label.no-transform {
+  text-transform: none;
+}
 
 /* --- LAYOUT GENERAL --- */
 .app-container {

@@ -19,7 +19,8 @@
           id="username" 
           required 
           autocomplete="off" 
-          class="form-input"
+          class="form-input no-caps" 
+          autocapitalize="none"
         />
       </div>
 
@@ -31,7 +32,8 @@
           id="password" 
           required 
           autocomplete="new-password" 
-          class="form-input"
+          class="form-input no-caps" 
+          autocapitalize="none"
         />
       </div>
 

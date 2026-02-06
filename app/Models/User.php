@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-
-// IMPORTACIONES CRÍTICAS PARA EVITAR ERROR 500
+use App\Traits\FormatsAttributes;
 use App\Models\Delegate;
 use App\Models\Estado;
 use App\Models\Cliente;
@@ -16,12 +15,9 @@ use App\Models\Gasto;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, FormatsAttributes;
 
-    /**
-     * Buscar usuario por nombre en arreglos de credenciales.
-     * Mapea 'username' (desde el frontend) a 'name' (en la base de datos).
-     */
+  
     public function findForArrays(array $credentials)
     {
         if (isset($credentials['username'])) {
@@ -30,9 +26,7 @@ class User extends Authenticatable
         return parent::findForArrays($credentials);
     }
     
-    /**
-     * Atributos habilitados para asignación masiva.
-     */
+ 
     protected $fillable = [
         'name',
         'full_name',
@@ -58,35 +52,24 @@ class User extends Authenticatable
         'business_card',
     ];
 
-    /**
-     * Atributos que deben permanecer ocultos al serializar el modelo a JSON.
-     */
+  
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Atributos que deben ser convertidos a tipos de datos específicos.
-     */
+  
     protected $casts = [
         'email_verified_at' => 'datetime',
         'state_id' => 'integer',
     ];
     
-    /**
-     * Helper para obtener el ID del dueño de la información.
-     * AJUSTADO: Como tu tabla 'delegates' no tiene delegate_user_id, 
-     * usamos el 'email' para encontrar al representante (user_id).
-     */
+
     public function getEffectiveId()
     {
         if ($this->position === 'Delegado Autorizado') {
-            // Buscamos en la tabla de delegados quién registró este email
             $delegation = Delegate::where('email', $this->email)->first();
             
-            // Si existe la delegación, devolvemos el ID del representante (user_id)
-            // De lo contrario, devolvemos su propio ID por seguridad
             return $delegation ? $delegation->user_id : $this->id;
         }
         

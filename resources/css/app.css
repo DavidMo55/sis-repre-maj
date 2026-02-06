@@ -1,0 +1,16 @@
+/* 1. Aplicamos mayúsculas a los elementos de texto comunes */
+h1, h2, h3, h4, h5, h6, p, span, label, li, dt, dd, button, input, textarea, td{
+  text-transform: uppercase;
+  letter-spacing: 0.02em; 
+}
+
+.no-caps, 
+[type="email"], 
+.email-text {
+  text-transform: none !important;
+}
+
+::placeholder {
+  text-transform: none;
+}
+

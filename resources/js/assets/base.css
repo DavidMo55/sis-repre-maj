@@ -102,6 +102,13 @@ html, body {
     color: var(--text);
 }
 
+label {
+  text-transform: uppercase;
+}
+
+label.no-transform {
+  text-transform: none;
+}
 
 /* --- LOGIN PAGE --- */
 

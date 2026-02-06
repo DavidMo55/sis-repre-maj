@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\FormatsAttributes;
 
 class Cliente extends Model
 {
-    use HasFactory;
+    use HasFactory, FormatsAttributes;
 
     protected $table = 'clientes'; 
 
@@ -27,11 +28,11 @@ class Cliente extends Model
         'moneda_id', 
         'condiciones_pago', 
         'rfc', 
-        'regimen_fiscal', // Nuevo
-        'cp',             // Nuevo
-        'municipio',      // Nuevo
-        'colonia',        // Nuevo
-        'calle_num',      // Nuevo
+        'regimen_fiscal', 
+        'cp',             
+        'municipio',      
+        'colonia',        
+        'calle_num',      
         'fiscal', 
         'status'
     ];

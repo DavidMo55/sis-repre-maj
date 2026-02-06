@@ -200,7 +200,7 @@
 
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal *</label>
-                                    <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs text-red-700 uppercase">
+                                    <select v-model="orderForm.receiver.regimen_fiscal" class="form-input font-bold text-xs text-red-700 uppercase">
                                         <option value="">Seleccionar...</option>
                                         <option value="601 - General de Ley Personas Morales">601 - General Morales</option>
                                         <option value="612 - Personas Físicas con Actividades Empresariales y Profesionales">612 - PF Act. Empresarial</option>
@@ -653,9 +653,7 @@ const submitOrder = async () => {
             finalData.receiver = {
                 persona_recibe: selectedCliente.value.contacto || selectedCliente.value.name,
                 rfc: selectedCliente.value.rfc,
-                // CORRECCIÓN: Se usa la clave esperada por la tabla de receptores
-                receiver_regimen_fiscal: selectedCliente.value.regimen_fiscal ? selectedCliente.value.regimen_fiscal.split(' ')[0] : '', 
-                telefono: selectedCliente.value.telefono,
+               regimen_fiscal: selectedCliente.value.regimen_fiscal ? selectedCliente.value.regimen_fiscal.split(' ')[0] : '',telefono: selectedCliente.value.telefono,
                 correo: selectedCliente.value.email,
                 cp: selectedCliente.value.cp,
                 estado: selectedClienteEstadoNombre.value,
@@ -664,7 +662,6 @@ const submitOrder = async () => {
                 calle_num: selectedCliente.value.calle_num || selectedCliente.value.direccion
             };
         } else {
-            // MODO NUEVO: Aseguramos que la clave coincida con la DB
             finalData.receiver.receiver_regimen_fiscal = orderForm.receiver.regimen_fiscal ? orderForm.receiver.regimen_fiscal.split(' ')[0] : '';
         }
 
@@ -681,7 +678,7 @@ const submitOrder = async () => {
         systemModal.type = 'success'; systemModal.visible = true;
     } catch (e) {
         systemModal.type = 'error'; 
-        systemModal.title = 'Error de Validación Servidor';
+        systemModal.title = 'Error de Validación';
         if (e.response?.status === 422 && e.response.data.errors) {
             systemModal.errorList = Object.values(e.response.data.errors).flat();
         } else {
