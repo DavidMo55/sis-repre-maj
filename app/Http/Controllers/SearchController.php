@@ -181,5 +181,27 @@ public function searchReceptorByRFC(Request $request)
     return response()->json($receptor);
 }
 
+public function searchReceptores(Request $request)
+    {
+        $query = $request->input('query');
+
+        if (empty($query) || strlen($query) < 3) {
+            return response()->json([]);
+        }
+
+        try {
+            $receptores = PedidoReceptor::where('rfc', 'like', "%{$query}%")
+                ->orWhere('nombre', 'like', "%{$query}%")
+                ->orWhere('correo', 'like', "%{$query}%")
+                ->orWhere('telefono', 'like', "%{$query}%")
+                ->limit(10)
+                ->get();
+
+            return response()->json($receptores);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error en búsqueda'], 500);
+        }
+    }
+
 
 }
