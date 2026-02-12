@@ -11,6 +11,7 @@ use App\Http\Controllers\VisitaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 
+
 // Rutas Públicas
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/password/request-ticket', [TicketController::class, 'storeRecoveryTicket']);
@@ -31,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/pedidos', [PedidoController::class, 'store']);
     Route::get('/pedidos/{id}', [PedidoController::class, 'show']); 
     Route::get('/proxy/dipomex', [PedidoController::class, 'proxyDipomex']);
+    Route::put('/pedidos/{id}', [PedidoController::class, 'update']); 
 
     // Gastos
     Route::get('/gastos', [GastoController::class, 'index']); 

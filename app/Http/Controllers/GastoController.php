@@ -52,6 +52,7 @@ class GastoController extends Controller
         $request->validate([
             'fecha'         => 'required|date',
             'estado_nombre' => 'required|string',
+            'status'        => 'required|in:BORRADOR,FINALIZADO',
             'monto_total'   => 'required|numeric|min:0',
             'conceptos'     => 'required|array|min:1',
             'conceptos.*.concepto'     => 'required|string',
@@ -73,6 +74,7 @@ class GastoController extends Controller
                 'monto'         => $request->monto_total,
                 'facturado'     => $tieneFactura,
                 'detalles'      => $request->conceptos, 
+                'status'        => $request->status 
             ]);
 
             return response()->json([

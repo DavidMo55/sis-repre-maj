@@ -9,7 +9,7 @@ trait FormatsAttributes
     {
         static::saving(function ($model) {
             $exclude = [
-                'email',
+                'correo',
                 'password',
                 'remember_token',
                 'token',
@@ -26,7 +26,11 @@ trait FormatsAttributes
                 'proxima_accion',
                 'resultado_visita',
                 'tipo_licencia',
-                'tipo'
+                'tipo',
+                'public_url',
+                'detalles',
+                'nivel_educativo_planten',
+                'libros_interes'
             ];
 
             foreach ($model->getAttributes() as $key => $value) {

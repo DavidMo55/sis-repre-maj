@@ -19,6 +19,7 @@ class Gasto extends Model
         'monto',
         'facturado',
         'detalles', 
+        'status',
     ];
 
     protected $casts = [

@@ -213,15 +213,19 @@
                                     </p>
                                 </div>
 
-                                <button type="submit" class="btn-primary w-full py-5 rounded-[2rem] text-lg font-black tracking-widest uppercase shadow-2xl" :disabled="loading || subExpenses.length === 0">
-                                    <i v-if="loading" class="fas fa-spinner fa-spin"></i>
-                                    <i v-else class="fas fa-cloud-upload-alt mr-2"></i>
-                                    {{ loading ? (uploadProgress > 0 ? `Subiendo ${uploadProgress}%...` : 'Sincronizando...') : 'Postear Gasto' }}
-                                </button>
-                                
-                                <p v-if="subExpenses.length === 0" class="text-[9px] text-center text-white/30 font-bold uppercase tracking-widest">
-                                    Debe agregar al menos un gasto para habilitar el envío
-                                </p>
+                                <div class="space-y-4">
+                                    <button type="button" @click="handleFinalSubmit('FINALIZADO')" class="btn-primary-gradient w-full py-5 rounded-[2rem] text-sm font-black tracking-widest uppercase shadow-2xl transition-all flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
+                                        <i v-if="loading && form.status === 'FINALIZADO'" class="fas fa-spinner fa-spin"></i>
+                                        <i v-else class="fas fa-paper-plane"></i>
+                                        {{ (loading && form.status === 'FINALIZADO') ? 'Enviando...' : 'Finalizar y Postear' }}
+                                    </button>
+
+                                    <button type="button" @click="handleFinalSubmit('BORRADOR')" class="w-full py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase transition-all bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
+                                        <i v-if="loading && form.status === 'BORRADOR'" class="fas fa-spinner fa-spin"></i>
+                                        <i v-else class="fas fa-save"></i>
+                                        {{ (loading && form.status === 'BORRADOR') ? 'Guardando...' : 'Guardar como Borrador' }}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -346,20 +350,25 @@ const closeModal = () => { modal.visible = false; };
 const closeAndRedirect = () => { modal.visible = false; router.push('/gastos'); };
 
 
-const handleSubmit = async () => {
-    if (subExpenses.value.length === 0) return;
+const handleFinalSubmit = async (targetStatus) => {
+    if (!form.fecha || !form.estado_nombre) return openModal('Datos Incompletos', 'Indique fecha y estado del viaje.', 'danger');
+    if (subExpenses.value.length === 0) return openModal('Sin Conceptos', 'Agregue al menos un gasto al paquete.', 'danger');
+    
+    form.status = targetStatus;
+    handleSubmit(targetStatus);
+};
 
+const handleSubmit = async (targetStatus) => {
     loading.value = true;
-    uploadProgress.value = 0;
-
     try {
         const payload = {
             fecha: form.fecha,
             estado_nombre: form.estado_nombre,
             monto_total: totalMonto.value,
+            status: targetStatus,
             conceptos: subExpenses.value.map(item => ({
                 concepto: item.concepto,
-                descripcion: item.descripcion_otros || '',
+                descripcion: item.descripcion_otros || item.concepto,
                 monto: item.monto,
                 es_facturado: item.es_facturado
             }))
@@ -367,30 +376,25 @@ const handleSubmit = async () => {
 
         const resGasto = await axios.post('/gastos-nuevos', payload);
         const gastoId = resGasto.data.gasto.id;
+        
         const fileFormData = new FormData();
         fileFormData.append('gasto_id', gastoId);
         subExpenses.value.forEach((item, index) => {
-            fileFormData.append(`files[${index}]`, item.file);
+            if (item.file) fileFormData.append(`files[${index}]`, item.file);
         });
 
         await axios.post('/gastos/comprobante', fileFormData, {
             headers: { 'Content-Type': 'multipart/form-data' },
-            onUploadProgress: (progressEvent) => {
-                uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            }
+            onUploadProgress: (p) => { uploadProgress.value = Math.round((p.loaded * 100) / p.total); }
         });
 
-        openModal('¡Gasto Posteado!', 'El paquete de gastos se registró y todos los comprobantes se subieron con éxito.', 'success');
+        openModal('¡Registro Exitoso!', targetStatus === 'BORRADOR' ? 'Borrador guardado.' : 'Gasto posteado con éxito.', 'success');
     } catch (e) {
-        console.error("Fallo en el proceso de registro/subida:", e);
-        const msg = e.response?.data?.message || "Ocurrió un error al procesar el paquete o los archivos.";
-        openModal('Fallo en Registro', msg, 'danger');
-    } finally {
-        loading.value = false;
-        uploadProgress.value = 0;
-    }
+        openModal('Error', e.response?.data?.message || "Fallo en el proceso.", 'danger');
+    } finally { loading.value = false; }
 };
 </script>
+
 
 <style scoped>
 .label-style { @apply text-xs font-black text-slate-500 uppercase tracking-tighter mb-2 block; }

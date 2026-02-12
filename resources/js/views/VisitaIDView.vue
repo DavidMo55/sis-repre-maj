@@ -21,7 +21,7 @@
                 <div class="flex items-start gap-3">
                     <i class="fas fa-exclamation-triangle text-red-600 mt-1"></i>
                     <div>
-                        <p class="text-red-800 font-black uppercase text-[10px] tracking-widest">Error al procesar registro</p>
+                        <p class="text-red-800 font-black uppercase text-[10px] tracking-widest">Atención en el Registro</p>
                         <p class="text-red-600 text-xs mt-1 font-medium whitespace-pre-wrap">{{ errorMessage }}</p>
                     </div>
                 </div>
@@ -30,7 +30,39 @@
             <form @submit.prevent="handleSubmit">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     
-                   
+                    <!-- BLOQUE 1: DATOS DEL PLANTEL (IDENTIDAD) -->
+                    <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                        <div class="section-title text-black">
+                            <i class="fas fa-school text-red-700"></i> 1. Identidad del Plantel
+                        </div>
+                        
+                        <div v-if="!route.params.id" class="form-group relative mb-6">
+                            <label class="label-style">Buscar Plantel en Seguimiento *</label>
+                            <div class="relative">
+                                <input v-model="searchQuery" type="text" class="form-input pl-10 font-bold" placeholder="Escribe nombre del plantel..." @input="searchProspectos" autocomplete="off">
+                                <i class="fas fa-university absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            </div>
+                            <ul v-if="clientesSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
+                                <li v-for="v in clientesSuggestions" :key="v.id" @click="selectProspecto(v)" class="hover:bg-red-50 transition-colors border-b last:border-0 border-slate-50">
+                                    <div class="flex justify-between items-start">
+                                        <div class="text-xs font-black text-slate-800 uppercase line-clamp-1">{{ v.name }}</div>
+                                        <span class="text-[7px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-black uppercase">{{ v.tipo }}</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="form-group mb-6">
+                            <label class="label-style">Nombre del Plantel</label>
+                            <input v-model="form.plantel.name" type="text" class="form-input font-bold bg-slate-50" readonly disabled>
+                        </div>
+
+                        
+                        <div class="form-group mb-6">
+                            <label class="label-style">Dirección Registrada</label>
+                            <textarea v-model="form.plantel.direccion" class="form-input font-medium bg-slate-50" rows="2" readonly disabled></textarea>
+                        </div>
+                    </div>
 
                     <!-- BLOQUE 2: DETALLES DE LA NUEVA VISITA -->
                     <div class="space-y-8">
@@ -67,28 +99,28 @@
                             </div>
                         </div>
 
-                        <!-- APARTADO A: LIBROS DE INTERÉS -->
+                        <!-- APARTADO A: LIBROS DE INTERÉS (OPCIONAL) -->
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i>  Libros de Interés del Plantel por Serie</label>
+                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter uppercase">
+                                    <i class="fas fa-eye mr-1 text-blue-500"></i> Libros de Interés (Opcional)
+                                </label>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                                     <div class="form-group">
-                                        <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Filtrar por Serie</label>
                                         <select v-model="selectedSerieIdA" class="form-input font-bold text-xs" @change="handleSerieChange('interest')">
-                                            <option value="">Cualquier serie...</option>
+                                            <option value="">Filtrar por Serie...</option>
                                             <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
                                             <option value="otro">VER TODAS</option>
                                         </select>
                                     </div>
                                     <div class="form-group relative">
-                                        <label class="text-[9px] font-black uppercase text-slate-400 mb-1 block">Buscar y Añadir Libro</label>
                                         <div class="relative">
-                                            <input v-model="interestInput.titulo" type="text" class="form-input pr-10 font-bold" placeholder="Título o ISBN..." @input="searchBooks($event, 'interest')" autocomplete="off">
+                                            <input v-model="interestInput.titulo" type="text" class="form-input pr-10 font-bold" placeholder="Buscar material..." @input="searchBooks($event, 'interest')" autocomplete="off">
                                             <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                         </div>
                                         <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
-                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 flex justify-between items-center transition-colors">
+                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors flex justify-between items-center">
                                                 <span>{{ b.titulo }}</span>
                                                 <span class="text-[7px] bg-slate-100 px-1.5 rounded">{{ b.type }}</span>
                                             </li>
@@ -97,61 +129,51 @@
                                 </div>
                                 
                                 <div v-if="selectedInterestBooks.length" class="table-container mt-6">
-                                   <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm">
-                                <table class="min-width-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="table-header">Material / Serie</th>
-                                            <th class="table-header text-center w-36">Formato</th>
-                                            <th class="px-6 py-3 w-12"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-100">
-                                        <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-gray-50 transition-colors">
-                                            <td class="table-cell">
-                                                <div class="text-xs font-black text-slate-800 uppercase leading-tight">
-                                                    {{ item.titulo }}
-                                                </div>
-                                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">
-                                                {{ item.serie_nombre }}
-                                                </div>
-                                            </td>
-                                            <td class="table-cell text-center">
-                                                <select v-model="item.tipo" class="select-table">
-                                                    <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
-                                                    <template v-else>
-                                                        <option value="fisico">FÍSICO</option>
-                                                        <option value="paquete">PAQUETE</option>
-                                                        <option value="por_revisar">POR REVISAR</option>
-                                                    </template>
-                                                </select>
-                                            </td>
-                                            <td class="table-cell text-center">
-                                                <button type="button" @click="selectedInterestBooks.splice(idx, 1)" 
-                                                        class="btn-icon-delete-simple">
-                                                    <i class="fas fa-trash-alt"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                                    <div class="table-responsive border rounded-xl overflow-hidden shadow-sm bg-white">
+                                        <table class="w-full divide-y divide-gray-200">
+                                            <thead class="bg-slate-900 text-white">
+                                                <tr class="text-[9px] uppercase tracking-widest font-black">
+                                                    <th class="px-4 py-3 text-left">Material / Serie</th>
+                                                    <th class="px-4 py-3 text-center w-36">Formato</th>
+                                                    <th class="px-4 py-3 w-12"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-100">
+                                                <tr v-for="(item, idx) in selectedInterestBooks" :key="idx">
+                                                    <td class="table-cell">
+                                                        <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
+                                                        <div class="text-[9px] font-black text-slate-400 uppercase mt-1">{{ item.serie_nombre }}</div>
+                                                    </td>
+                                                    <td class="table-cell text-center">
+                                                        <select v-model="item.tipo" class="select-table">
+                                                            <option value="fisico">FÍSICO</option>
+                                                            <option value="digital">DIGITAL</option>
+                                                            <option value="paquete">PAQUETE</option>
+                                                        </select>
+                                                    </td>
+                                                    <td class="table-cell text-center">
+                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-icon-delete-simple"><i class="fas fa-trash-alt"></i></button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                                <div v-else class="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl bg-white/50">
-                                    <p class="text-[10px] font-bold text-slate-300 uppercase italic">Sin libros de interés agregados</p>
+                                <div v-else class="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl">
+                                    <p class="text-[10px] font-bold text-slate-300 uppercase italic">Sin materiales de interés agregados</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- APARTADO B: PROMOCIÓN -->
+                        <!-- APARTADO B: PROMOCIÓN (OPCIONAL) -->
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                            <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 mb-8 relative" style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-red-800 font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i>  Muestras de Promoción Entregadas</label>
+                            <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
+                                <label class="label-mini mb-4 text-red-800 font-black tracking-tighter uppercase"><i class="fas fa-box-open mr-1"></i> Muestras Entregadas (Opcional)</label>
                                 
                                 <div class="form-group relative mb-4">
-                                    <label class="label-mini">Buscar Libro para Entrega Física</label>
+                                    <label class="label-mini uppercase">Buscar Muestra Física</label>
                                     <div class="relative">
-                                        <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100 shadow-sm" placeholder="Escribe título o ISBN..." @input="searchBooks($event, 'delivered')" autocomplete="off">
+                                        <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100 shadow-sm" placeholder="Buscar material de promoción..." @input="searchBooks($event, 'delivered')" autocomplete="off">
                                         <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
                                     </div>
                                     <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
@@ -162,68 +184,47 @@
                                 </div>
                                 
                                 <div v-if="selectedDeliveredBooks.length" class="table-container mt-6">
-                                    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm">
-                                    <table class="min-width-full divide-y divide-gray-200">
-                                        <thead class="bg-red-50">
-                                            <tr>
-                                                <th class="table-header text-red-900/60">Muestra Física</th>
-                                                <th class="table-header text-center w-32">Cantidad</th>
-                                                <th class="px-6 py-3 w-16"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-red-50">
-                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors">
-                                                <td class="table-cell">
-                                                    <div class="text-xs font-black text-slate-800 uppercase leading-tight">
-                                                        {{ item.titulo }}
-                                                    </div>
-                                                   
-                                                </td>
-                                                <td class="table-cell text-center">
-                                                    <div class="flex justify-center">
-                                                        <div class="quantity-control-wrapper">
-                                                            <input v-model.number="item.cantidad" 
-                                                                type="number" 
-                                                                min="1" 
-                                                                class="input-table text-center" />
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="table-cell text-right">
-                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" 
-                                                            class="btn-icon-delete">
-                                                        <i class="fas fa-trash-alt"></i> Quitar
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                </div>
-                                <div v-else class="text-center py-8 border-2 border-dashed border-red-100 rounded-3xl bg-white/50">
-                                    <p class="text-[10px] font-black text-red-300 uppercase tracking-widest">Sin muestras físicas registradas</p>
+                                    <div class="table-responsive border rounded-xl overflow-hidden shadow-sm bg-white">
+                                        <table class="w-full divide-y divide-gray-200">
+                                            <thead class="bg-red-900 text-white">
+                                                <tr class="text-[9px] uppercase tracking-widest font-black">
+                                                    <th class="px-4 py-3 text-left">Muestra Física</th>
+                                                    <th class="px-4 py-3 text-center w-32">Cantidad</th>
+                                                    <th class="px-4 py-3 w-16"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-red-50">
+                                                <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx">
+                                                    <td class="table-cell">
+                                                        <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
+                                                        <div class="text-[8px] font-black text-red-400 uppercase mt-1">{{ item.serie_nombre }}</div>
+                                                    </td>
+                                                    <td class="table-cell text-center"><input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center" /></td>
+                                                    <td class="table-cell text-right"><button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-icon-delete"><i class="fas fa-trash-alt"></i></button></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- RESULTADO Y COMENTARIOS -->
+                        <!-- RESULTADO Y AGENDA -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="form-group mb-6">
-                                <label class="label-style">Resolución / Resultado Actual</label>
+                                <label class="label-style">Resolución Actual del Prospecto</label>
                                 <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required :disabled="loading">
                                     <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
-                                    <option value="compra">DECISIÓN DE COMPRA</option>
+                                    <option value="compra">DECISIÓN DE COMPRA (Convertir a Cliente)</option>
                                     <option value="rechazo">NO INTERESADO</option>
                                 </select>
                             </div>
 
-                            <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
+                            <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in">
                                 <label class="text-orange-800 font-black uppercase text-[9px] mb-3 block tracking-widest">Próxima Acción Agendada *</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold" required :disabled="loading">
-                                    <label class="label-style">Objetivo</label>
                                     <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold" :disabled="loading">
-                                        
                                         <option value="visita">Visita de Seguimiento</option>
                                         <option value="presentacion">Presentación Académica</option>
                                     </select>
@@ -231,8 +232,8 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="label-style">Comentarios y Acuerdos de la Sesión</label>
-                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de los puntos tratados (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
+                                <label class="label-style">Comentarios y Acuerdos de la Sesión *</label>
+                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Mínimo 20 caracteres..." required minlength="20" :disabled="loading"></textarea>
                             </div>
                         </div>
                     </div>
@@ -240,7 +241,7 @@
 
                 <!-- BOTONES DE ACCIÓN -->
                 <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8 pb-20">
-                    <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest bg-white border-2 border-slate-200 text-black" :disabled="loading">Cancelar</button>
+                    <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 uppercase font-bold text-xs tracking-widest bg-white border-2 border-slate-200 text-black rounded-2xl shadow-sm" :disabled="loading">Cancelar</button>
                     <button type="submit" class="btn-primary px-20 py-4 shadow-xl shadow-red-900/10 transition-all active:scale-95" :disabled="loading || !selectedCliente || gettingLocation">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
                         {{ loading ? 'Sincronizando...' : 'Postear Seguimiento' }}
@@ -249,15 +250,15 @@
             </form>
         </div>
 
-        <!-- MODAL DE ÉXITO DINÁMICO -->
+        <!-- MODAL DE ÉXITO -->
         <Teleport to="body">
-            <Transition name="modal-fade">
+            <Transition name="modal-pop">
                 <div v-if="showSuccessModal" class="modal-overlay-custom">
                     <div class="modal-content-success animate-scale-in">
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
                         <h2 class="modal-title-success">¡Seguimiento Exitoso!</h2>
-                        <p class="modal-text-success">La bitácora se guardó. El plantel ahora figura como <strong>{{ savedClientType }}</strong> activo.</p>
-                        <button @click="goToHistory" class="btn-primary w-full mt-8 bg-slate-900 border-none text-white uppercase font-black tracking-widest py-4">Regresar al Listado</button>
+                        <p class="modal-text-success">La bitácora se guardó correctamente. El plantel ahora figura como <strong>{{ savedClientType }}</strong> activo.</p>
+                        <button @click="goToHistory" class="btn-primary w-full mt-8 bg-slate-900 border-none text-white uppercase font-black py-4 tracking-widest text-xs">Regresar al Listado</button>
                     </div>
                 </div>
             </Transition>
@@ -280,6 +281,7 @@ const loadingHistory = ref(false);
 const gettingLocation = ref(false);
 const showSuccessModal = ref(false);
 const errorMessage = ref(null);
+const attemptedSubmit = ref(false);
 
 const searchingInterest = ref(false);
 const searchingDelivered = ref(false);
@@ -287,7 +289,6 @@ const searchingDelivered = ref(false);
 const estados = ref([]);
 const nivelesCatalog = ref([]); 
 const allSeries = ref([]); 
-const historialVisitas = ref([]);
 
 const searchQuery = ref('');
 const clientesSuggestions = ref([]);
@@ -347,6 +348,7 @@ const selectProspecto = (c) => {
     searchQuery.value = c.name;
     clientesSuggestions.value = [];
     
+    // Rellenar la identidad base del cliente/prospecto
     form.plantel.name = c.name;
     form.plantel.rfc = c.rfc || '';
     form.plantel.direccion = c.direccion || '';
@@ -355,10 +357,11 @@ const selectProspecto = (c) => {
     form.plantel.email = c.email || '';
     form.plantel.director = c.contacto || '';
     
+    // Mapeo robusto de niveles educativos con normalización de texto
     if (c.nivel_educativo) {
-        const nombres = c.nivel_educativo.split(',').map(n => n.trim());
+        const nombres = c.nivel_educativo.split(',').map(n => n.trim().toLowerCase());
         form.plantel.niveles = nivelesCatalog.value
-            .filter(niv => nombres.includes(niv.nombre))
+            .filter(niv => nombres.includes(niv.nombre.toLowerCase()))
             .map(niv => niv.id);
     } else {
         form.plantel.niveles = [];
@@ -367,16 +370,41 @@ const selectProspecto = (c) => {
     form.plantel.latitud = c.latitud || null;
     form.plantel.longitud = c.longitud || null;
 
-    fetchHistorial(c.id);
+    fetchHistorialYAutocompletar(c.id);
 };
 
-const fetchHistorial = async (id) => {
+const fetchHistorialYAutocompletar = async (id) => {
     loadingHistory.value = true;
     try {
         const res = await axios.get(`/visitas`, { params: { search: searchQuery.value } });
         const dataReceived = res.data.data || res.data;
-        historialVisitas.value = Array.isArray(dataReceived) ? dataReceived.filter(v => v.cliente_id === id) : [];
-    } catch (e) { console.error(e); } finally { loadingHistory.value = false; }
+        const historial = Array.isArray(dataReceived) ? dataReceived.filter(v => v.cliente_id === id) : [];
+        
+        if (historial.length > 0) {
+            const ultimaVisita = historial[0];
+            
+            // AUTORELLENO DE IDENTIDAD:
+            form.plantel.rfc = ultimaVisita.rfc_plantel || form.plantel.rfc;
+            form.plantel.direccion = ultimaVisita.direccion_plantel || form.plantel.direccion;
+            form.plantel.telefono = ultimaVisita.telefono_plantel || form.plantel.telefono;
+            form.plantel.email = ultimaVisita.email_plantel || form.plantel.email;
+            form.plantel.director = ultimaVisita.director_plantel || form.plantel.director;
+            form.plantel.latitud = ultimaVisita.latitud || form.plantel.latitud;
+            form.plantel.longitud = ultimaVisita.longitud || form.plantel.longitud;
+
+            // Sincronizar niveles educativos con normalización
+            if (!form.plantel.niveles.length && ultimaVisita.nivel_educativo_plantel) {
+                const nombres = ultimaVisita.nivel_educativo_plantel.split(',').map(n => n.trim().toLowerCase());
+                form.plantel.niveles = nivelesCatalog.value
+                    .filter(niv => nombres.includes(niv.nombre.toLowerCase()))
+                    .map(niv => niv.id);
+            }
+        }
+    } catch (e) { 
+        console.error("Error al jalar historial anterior:", e); 
+    } finally { 
+        loadingHistory.value = false; 
+    }
 };
 
 const handleSerieChange = (type) => {
@@ -398,19 +426,16 @@ const searchBooks = (event, type) => {
             if (type === 'interest') {
                 interestSuggestions.value = res.data.filter(b => b.type !== 'promocion');
             } else {
-                deliveredSuggestions.value = res.data.filter(b => b.type === 'promocion' && b.type !== 'digital');
+                deliveredSuggestions.value = res.data.filter(b => b.type === 'promocion');
             }
         } catch (e) { console.error(e); } 
         finally { searchingInterest.value = false; searchingDelivered.value = false; }
     }, 400);
 };
 
-/**
- * REGLA ACTUALIZADA: Obtener nombre de serie del catálogo
- */
 const addMaterial = (book, type) => {
     const serie = allSeries.value.find(s => s.id == book.serie_id);
-    const serieNombre = serie ? serie.nombre : 'Sin Serie';
+    const serieNombre = serie ? (serie.nombre || serie.serie) : 'Sin Serie';
 
     if (type === 'interest') {
         if (!selectedInterestBooks.value.find(b => b.id === book.id)) {
@@ -431,7 +456,10 @@ const addMaterial = (book, type) => {
 };
 
 const handleSubmit = async () => {
+    attemptedSubmit.value = true;
     if (!selectedCliente.value) return;
+
+    // REGLA: Niveles educativos obligatorios para mantener integridad maestro
     if (form.plantel.niveles.length === 0) {
         errorMessage.value = "Selecciona niveles educativos para completar el expediente del plantel.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -443,9 +471,11 @@ const handleSubmit = async () => {
 
     try {
         const nivelNombres = nivelesCatalog.value.filter(n => form.plantel.niveles.includes(n.id)).map(n => n.nombre);
+        
+        // REGLA ACTUALIZADA: Los materiales (tanto interés como entrega) son opcionales
         const materiales = {
-            interes: selectedInterestBooks.value.map(b => ({ titulo: b.titulo, tipo: b.tipo })),
-            entregado: selectedDeliveredBooks.value.map(b => ({ titulo: b.titulo, cantidad: b.cantidad }))
+            interes: selectedInterestBooks.value.map(b => ({ titulo: b.titulo, tipo: b.tipo, serie_nombre: b.serie_nombre })),
+            entregado: selectedDeliveredBooks.value.map(b => ({ titulo: b.titulo, cantidad: b.cantidad, serie_nombre: b.serie_nombre }))
         };
 
         const finalCargo = form.visita.cargo === 'Otro' ? form.visita.cargo_especifico : form.visita.cargo;
@@ -482,64 +512,11 @@ const verificarPrecarga = async () => {
         const res = await axios.get(`/visitas/${idParam}`);
         const v = res.data;
         if (v.cliente) selectProspecto(v.cliente);
-        else {
-            selectedCliente.value = { id: v.cliente_id, name: v.nombre_plantel };
-            searchQuery.value = v.nombre_plantel;
-            form.plantel.name = v.nombre_plantel;
-            form.plantel.rfc = v.rfc_plantel || '';
-            form.plantel.direccion = v.direccion_plantel || '';
-            form.plantel.estado_id = v.estado_id || '';
-            form.plantel.telefono = v.telefono_plantel || '';
-            form.plantel.email = v.email_plantel || '';
-            form.plantel.director = v.director_plantel || '';
-            form.plantel.latitud = v.latitud || null;
-            form.plantel.longitud = v.longitud || null;
-
-            if (v.nivel_educativo_plantel) {
-                const nombres = v.nivel_educativo_plantel.split(',').map(n => n.trim());
-                form.plantel.niveles = nivelesCatalog.value
-                    .filter(niv => nombres.includes(niv.nombre))
-                    .map(niv => niv.id);
-            }
-
-            fetchHistorial(v.cliente_id);
-        }
     } catch (e) { console.error(e); } finally { loadingPrecarga.value = false; }
 };
 
-/**
- * SOLUCIÓN AL BUG DE FECHA (Desfase de zona horaria):
- * Separamos la cadena por '-' y construimos el objeto Date LOCAL.
- */
-const formatDateShort = (dateString) => {
-    if (!dateString) return '---';
-    const cleanDate = dateString.split('T')[0];
-    const [year, month, day] = cleanDate.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }).toUpperCase();
-};
-
-const getOutcomeClass = (outcome) => {
-    const base = 'status-badge ';
-    if (outcome === 'compra') return base + 'bg-green-100 text-green-700 border border-green-200';
-    if (outcome === 'rechazo') return base + 'bg-red-100 text-red-700 border border-red-200';
-    return base + 'bg-orange-100 text-orange-700 border border-orange-200';
-};
-
-const getOutcomeBorder = (outcome) => {
-    if (outcome === 'compra') return 'border-l-green-500';
-    if (outcome === 'rechazo') return 'border-l-red-500';
-    return 'border-l-orange-500';
-};
-
 onMounted(async () => {
-    // 1. Scroll inmediato al montar
     window.scrollTo({ top: 0, behavior: 'instant' });
-    
-    // 2. Esperar a que Vue procese el renderizado inicial y forzar de nuevo
-    await nextTick();
-    window.scrollTo(0, 0);
-
     loadingInitial.value = true;
     try {
         const [resEst, resNiv, resSer] = await Promise.all([
@@ -548,15 +525,7 @@ onMounted(async () => {
         estados.value = resEst.data;
         nivelesCatalog.value = resNiv.data;
         allSeries.value = resSer.data;
-        
         await verificarPrecarga();
-
-        // 3. Scroll final después de la precarga
-        await nextTick();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    } catch (e) { 
-        console.error(e); 
     } finally { 
         loadingInitial.value = false; 
     }
@@ -571,21 +540,18 @@ onMounted(async () => {
 .label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-widest; }
 
 .form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #000000; background: #fafbfc; transition: all 0.2s; font-size: 0.9rem; }
-.form-input:focus { border-color: #000000; background: white; outline: none; box-shadow: 0 0 0 4px rgba(0,0,0,0.02); }
+.form-input:focus { border-color: #000000; background: white; outline: none; }
 
-.btn-primary-black { background: #000000; color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; }
-.btn-primary-black:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
-
-.btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+.btn-primary { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
-.btn-primary-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2); }
+.btn-primary-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; font-weight: 900; cursor: pointer; border: none; border-radius: 16px; }
 
 .autocomplete-list { position: absolute; z-index: 2000; width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.2); max-height: 250px; overflow-y: auto; list-style: none; padding: 10px; margin: 8px 0 0; }
 .autocomplete-list li { padding: 12px 16px; cursor: pointer; border-radius: 12px; border-bottom: 1px solid #f8fafc; transition: all 0.2s; }
 
 .modal-overlay-custom { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-.modal-content-success { background: white; padding: 45px; border-radius: 40px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #f1f5f9; }
+.modal-content-success { background: white; padding: 45px; border-radius: 40px; width: 90%; max-width: 450px; text-align: center; border: 1px solid #f1f5f9; }
 .success-icon-wrapper { width: 80px; height: 80px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; border: 4px solid white; }
 .modal-title-success { font-size: 1.75rem; font-weight: 900; color: #000000; margin-bottom: 12px; }
 .modal-text-success { color: #64748b; font-size: 0.95rem; line-height: 1.6; font-weight: 500; }
@@ -594,8 +560,7 @@ onMounted(async () => {
 .table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
 .table-cell { padding: 12px 16px; vertical-align: middle; }
 
-.input-table, .select-table { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 10px; font-weight: 900; color: #1e293b; padding: 6px 8px; text-transform: uppercase; transition: all 0.2s; width: 100%; }
-.input-table:focus, .select-table:focus { outline: none; border-color: #f87171; background-color: #fff; box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.1); }
+.input-table, .select-table { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 10px; font-weight: 900; color: #1e293b; padding: 6px 8px; text-transform: uppercase; width: 100%; }
 
 .btn-icon-delete { background: none; border: none; color: #cbd5e1; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: color 0.2s; display: inline-flex; align-items: center; gap: 4px; }
 .btn-icon-delete:hover { color: #dc2626; }
@@ -604,15 +569,12 @@ onMounted(async () => {
 
 .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; text-transform: uppercase; }
 
-.custom-scroll::-webkit-scrollbar { width: 4px; }
-.custom-scroll::-webkit-scrollbar-thumb { background: #f1f5f9; border-radius: 10px; }
-
 .shadow-premium { box-shadow: 0 15px 35px -10px rgba(0,0,0,0.05); }
 
 .animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }

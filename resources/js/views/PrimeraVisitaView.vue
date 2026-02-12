@@ -53,7 +53,7 @@
                                     :class="{'border-red-600 bg-red-50 ring-2 ring-red-100': checkStates.rfc.isDuplicate}"
                                     placeholder="XXXXXXXXXXXXX" 
                                     required 
-                                    minlength="12" 
+                                    minlength="13x" 
                                     maxlength="13" 
                                     :disabled="loading"
                                 >
@@ -418,7 +418,7 @@ const gettingLocation = ref(false);
 const showSuccessModal = ref(false);
 const errorMessage = ref(null);
 const isProcessingCheck = ref(false); 
-const attemptedSubmit = ref(false); // Rastreo para validación visual de GPS
+const attemptedSubmit = ref(false); 
 
 const checkStates = reactive({
     name:  { checking: false, isDuplicate: false, verified: false },
@@ -427,12 +427,7 @@ const checkStates = reactive({
     phone: { checking: false, isDuplicate: false, verified: false }
 });
 
-const anyDuplicate = computed(() => {
-    return checkStates.name.isDuplicate || 
-           checkStates.rfc.isDuplicate || 
-           checkStates.email.isDuplicate || 
-           checkStates.phone.isDuplicate;
-});
+const anyDuplicate = computed(() => checkStates.name.isDuplicate || checkStates.rfc.isDuplicate || checkStates.email.isDuplicate || checkStates.phone.isDuplicate);
 
 const searchingInterest = ref(false);
 const searchingDelivered = ref(false);
@@ -467,18 +462,12 @@ const savedClientType = computed(() => form.visita.resultado_visita === 'compra'
 const checkDuplicate = async (field) => {
     let val = '';
     let minLen = 5;
-
     if (field === 'name') { val = form.plantel.name?.trim(); minLen = 5; }
     else if (field === 'rfc') { val = form.plantel.rfc?.trim().toUpperCase(); minLen = 12; }
     else if (field === 'email') { val = form.plantel.email?.trim(); minLen = 5; }
     else if (field === 'phone') { val = form.plantel.telefono?.trim(); minLen = 10; }
 
-    if (!val || val.length < minLen) {
-        checkStates[field].isDuplicate = false;
-        checkStates[field].verified = false;
-        return;
-    }
-
+    if (!val || val.length < minLen) return;
     checkStates[field].checking = true;
     isProcessingCheck.value = true;
     errorMessage.value = null;
@@ -486,105 +475,50 @@ const checkDuplicate = async (field) => {
     try {
         const res = await axios.get('/search/clientes', { params: { query: val, include_prospectos: true } });
         let exists = false;
-        let existingName = '';
-
-        if (field === 'rfc') {
-            const match = res.data.find(c => c.rfc?.toUpperCase() === val);
-            if (match) {
-                exists = true;
-                existingName = match.name;
-            }
-        } else if (field === 'name') {
-            exists = res.data.some(c => c.name?.toLowerCase() === val.toLowerCase());
-        } else if (field === 'email') {
-            exists = res.data.some(c => c.email?.toLowerCase() === val.toLowerCase());
-        } else if (field === 'phone') {
-            exists = res.data.some(c => c.telefono === val);
-        }
+        if (field === 'rfc') exists = res.data.some(c => c.rfc?.toUpperCase() === val);
+        else if (field === 'name') exists = res.data.some(c => c.name?.toLowerCase() === val.toLowerCase());
+        else if (field === 'email') exists = res.data.some(c => c.email?.toLowerCase() === val.toLowerCase());
+        else if (field === 'phone') exists = res.data.some(c => c.telefono === val);
 
         checkStates[field].isDuplicate = exists;
         checkStates[field].verified = !exists;
-
-        if (exists) {
-            if (field === 'rfc') {
-                errorMessage.value = `EL RFC YA PERTENECE AL PLANTEL "${existingName.toUpperCase()}". NO SE PERMITE DUPLICAR EL REGISTRO CON UN NOMBRE DISTINTO.`;
-            } else {
-                errorMessage.value = `EL DATO INGRESADO EN "${getFieldLabel(field).toUpperCase()}" YA ESTÁ REGISTRADO EN EL SISTEMA.`;
-            }
-        }
-    } catch (e) {
-        console.error("Error en validación:", e);
-    } finally {
-        checkStates[field].checking = false;
-        isProcessingCheck.value = false;
-    }
-};
-
-const getFieldLabel = (f) => {
-    const map = { name: 'Nombre', rfc: 'RFC', email: 'Email', phone: 'Teléfono' };
-    return map[f] || f;
+        if (exists) errorMessage.value = `El dato ingresado en "${field.toUpperCase()}" ya está registrado en el sistema.`;
+    } catch (e) { console.error(e); } finally { checkStates[field].checking = false; isProcessingCheck.value = false; }
 };
 
 const getLocation = () => {
     if (!navigator.geolocation) return alert("Navegador no soporta GPS.");
     gettingLocation.value = true;
     navigator.geolocation.getCurrentPosition(
-        (p) => { 
-            form.plantel.latitud = p.coords.latitude; 
-            form.plantel.longitud = p.coords.longitude; 
-            gettingLocation.value = false; 
-            errorMessage.value = null; // Limpiar error si se capturó con éxito
-        },
-        () => { 
-            gettingLocation.value = false; 
-            alert("Permiso de GPS denegado o error de señal. Las coordenadas son obligatorias para el registro."); 
-        },
+        (p) => { form.plantel.latitud = p.coords.latitude; form.plantel.longitud = p.coords.longitude; gettingLocation.value = false; errorMessage.value = null; },
+        () => { gettingLocation.value = false; alert("Permiso de GPS denegado."); },
         { enableHighAccuracy: true }
     );
 };
 
-const handleSerieChange = (type) => {
-    if (type === 'interest') { interestInput.titulo = ''; interestSuggestions.value = []; }
-};
+const handleSerieChange = (type) => { if (type === 'interest') { interestInput.titulo = ''; interestSuggestions.value = []; } };
 
 const searchBooks = (event, type) => {
     const val = event.target.value;
-    if (val.length < 3) {
-        if (type === 'interest') interestSuggestions.value = [];
-        else deliveredSuggestions.value = [];
-        return;
-    }
-    
-    if (type === 'interest') searchingInterest.value = true;
-    else searchingDelivered.value = true;
-
+    if (val.length < 3) return;
+    if (type === 'interest') searchingInterest.value = true; else searchingDelivered.value = true;
     if (bookTimer) clearTimeout(bookTimer);
-    
     const serieId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? null : selectedSerieIdA.value) : null; 
-
     bookTimer = setTimeout(async () => {
         try {
             const res = await axios.get('search/libros', { params: { query: val, serie_id: serieId } });
-            if (type === 'interest') {
-                interestSuggestions.value = res.data.filter(b => b.type !== 'promocion');
-            } else {
-                deliveredSuggestions.value = res.data.filter(b => b.type === 'promocion' && b.type !== 'digital');
-            }
-        } catch (e) { console.error(e); } 
-        finally { searchingInterest.value = false; searchingDelivered.value = false; }
+            if (type === 'interest') interestSuggestions.value = res.data.filter(b => b.type !== 'promocion');
+            else deliveredSuggestions.value = res.data.filter(b => b.type === 'promocion');
+        } catch (e) { console.error(e); } finally { searchingInterest.value = false; searchingDelivered.value = false; }
     }, 400);
 };
 
 const addMaterial = (book, type) => {
     const serie = allSeries.value.find(s => s.id == book.serie_id);
     const serieNombre = serie ? serie.nombre : 'Sin Serie';
-
     if (type === 'interest') {
         if (!selectedInterestBooks.value.find(b => b.id === book.id)) {
-            selectedInterestBooks.value.push({ 
-                id: book.id, titulo: book.titulo, serie_nombre: serieNombre, 
-                original_type: book.type, tipo: book.type === 'digital' ? 'digital' : 'fisico' 
-            });
+            selectedInterestBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: serieNombre, original_type: book.type, tipo: 'fisico' });
         }
         interestInput.titulo = ''; interestSuggestions.value = [];
     } else {
@@ -596,48 +530,53 @@ const addMaterial = (book, type) => {
 };
 
 const handleSubmit = async () => {
-    attemptedSubmit.value = true; // Marcar que se intentó enviar para activar validaciones visuales
-
-    // REGLA DE ORO: Validar coordenadas GPS antes de cualquier otra cosa
-    if (!form.plantel.latitud || !form.plantel.longitud) {
-        errorMessage.value = "LA UBICACIÓN GEOGRÁFICA (GPS) ES OBLIGATORIA. POR FAVOR, CAPTURE EL PUNTO GPS DEL PLANTEL ANTES DE FINALIZAR.";
+    attemptedSubmit.value = true;
+    
+    // REGLAS DE ORO
+    if (!form.plantel.latitud) { 
+        errorMessage.value = "LA UBICACIÓN GPS ES OBLIGATORIA PARA NUEVOS PLANTELES."; 
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        return; 
+    }
+    
+    // REGLA: Material de interés requerido
+    if (selectedInterestBooks.value.length === 0) {
+        errorMessage.value = "DEBE AGREGAR AL MENOS UN MATERIAL DE INTERÉS PARA EL PLANTEL.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
     }
 
-    if (anyDuplicate.value) {
-        errorMessage.value = "ACCIÓN BLOQUEADA: EXISTEN DATOS DUPLICADOS EN CAMPOS OBLIGATORIOS. POR FAVOR REVISE EL RFC O EL NOMBRE.";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+    if (anyDuplicate.value) { 
+        errorMessage.value = "EXISTEN DATOS DUPLICADOS. REVISE EL RFC O EL NOMBRE."; 
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        return; 
     }
 
-    if (form.plantel.niveles.length === 0) {
-        errorMessage.value = "Seleccione al menos un nivel educativo.";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+    if (form.plantel.niveles.length === 0) { 
+        errorMessage.value = "SELECCIONE NIVELES EDUCATIVOS."; 
+        window.scrollTo({ top: 0, behavior: 'smooth' }); 
+        return; 
     }
 
-    errorMessage.value = null;
     loading.value = true;
-
     try {
         const nivelNombres = nivelesCatalog.value.filter(n => form.plantel.niveles.includes(n.id)).map(n => n.nombre);
+        
+        // El bloque entregado sigue siendo opcional
         const materiales = {
-            interes: selectedInterestBooks.value.map(b => ({ titulo: b.titulo, tipo: b.tipo })),
-            entregado: selectedDeliveredBooks.value.map(b => ({ titulo: b.titulo, cantidad: b.cantidad }))
+            interes: selectedInterestBooks.value.map(b => ({ titulo: b.titulo, tipo: b.tipo, serie_nombre: b.serie_nombre })),
+            entregado: selectedDeliveredBooks.value.map(b => ({ titulo: b.titulo, cantidad: b.cantidad, serie_nombre: b.serie_nombre }))
         };
-
+        
         const finalCargo = form.visita.cargo === 'Otro' ? form.visita.cargo_especifico : form.visita.cargo;
-
         const payload = { 
             plantel: { ...form.plantel, niveles: nivelNombres }, 
             visita: { ...form.visita, cargo: finalCargo, libros_interes: materiales } 
         };
-        
         await axios.post('visitas/primera', payload);
         showSuccessModal.value = true;
     } catch (err) {
-        errorMessage.value = err.response?.data?.message || "Error técnico al guardar el registro maestro.";
+        errorMessage.value = err.response?.data?.message || "Error al guardar el registro.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally { loading.value = false; }
 };
@@ -645,16 +584,10 @@ const handleSubmit = async () => {
 const goToHistory = () => { showSuccessModal.value = false; router.push('/visitas'); };
 
 onMounted(async () => {
-    loadingInitial.value = true;
     try {
-        const [resEst, resNiv, resSer] = await Promise.all([
-            axios.get('estados'), axios.get('search/niveles'), axios.get('search/series')
-        ]);
-        estados.value = resEst.data;
-        nivelesCatalog.value = resNiv.data;
-        allSeries.value = resSer.data;
-    } catch (e) { errorMessage.value = "Error al cargar catálogos."; } 
-    finally { loadingInitial.value = false; }
+        const [resEst, resNiv, resSer] = await Promise.all([axios.get('estados'), axios.get('search/niveles'), axios.get('search/series')]);
+        estados.value = resEst.data; nivelesCatalog.value = resNiv.data; allSeries.value = resSer.data;
+    } finally { loadingInitial.value = false; }
 });
 </script>
 

@@ -12,6 +12,13 @@
                 <button @click="router.push('/pedidos')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto">
                     <i class="fas fa-arrow-left mr-2"></i> Volver al Historial
                 </button>
+               <button 
+                        v-if="pedido && pedido.status === 'PENDIENTE'"
+                        @click="router.push({ name: 'PedidoEdit', params: { id: pedido.id } })" 
+                        class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto uppercase"
+                    >
+                        <i class="fas fa-edit mr-2"></i> Editar Pedido
+                    </button>
             </div>
             
             <!-- Loader -->
@@ -297,25 +304,19 @@ const fetchPedidoDetail = async () => {
         const response = await axios.get(`/pedidos/${id}`);
         pedido.value = response.data;
     } catch (err) {
-        if (err.response && (err.response.status === 404 || err.response.status === 403)) {
-             error.value = err.response.data.message;
-        } else {
-             error.value = 'No se pudieron cargar los detalles técnicos del pedido.';
-        }
+        error.value = err.response?.data?.message || 'No se pudieron cargar los detalles técnicos del pedido.';
     } finally {
         loading.value = false;
     }
 };
 
-const totalOrderCost = computed(() => {
-    if (!pedido.value || !pedido.value.detalles) return formatCurrency(0);
-    const total = pedido.value.detalles.reduce((sum, detalle) => sum + (parseFloat(detalle.costo_total) || 0), 0);
-    return formatCurrency(total);
+const totalOrderCostNum = computed(() => {
+    if (!pedido.value || !pedido.value.detalles) return 0;
+    return pedido.value.detalles.reduce((sum, d) => sum + (parseFloat(d.costo_total) || 0), 0);
 });
 
 const formatCurrency = (value) => {
-    if (value === null || isNaN(value)) return '$0.00';
-    return Number(value).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+    return Number(value || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 };
 
 const calculateTotalItems = (detalles) => detalles ? detalles.reduce((sum, item) => sum + Number(item.cantidad), 0) : 0;
@@ -342,22 +343,18 @@ const getPriorityClass = (priority) => {
     }
 };
 
-/**
- * Formatea la dirección completa priorizando los datos del receptor
- */
 const formatFullAddress = (p) => {
     if (p.delivery_address) return p.delivery_address;
-    // Si es tipo nuevo, extrae la dirección del modelo PedidoReceptor
     if (p.receiver_type === 'nuevo' && p.receptor?.direccion) return p.receptor.direccion;
     return p.cliente?.direccion || 'Entrega en Sucursal / Oficina';
 };
 
 const getDeliveryOption = (option) => {
     switch (option) {
-        case 'recoleccion': return 'Recolección en Almacen';
-        case 'paqueteria': return 'Paquetería Sugerida';
-        case 'entrega': return 'Entrega Directa';
-        default: return 'Entrega Directa';
+        case 'recoleccion': return 'RECOLECCIÓN EN ALMACÉN';
+        case 'paqueteria': return 'PAQUETERÍA SUGERIDA';
+        case 'entrega': return 'ENTREGA DIRECTA';
+        default: return 'ENTREGA DIRECTA';
     }
 };
 

@@ -14,6 +14,7 @@ import SeguimientoID from '../views/VisitaIDView.vue';
 import GastosCreateView from '../views/GastosCreateView.vue';
 import CapacitacionesIndexView from '../views/CapacitacionesIndexView.vue';
 import ProfileView from '../views/profile/ProfileView.vue';
+import PedidoEdit from '../views/EditpedidoView.vue';
 
 const authGuard = (to, from, next) => {
     const token = localStorage.getItem('auth_token');
@@ -104,6 +105,11 @@ const routes = [
                 path: 'profile',
                 name: 'Profile',
                 component: ProfileView
+            },
+            {
+                path: 'pedidos/editar/:id',
+                name: 'PedidoEdit',
+                component: PedidoEdit
             }
 
         ]
