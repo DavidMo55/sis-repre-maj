@@ -20,12 +20,14 @@ class Gasto extends Model
         'facturado',
         'detalles', 
         'status',
+        'modificaciones_finalizadas',
     ];
 
     protected $casts = [
         'fecha'     => 'date',
         'facturado' => 'boolean',
         'detalles'  => 'array', 
+        'modificaciones_finalizadas' => 'integer',
     ];
 
     public function user()

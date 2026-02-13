@@ -12,6 +12,7 @@ use App\Models\Gasto;
 use App\Models\Comprobante;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Models\GastoLog;
 use Spatie\Dropbox\Client as DropboxClient;
 
 class GastoController extends Controller
@@ -181,5 +182,122 @@ class GastoController extends Controller
         }
 
         return response()->json($gasto);
+    }
+
+   public function update(Request $request, $id)
+    {
+        $request->validate([
+            'fecha'         => 'required|date',
+            'estado_nombre' => 'required|string',
+            'status'        => 'required|in:BORRADOR,FINALIZADO',
+            'monto_total'   => 'required|numeric|min:0',
+            'conceptos'     => 'required|array|min:1',
+            'motivo_cambio' => 'nullable|string|max:255'
+        ]);
+
+        try {
+            $gasto = Gasto::findOrFail($id);
+            $user = $request->user();
+            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
+            if ($gasto->user_id !== $ownerId) {
+                return response()->json(['message' => 'No autorizado.'], 403);
+            }
+
+            // --- REGLA DE ORO: ÚNICA MODIFICACIÓN ---
+            if ($gasto->status === 'FINALIZADO' && $gasto->modificaciones_finalizadas >= 1) {
+                return response()->json([
+                    'message' => 'Este gasto ya fue finalizado y modificado una vez. No se permiten más cambios.'
+                ], 403);
+            }
+
+            return DB::transaction(function () use ($gasto, $request) {
+                $oldDetails = $gasto->detalles;
+                $newDetails = $request->conceptos;
+
+                // Si el gasto actual es FINALIZADO, incrementamos el contador
+                if ($gasto->status === 'FINALIZADO') {
+                    $gasto->modificaciones_finalizadas += 1;
+                }
+
+                if (json_encode($oldDetails) !== json_encode($newDetails)) {
+                    GastoLog::create([
+                        'gasto_id' => $gasto->id,
+                        'user_id' => Auth::id(),
+                        'snapshot_anterior' => [
+                            'cabecera' => $gasto->makeHidden(['detalles', 'comprobantes'])->toArray(),
+                            'detalles' => $oldDetails
+                        ],
+                        'motivo_cambio' => strtoupper($request->motivo_cambio ?? 'AJUSTE ÚNICO POST-FINALIZACIÓN')
+                    ]);
+                }
+
+                $tieneFactura = collect($request->conceptos)->contains('es_facturado', true);
+
+                $gasto->update([
+                    'fecha'         => $request->fecha,
+                    'estado_nombre' => $request->estado_nombre,
+                    'monto'         => $request->monto_total,
+                    'facturado'     => $tieneFactura,
+                    'detalles'      => $request->conceptos,
+                    'status'        => $request->status,
+                    'modificaciones_finalizadas' => $gasto->modificaciones_finalizadas
+                ]);
+
+                return response()->json(['message' => 'Sincronización exitosa.', 'gasto' => $gasto]);
+            });
+        } catch (\Exception $e) {
+            Log::error('Error al actualizar gasto:', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'Error al procesar la actualización.'], 500);
+        }
+    }
+
+     public function destroy(Request $request, $id)
+    {
+        try {
+            // Cargamos el gasto con sus comprobantes para tener la data lista para el log
+            $gasto = Gasto::with('comprobantes')->findOrFail($id);
+            $user = $request->user();
+            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
+            if ($gasto->user_id !== $ownerId) {
+                return response()->json(['message' => 'No autorizado.'], 403);
+            }
+
+            return DB::transaction(function () use ($gasto, $request) {
+                GastoLog::create([
+                    'gasto_id' => $gasto->id,
+                    'user_id' => Auth::id(),
+                    'snapshot_anterior' => [
+                        'tipo_log'     => 'ELIMINACION_TOTAL',
+                        'cabecera'     => $gasto->makeHidden(['detalles', 'comprobantes'])->toArray(),
+                        'detalles'     => $gasto->detalles,
+                        'comprobantes' => $gasto->comprobantes->toArray() 
+                    ],
+                    'motivo_cambio' => strtoupper($request->query('motivo') ?? 'ELIMINACIÓN TOTAL DEL REGISTRO')
+                ]);
+
+                $accessToken = $this->getDropboxToken();
+                $dropboxClient = new DropboxClient($accessToken);
+
+                foreach ($gasto->comprobantes as $comprobante) {
+                    $path = "/comprobantes/{$gasto->id}/{$comprobante->name}";
+                    try {
+                        $dropboxClient->delete($path);
+                    } catch (\Exception $e) {
+                        Log::warning("Archivo no encontrado en Dropbox durante eliminación: " . $path);
+                    }
+                }
+
+                $gasto->comprobantes()->delete();
+                $gasto->delete();
+
+                return response()->json(['message' => 'Registro eliminado y auditado correctamente.']);
+            });
+
+        } catch (\Exception $e) {
+            Log::error("Error en eliminación total de gasto: " . $e->getMessage());
+            return response()->json(['message' => 'Fallo al eliminar el registro.'], 500);
+        }
     }
 }

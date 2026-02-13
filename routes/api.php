@@ -39,7 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/gastos/comprobante', [GastoController::class, 'storeComprobante']); 
     Route::get('/gastos/{id}', [GastoController::class, 'show']); 
     Route::post('/gastos-nuevos', [GastoController::class, 'store']);
-    
+    Route::put('/gastos/{id}', [GastoController::class, 'update']);
     
     // Buscadores y Datos Maestros Globales
     Route::get('/search/clientes', [SearchController::class, 'searchClientes']);

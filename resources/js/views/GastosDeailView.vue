@@ -4,13 +4,31 @@
             <!-- Encabezado -->
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div>
-                    <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Detalle de Paquete de Gastos</h1>
+                    <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight leading-tight">
+                        Detalle de Paquete de Gastos
+                    </h1>
                     <p class="text-xs md:text-sm text-slate-500 font-medium uppercase tracking-widest mt-1">Información resumida y desglose técnico de comprobantes.</p>
                 </div>
                 <div class="flex gap-2 w-full sm:w-auto">
-                    <button @click="router.push('/gastos')" class="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3 rounded-2xl text-sm font-black shadow-sm bg-white border-2 border-slate-200">
-                        <i class="fas fa-arrow-left"></i> VOLVER AL LISTADO
+                    <!-- ACCIÓN: Navegación a la ruta de edición (GastoEdit) -->
+                   <div class="flex gap-2 w-full sm:w-auto">
+                    <!-- REGLA DE NEGOCIO: 
+                         1. Si es BORRADOR: Se muestra siempre.
+                         2. Si es FINALIZADO: Se muestra solo si modificaciones_finalizadas < 1.
+                    -->
+                    <button 
+                        v-if="gasto && (gasto.status === 'BORRADOR' || (gasto.status === 'FINALIZADO' && (gasto.modificaciones_finalizadas || 0) < 1))"
+                        @click="router.push({ name: 'GastoEdit', params: { id: gasto.id } })" 
+                        class="btn-primary flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black shadow-sm transition-all"
+                    >
+                        <i class="fas fa-edit"></i> 
+                        {{ gasto.status === 'BORRADOR' ? 'EDITAR BORRADOR' : 'EDITAR (ÚNICA VEZ)' }}
                     </button>
+
+                    <button @click="router.push('/gastos')" class="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3 rounded-2xl text-sm font-black shadow-sm transition-all border-2 border-slate-200">
+                        <i class="fas fa-arrow-left"></i> VOLVER
+                    </button>
+                </div>
                 </div>
             </div>
 
@@ -27,25 +45,35 @@
                 </div>
                 <h2 class="text-xl font-black text-red-800 uppercase tracking-tighter">Error de Conexión</h2>
                 <p class="text-red-600/70 text-sm mt-2 font-medium">{{ error }}</p>
-                <button @click="fetchGastoDetail" class="btn-primary mt-6 px-10 py-3 rounded-2xl shadow-lg">Intentar de nuevo</button>
+                <button @click="fetchGastoDetail" class="btn-primary-action mt-6 px-10 py-3 rounded-2xl shadow-lg">Intentar de nuevo</button>
             </div>
 
             <!-- Contenido del Gasto -->
             <div v-else-if="gasto" class="space-y-8 animate-fade-in">
                 
                 <!-- 1. RESUMEN EJECUTIVO (TOP BAR) -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div class="summary-stat shadow-premium border-t-4 border-t-slate-800">
                         <span class="label-xs">Fecha del Viaje</span>
                         <p class="stat-value">{{ formatDate(gasto.fecha) }}</p>
                     </div>
                     <div class="summary-stat shadow-premium border-t-4 border-t-red-700">
                         <span class="label-xs">Región / Estado</span>
-                        <p class="stat-value uppercase truncate">{{ gasto.estado_nombre || 'No definido' }}</p>
+                        <p class="stat-value uppercase truncate" :title="gasto.estado_nombre">{{ gasto.estado_nombre || 'No definido' }}</p>
                     </div>
                     <div class="summary-stat shadow-premium bg-slate-900 border-none">
-                        <span class="label-xs text-slate-400">Inversión Total Acumulada</span>
+                        <span class="label-xs text-slate-400">Monto Total</span>
                         <p class="stat-value text-red-400 font-black">{{ formatCurrency(gasto.monto) }}</p>
+                    </div>
+                    <!-- DIFERENCIAL DE ESTADO -->
+                    <div class="summary-stat shadow-premium border-t-4" 
+                         :class="gasto.status === 'FINALIZADO' ? 'border-t-green-600' : 'border-t-amber-500'">
+                        <span class="label-xs">Estatus del Registro</span>
+                        <p class="stat-value flex items-center gap-2" 
+                           :class="gasto.status === 'FINALIZADO' ? 'text-green-700' : 'text-amber-600'">
+                            <i class="fas" :class="gasto.status === 'FINALIZADO' ? 'fa-check-circle' : 'fa-pen-nib'"></i>
+                            {{ gasto.status }}
+                        </p>
                     </div>
                 </div>
 
@@ -80,7 +108,6 @@
 
                                         <td class="table-cell">
                                             <p class="font-black text-slate-800 text-sm uppercase leading-tight">
-                                                {{ sub.concepto || 'Sin Concepto' }}
                                             </p>
                                             <p v-if="sub.descripcion" class="text-[10px] text-slate-400 mt-1 italic font-medium">
                                                 {{ sub.descripcion }}
@@ -89,22 +116,25 @@
 
                                         <td class="table-cell text-center">
                                             <div v-if="gasto.comprobantes && gasto.comprobantes[idx]" class="inline-flex items-center">
-                                                <!-- AJUSTE: Abrir en pestaña nueva y forzar visualización en lugar de descarga -->
                                                 <a :href="getViewableUrl(gasto.comprobantes[idx].public_url)" 
                                                    target="_blank"
                                                    rel="noopener noreferrer"
                                                    class="btn-file-view group-hover:border-red-600 transition-all">
                                                     <i class="fas mr-2" :class="getFileIcon(gasto.comprobantes[idx].extension)"></i>
-                                                    Archivo Guardado
+                                                    VER ARCHIVO
                                                 </a>
                                             </div>
-                                            <button v-else 
-                                                @click="showUploadModal = true"
-                                                class="btn-file-upload shadow-sm hover:shadow-md"
-                                            >
-                                                <i class="fas fa-plus-circle mr-2"></i>
-                                                SUBIR COMPROBANTE
-                                            </button>
+                                            <div v-else>
+                                                <!-- Solo permitir subida si el paquete es un BORRADOR -->
+                                                <button v-if="gasto.status === 'BORRADOR'" 
+                                                    @click="showUploadModal = true"
+                                                    class="btn-file-upload shadow-sm hover:shadow-md"
+                                                >
+                                                    <i class="fas fa-plus-circle mr-2"></i>
+                                                    PENDIENTE
+                                                </button>
+                                                <span v-else class="text-[9px] font-black text-slate-300 uppercase italic">Sin comprobante</span>
+                                            </div>
                                         </td>
 
                                         <td class="table-cell text-center">
@@ -134,17 +164,32 @@
                     </div>
                 </div>
 
+                <!-- Banner Informativo para Borradores -->
+                <div v-if="gasto.status === 'BORRADOR'" class="bg-amber-50 border-2 border-dashed border-amber-200 p-6 rounded-[2.5rem] flex items-center gap-4 animate-fade-in shadow-sm">
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-exclamation-circle fa-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-black text-amber-900 uppercase">Paquete en modo borrador</p>
+                        <p class="text-xs text-amber-700 font-medium leading-relaxed">
+                            Este registro aún permite ediciones. Una vez que esté seguro de todos los conceptos y archivos, use el botón <strong>Editar Borrador</strong> para finalizar el proceso.
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Comentarios Generales -->
-                <div v-if="gasto.comments" class="bg-amber-50 p-10 rounded-[3rem] border border-amber-200 shadow-sm animate-fade-in">
-                    <h3 class="text-[11px] font-black text-amber-700 uppercase mb-4 tracking-[0.2em] flex items-center gap-2">
+                <div v-if="gasto.comments" class="bg-slate-900 p-10 rounded-[3rem] text-white shadow-xl animate-fade-in relative overflow-hidden group">
+                    <i class="fas fa-quote-right absolute -right-4 -bottom-4 text-7xl text-white/5 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-[11px] font-black text-red-400 uppercase mb-4 tracking-[0.2em] flex items-center gap-2">
                         <i class="fas fa-comment-dots"></i> Notas de Almacén / Oficina
                     </h3>
-                    <p class="text-slate-700 text-base font-medium italic leading-relaxed">"{{ gasto.comments }}"</p>
+                    <p class="text-slate-300 text-base font-medium italic leading-relaxed relative z-10">"{{ gasto.comments }}"</p>
                 </div>
             </div>
         </div>
 
         <UploadComprobanteModal 
+            v-if="gasto"
             :visible="showUploadModal"
             :gasto="gasto"
             @close="showUploadModal = false"
@@ -154,7 +199,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../axios';
 import UploadComprobanteModal from '../components/Modales/SubidaComprobantes.vue';
@@ -175,19 +220,14 @@ const fetchGastoDetail = async () => {
         const response = await axios.get(`/gastos/${gastoId}`);
         gasto.value = response.data;
     } catch (err) {
-        error.value = 'No se pudo recuperar la información del paquete. Verifique su conexión.';
-        console.error(err);
+        error.value = err.response?.data?.message || "No se pudo recuperar la información del paquete. Verifique su conexión.";
     } finally {
         loading.value = false;
     }
 };
 
-/**
- * Normaliza la URL de Dropbox para previsualización en lugar de descarga forzada.
- */
 const getViewableUrl = (url) => {
     if (!url) return '#';
-    // Dropbox usa dl=1 para forzar descarga. Cambiamos a dl=0 para previsualizar.
     return url.replace('dl=1', 'dl=0');
 };
 
@@ -198,18 +238,17 @@ const formatDate = (dateString) => {
 };
 
 const formatCurrency = (value) => {
-    if (value === null || value === undefined) return '$0.00';
-    return Number(value).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+    return Number(value || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 };
 
 const getFileIcon = (ext) => {
     const e = ext?.toLowerCase();
-    if (e === 'pdf') return 'fa-file-pdf text-red-500';
-    return 'fa-file-image text-blue-500';
+    return e === 'pdf' ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500';
 };
 
 onMounted(fetchGastoDetail);
 </script>
+
 
 <style scoped>
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
@@ -220,18 +259,22 @@ onMounted(fetchGastoDetail);
     padding: 25px;
     border-radius: 30px;
     border: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .stat-value {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 900;
     color: #1e293b;
     margin-top: 6px;
     letter-spacing: -0.025em;
+    line-height: 1.2;
 }
 
 .label-xs {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: #94a3b8;
     text-transform: uppercase;
     font-weight: 900;
@@ -239,23 +282,22 @@ onMounted(fetchGastoDetail);
     letter-spacing: 0.15em;
 }
 
-.status-badge {
-    @apply px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest inline-flex items-center;
-}
+.btn-secondary-custom { @apply bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50 text-xs; }
+.btn-edit-action { @apply bg-slate-900 text-white hover:bg-slate-800 text-xs shadow-xl; }
 
 .btn-primary-action {
     background: linear-gradient(135deg, #a93339 0%, #881337 100%);
     color: white;
+    padding: 12px 30px;
     border-radius: 14px;
     font-weight: 900;
     cursor: pointer;
     border: none;
     transition: all 0.2s;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
-.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .table-responsive {
@@ -269,15 +311,6 @@ table {
     width: 100%;
 }
 
-.table-header {
-    padding: 18px 24px;
-    font-size: 0.72rem;
-    font-weight: 900;
-    color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-}
-
 .table-cell {
     padding: 20px 24px;
     vertical-align: middle;
@@ -289,9 +322,9 @@ table {
     align-items: center;
     background-color: white;
     border: 2px solid #f1f5f9;
-    padding: 10px 18px;
-    border-radius: 14px;
-    font-size: 10px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 9px;
     font-weight: 900;
     color: #475569;
     transition: all 0.2s;
@@ -303,31 +336,28 @@ table {
     border-color: #dc2626;
     color: #b91c1c;
     background-color: #fef2f2;
-    transform: translateY(-1px);
 }
 
 /* Botón Subir Archivo */
 .btn-file-upload {
     display: inline-flex;
     align-items: center;
-    background-color: #fef2f2;
-    border: 2px dashed #fee2e2;
-    padding: 10px 18px;
-    border-radius: 14px;
-    font-size: 10px;
+    background-color: #fffbeb;
+    border: 2px dashed #fcd34d;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 9px;
     font-weight: 900;
-    color: #dc2626;
+    color: #b45309;
     transition: all 0.2s;
     cursor: pointer;
     text-transform: uppercase;
 }
 
 .btn-file-upload:hover {
-    background-color: #dc2626;
+    background-color: #b45309;
     border-style: solid;
-    border-color: #dc2626;
     color: white;
-    transform: translateY(-1px);
 }
 
 /* Badges Fiscales */
@@ -348,15 +378,36 @@ table {
     border-radius: 9999px;
     font-size: 9px;
     font-weight: 900;
-    border: 1px solid #e2e8f0;
 }
-
-/* Auxiliares */
-.w-16 { width: 4rem; }
-.text-right { text-align: right; }
-.text-center { text-align: center; }
 
 .table-shadow-lg {
     box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+}
+
+.btn-primary { 
+    background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); 
+    color: white; 
+    border-radius: 20px; 
+    font-weight: 900; 
+    cursor: pointer; 
+    border: none; 
+    box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); 
+    transition: all 0.2s; 
+    text-transform: uppercase; 
+    font-size: 0.8rem; 
+    letter-spacing: 0.05em; 
+}
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
+
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
 }
 </style>
