@@ -263,7 +263,7 @@
                 <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.items}">
                     <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 3. Selección de Material</div>
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-red-50/20 p-6 rounded-[2.5rem] border border-red-100">
-                        <div class="md:col-span-2"><label class="label-mini">Rubro</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
+                        <div class="md:col-span-2"><label class="label-mini">Tipo</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
                         <div class="md:col-span-3 relative">
                             <label class="label-mini">Buscar Libro</label>
                             <div class="relative">
@@ -274,7 +274,7 @@
                                 <li v-for="book in currentOrderItem.bookSuggestions" :key="book.id" @click="selectBook(book)" class="p-3 border-b last:border-0 hover:bg-red-50 transition-colors cursor-pointer text-xs font-black uppercase text-black">{{ book.titulo }}</li>
                             </ul>
                         </div>
-                        <div class="md:col-span-3"><label class="label-mini">Formato / Licencia</label><select class="form-input font-bold text-red-700 uppercase text-xs" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
+                        <div class="md:col-span-3"><label class="label-mini">Formato</label><select class="form-input font-bold text-red-700 uppercase text-xs" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
                         <div class="md:col-span-1"><label class="label-mini">Cant.</label><input type="number" min="1" class="form-input font-bold text-red-700" v-model.number="currentOrderItem.quantity"></div>
                         <div class="md:col-span-2"><label class="label-mini">P. Unitario ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700 disabled:text-slate-400 disabled:bg-slate-100" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
                         <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95"><i class="fas fa-cart-plus mr-1"></i>Añadir</button></div>

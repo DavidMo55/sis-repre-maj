@@ -45,10 +45,10 @@
                                 <i class="fas fa-plus-circle"></i> 2. Detalle de Conceptos y Comprobantes
                             </div>
                             
-                            <div class="bg-white p-5 md:p-8 rounded-[2rem] border border-slate-100 shadow-sm space-y-6">
+                            <div class="bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 shadow-sm space-y-6 mt-4">
                                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end">
-                                    <div :class="tempSub.concepto === 'Otros' ? 'sm:col-span-3' : 'sm:col-span-5'">
-                                        <label class="label-mini">Concepto</label>
+                                    <div class="sm:col-span-6 lg:col-span-3">
+                                        <label class="label-mini uppercase">Concepto</label>
                                         <select v-model="tempSub.concepto" class="form-input text-sm font-bold w-full">
                                             <option value="" disabled>Seleccione...</option>
                                             <option value="Peaje y gasolina">Gasolina</option>
@@ -61,9 +61,9 @@
                                         </select>
                                     </div>
 
-                                    <div v-if="tempSub.concepto === 'Otros'" class="sm:col-span-3">
-                                        <label class="label-mini">Descripción</label>
-                                        <input v-model="tempSub.descripcion_otros" type="text" class="form-input text-sm w-full" placeholder="¿En qué se gastó?">
+                                    <div class="sm:col-span-6 lg:col-span-3">
+                                        <label class="label-mini uppercase">Descripción</label>
+                                        <input v-model="tempSub.descripcion_otros" type="text" class="form-input text-sm w-full font-bold uppercase" placeholder="¿En qué se gastó?">
                                     </div>
 
                                     <div class="sm:col-span-2">
@@ -214,13 +214,13 @@
                                 </div>
 
                                 <div class="space-y-4">
-                                    <button type="button" @click="handleFinalSubmit('FINALIZADO')" class="btn-primary-gradient w-full py-5 rounded-[2rem] text-sm font-black tracking-widest uppercase shadow-2xl transition-all flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
+                                    <button type="button" @click="handleFinalSubmit('FINALIZADO')" class="btn-primary w-full py-5 rounded-[2rem] text-sm font-black tracking-widest uppercase shadow-2xl transition-all flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
                                         <i v-if="loading && form.status === 'FINALIZADO'" class="fas fa-spinner fa-spin"></i>
                                         <i v-else class="fas fa-paper-plane"></i>
                                         {{ (loading && form.status === 'FINALIZADO') ? 'Enviando...' : 'Finalizar y Postear' }}
                                     </button>
 
-                                    <button type="button" @click="handleFinalSubmit('BORRADOR')" class="w-full py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase transition-all bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
+                                    <button type="button" @click="handleFinalSubmit('BORRADOR')" class="w-full btn-secondary py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase transition-all bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
                                         <i v-if="loading && form.status === 'BORRADOR'" class="fas fa-spinner fa-spin"></i>
                                         <i v-else class="fas fa-save"></i>
                                         {{ (loading && form.status === 'BORRADOR') ? 'Guardando...' : 'Guardar como Borrador' }}
@@ -236,9 +236,9 @@
         <!-- MODAL DE OVERLAY -->
         <Teleport to="body">
             <Transition name="modal-pop">
-                <div v-if="modal.visible" class="modal-overlay-wrapper">
+                <div v-if="modal.visible" class="modal-overlay-wrapper ">
                     
-                    <div v-if="modal.type !== 'success'" class="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-scale-in">
+                    <div v-if="modal.type !== 'success'" class="bg-white w-full form-section max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-scale-in">
                         <div :class="['h-2 w-full', modal.type === 'danger' ? 'bg-red-600' : 'bg-blue-600']"></div>
                         <div class="p-10 text-center">
                             <div :class="['w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg', modal.type === 'danger' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600']">
@@ -252,7 +252,7 @@
                         </div>
                     </div>
 
-                    <div v-else class="modal-content-success animate-scale-in">
+                    <div v-else class="modal-content-success form-section animate-scale-in">
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
                         <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tighter">{{ modal.title }}</h2>
                         <p class="text-sm text-slate-500 mb-8 font-medium px-4">{{ modal.message }}</p>

@@ -478,7 +478,7 @@ const checkDuplicate = async (field) => {
         if (field === 'rfc') exists = res.data.some(c => c.rfc?.toUpperCase() === val);
         else if (field === 'name') exists = res.data.some(c => c.name?.toLowerCase() === val.toLowerCase());
         else if (field === 'email') exists = res.data.some(c => c.email?.toLowerCase() === val.toLowerCase());
-        else if (field === 'phone') exists = res.data.some(c => c.telefono?.toLowerCase() === val.toLowerCase());
+        else if (field === 'phone') exists = res.data.some(c => c.telefono === val);
 
         checkStates[field].isDuplicate = exists;
         checkStates[field].verified = !exists;

@@ -97,8 +97,6 @@
                             <th class="table-header w-32 text-white">Fecha</th>
                             <th class="table-header text-white">Paquete de gastos</th>
                             <th class="table-header text-center w-36 text-white">Registro</th>
-                            <!-- NUEVA COLUMNA: Expediente/Auditoría -->
-                            <th class="table-header text-center w-36 text-white">Expediente</th>
                             <th class="table-header text-right w-36 text-white">Monto</th>
                             <th class="table-header text-center w-36 text-white">Archivos</th>
                             <th class="px-6 py-3 w-28"></th>
@@ -125,16 +123,6 @@
                                       :class="gasto.status === 'BORRADOR' ? 'badge-draft' : 'badge-final'">
                                     <i :class="gasto.status === 'BORRADOR' ? 'fas fa-edit' : 'fas fa-lock'" class="mr-1.5 opacity-60"></i>
                                     {{ gasto.status }}
-                                </span>
-                            </td>
-
-                            <!-- NUEVO: Celda de auditoría visual -->
-                            <td class="table-cell text-center">
-                                <span v-if="isEdited(gasto)" class="status-badge badge-edited" title="Registro modificado posteriormente">
-                                    <i class="fas fa-history mr-1.5 opacity-60"></i> EDITADO
-                                </span>
-                                <span v-else class="status-badge badge-original" title="Registro original sin cambios">
-                                    <i class="fas fa-check-circle mr-1.5 opacity-60"></i> ORIGINAL
                                 </span>
                             </td>
 
