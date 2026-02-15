@@ -78,13 +78,12 @@
                                     <label class="label-large">Niveles Educativos del Plantel</label>
                                     <div class="flex flex-wrap gap-1.5 mt-1">
                                         <span v-for="n in formatLevels(visita.nivel_educativo_plantel || visita.cliente?.nivel_educativo)" :key="n" class="badge-red-outline">
-                                           <br>
                                             {{ n }}
                                         </span>
                                     </div>
                                 </div>
                             </div>
-<br>
+                            <br>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="data-row">
                                     <label class="label-large">Estado</label>
@@ -96,36 +95,28 @@
                                 </div>
                                
                             </div>
-
-                           
                         </div>  
                         <br>
 
                         <!-- Columna Contacto -->
                         <div class="space-y-6">
-
                             <div class="data-row">
-                                    <label class="label-large">Celular / Teléfono</label>
-                                    <p class="value-text tracking-tighter"><i class="fas fa-phone-alt mr-2 opacity-30"></i>{{ visita.telefono_plantel || visita.cliente?.telefono || 'N/A' }}</p>
-                                </div>
-                                <div class="data-row">
-                                    <label class="label-large">Correo Electrónico</label>
-                                    <p class="value-text lowercase text-sm"><i class="fas fa-envelope mr-2 opacity-30"></i>{{ visita.email_plantel || visita.cliente?.email || 'N/A' }}</p>
-                                </div>
-                                
+                                <label class="label-large">Celular / Teléfono</label>
+                                <p class="value-text tracking-tighter"><i class="fas fa-phone-alt mr-2 opacity-30"></i>{{ visita.telefono_plantel || visita.cliente?.telefono || 'N/A' }}</p>
+                            </div>
+                            <div class="data-row">
+                                <label class="label-large">Correo Electrónico</label>
+                                <p class="value-text lowercase text-sm"><i class="fas fa-envelope mr-2 opacity-30"></i>{{ visita.email_plantel || visita.cliente?.email || 'N/A' }}</p>
+                            </div>
                             <div class="data-row">
                                 <label class="label-large">Nombre del Director / Coordinador</label>
-                                <p class="value-text italic leading-relaxed text-sm">{{ visita.direccion_plantel || visita.cliente?.direccion || 'Sin dirección registrada' }}</p>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                
-                                
+                                <p class="value-text italic leading-relaxed text-sm">{{ visita.director_plantel || visita.cliente?.contacto || 'Sin director registrado' }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- 5. HISTORIAL CRONOLÓGICO DESPLEGABLE (Visitas Subsecuentes) -->
+<br/><br/>
+                <!-- 5. HISTORIAL CRONOLÓGICO DESPLEGABLE -->
                 <div class="info-card space-y-6 mt-16">
                     <div class="flex items-center gap-3 px-2">
                         <div class="w-2 h-8 bg-red-700 rounded-full"></div>
@@ -140,17 +131,13 @@
                     </div>
 
                     <div v-else-if="historial.length" class="space-y-4">
-                        <div v-for="(h, index) in historial" :key="h.id" class="border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
-                            <!-- Header de la tarjeta -->
-                            <div @click="toggleExpand(h.id)" 
-                                class="p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 cursor-pointer hover:bg-slate-50 transition-colors">
+                        <div v-for="(h, index) in historial" :key="h.id" class="border border-slate-100 rounded-3xl overflow-hidden shadow-sm relative group">
+                            <!-- Header de la tarjeta (Sin click general) -->
+                            <div class="p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 transition-colors">
                                 
                                 <div class="flex items-center gap-6 w-full md:w-auto">
-                                    <div class="bg-red-700 w-16 h-16 text-white rounded-3xl flex flex-col items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
-                                       
-                                    </div>
+                                   
                                     <div class="min-w-0">
-                                        <!-- Subtítulo distintivo -->
                                         <p class="text-[8px] font-black uppercase tracking-[0.2em] mb-1" :class="h.es_primera_visita ? 'text-blue-600' : 'text-purple-600'">
                                             {{ h.es_primera_visita ? 'Apertura de Prospecto' : 'Interacción de Seguimiento' }}
                                         </p>
@@ -163,19 +150,36 @@
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-5 w-full md:w-auto justify-between md:justify-end">
+                                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                                    
+                                    <!-- BOTÓN MODIFICAR (Independiente) -->
+                                    <button 
+                                        v-if="h.es_primera_visita || (h.modificaciones_realizadas || 0) < 1"
+                                        @click="router.push({ name: 'VisitaEdit', params: { id: h.id } })"
+                                        class="btn-secondary hover:scale-105 transition-all"
+                                    >
+                                        <i class="fas fa-edit mr-1"></i> MODIFICAR
+                                    </button>
+<br/><br/><br/>
+                                    <!-- BOTÓN VER MÁS (Controlador del Acordeón) -->
+                                    <button 
+                                        @click="toggleExpand(h.id)"
+                                        class="btn-secondary !border-red-600 !text-red-700 hover:bg-red-50 hover:scale-105 transition-all"
+                                    >
+                                        <i class="fas" :class="expandedId === h.id ? 'fa-eye-slash' : 'fa-plus-circle'"></i>
+                                        <span class="ml-2">{{ expandedId === h.id ? 'OCULTAR' : 'VER DETALLE' }}</span>
+                                    </button>
+<br/><br/>
                                     <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
                                         {{ h.resultado_visita }}
                                     </span>
-                                    <div class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:text-red-600 transition-colors">
+                                    
+                                    <!-- Chevron visual -->
+                                    <div @click="toggleExpand(h.id)" class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 cursor-pointer hover:text-red-600 transition-colors">
                                         <i class="fas fa-chevron-down transition-transform duration-500" 
                                            :class="{'rotate-180 text-red-600': expandedId === h.id}"></i>
                                     </div>
                                 </div>
-
-                                <button 
-                                    class="absolute btn-primary-action top-4 right-4 text-[10px] font-black uppercase text-red-700 hover:underline px-3">
-                                    <i class="fas fa-edit mr-1"></i> Ver más </button>
                             </div>
 
                             <!-- Contenido Desplegable (Expediente) -->
@@ -194,12 +198,12 @@
                                                         <p class="value-text">{{ h.persona_entrevistada }}</p>
                                                     </div>
                                                     <div>
-                                                        <label class="label-large">Cargo</label>
+                                                        <label class="label-large">Puesto</label>
                                                         <p class="value-text">{{ h.cargo }}</p>
                                                     </div>
                                                 </div>
                                                 <div v-if="h.proxima_visita_estimada" class="pt-3 border-t border-slate-50">
-                                                    <label class="label-large">Proxima Visita</label>
+                                                    <label class="label-large">Próxima Visita</label>
                                                     <p class="text-xs font-black text-black uppercase">
                                                         <i class="far fa-calendar-alt mr-1.5 text-red-600"></i>
                                                         {{ formatDate(h.proxima_visita_estimada) }} — <span class="text-red-700 italic">{{ h.proxima_accion }}</span>
@@ -291,41 +295,28 @@
                 <br>
 
                 <div class="info-card border-none bg-slate-100 p-10 rounded-[3rem] border border-slate-200 shadow-sm mt-8 text-center">
-                    <div class="flex items-center gap-3 px-2">
-                        <div class="w-2 h-8 bg-red-700 rounded-full"></div>
-                        
-                         <div class="section-title text-black !border-black/5">
-                            <i class="fas fa-handshake text-black"></i> 3. Registra una nueva Visita
+                    <div class="flex flex-col items-center gap-6">
+                        <div class="section-title text-black !border-black/5 !mb-0">
+                            <i class="fas fa-calendar-alt text-black"></i> 3. Próximo Compromiso y Acción
                         </div>
-
-                    
                         
-                        <div class="space-y-6 mt-4">
-                            <div class="p-6 bg-white/5 rounded-3xl border border-white/10">
-                                <label class="label-large !text-red-400">Fecha Agendada</label>
-                                <div v-if="proximoCompromisoFinal" class="mt-3">
-                                    <p class="text-3xl font-black text-white tracking-tighter">{{ formatDate(proximoCompromisoFinal.fecha) }}</p>
-                                    <div class="flex items-center gap-2 mt-4 bg-red-600/20 p-3 rounded-xl border border-red-600/30">
-                                        <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-xs">
-                                            <i class="fas fa-bullseye"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <p v-else class="text-white/20 italic text-[11px] font-black uppercase tracking-widest mt-4">Sin fecha programada</p>
+                        <div v-if="proximoCompromisoFinal" class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 w-full max-w-lg mx-auto">
+                            <label class="label-large !text-red-700">Fecha Agendada</label>
+                            <p class="text-4xl font-black text-black tracking-tighter mt-2">{{ formatDate(proximoCompromisoFinal.fecha) }}</p>
+                            <div class="flex items-center justify-center gap-2 mt-4 bg-red-700 text-white p-3 rounded-2xl">
+                                <i class="fas fa-bullseye text-sm"></i>
+                                <span class="text-[11px] font-black uppercase tracking-widest">{{ proximoCompromisoFinal.accion }}</span>
                             </div>
-
                         </div>
-                
+                        <p v-else class="text-slate-400 italic text-sm">Sin fecha programada de retorno</p>
+
+                        <button v-if="visita.resultado_visita === 'seguimiento' && visita.cliente?.tipo !== 'CLIENTE'" 
+                            @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
+                            class="w-full max-w-md btn-primary-action shadow-2xl transition-all active:scale-95 mx-auto">
+                            <i class="fas fa-plus-circle mr-2 "></i> Registrar Nuevo Seguimiento
+                        </button>
                     </div>
-
-                            <button v-if="visita.resultado_visita === 'seguimiento' && visita.cliente?.tipo !== 'CLIENTE'" 
-                                @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
-                                class="w-full btn-primary-action shadow-2xl transition-all active:scale-95">
-                                <i class="fas fa-plus-circle mr-2 "></i> Registrar Nueva Visita
-                            </button>
-
-
-            </div>
+                </div>
             </div>
         </div>
     </div>
@@ -389,15 +380,9 @@ const fetchFullHistory = async () => {
     }
 };
 
-/**
- * REGLA DE PRÓXIMO COMPROMISO:
- * 1. Prioriza la agenda de la visita más reciente en el historial.
- * 2. Si no hay historial subsecuente con fecha, usa la de la apertura.
- */
 const proximoCompromisoFinal = computed(() => {
     if (!visita.value) return null;
 
-    // Buscamos en todo el historial el acuerdo más reciente (ID más alto) que tenga fecha
     const conAgenda = [...historial.value]
         .filter(h => h.proxima_visita_estimada)
         .sort((a, b) => b.id - a.id);
@@ -409,7 +394,6 @@ const proximoCompromisoFinal = computed(() => {
         };
     }
 
-    // Fallback a la visita de apertura
     if (visita.value.proxima_visita_estimada) {
         return {
             fecha: visita.value.proxima_visita_estimada,
@@ -429,15 +413,6 @@ const parseMateriales = (raw) => {
     if (typeof raw === 'object' && !Array.isArray(raw)) return raw;
     try { return JSON.parse(raw); } catch (e) { return { interes: [], entregado: [] }; }
 };
-
-const librosRaw = computed(() => {
-    if (!visita.value || !visita.value.libros_interes) return null;
-    if (typeof visita.value.libros_interes === 'object' && !Array.isArray(visita.value.libros_interes)) return visita.value.libros_interes;
-    try { return JSON.parse(visita.value.libros_interes); } catch (e) { return null; }
-});
-
-const materialesInteres = computed(() => librosRaw.value?.interes || []);
-const materialesEntregados = computed(() => librosRaw.value?.entregado || []);
 
 const formatLevels = (levels) => {
     if (!levels) return ['General'];
@@ -483,9 +458,9 @@ onMounted(fetchVisitaDetail);
 .section-title { font-weight: 900; color: #000000; margin-bottom: 30px; border-bottom: 2px solid #f8fafc; padding-bottom: 15px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; }
 
 .label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
-.value-text {  color: #be5e5e; line-height: 1.4;  }
+.value-text { color: #be5e5e; line-height: 1.4; font-weight: 800; }
 
-.status-badge { padding: 6px 16px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; }
+.status-badge { padding: 6px 16px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; border: 1px solid transparent; }
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.08); }
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
@@ -494,23 +469,24 @@ onMounted(fetchVisitaDetail);
 .table-responsive { width: 100%; background: white; transition: all 0.3s ease; }
 .table-shadow-lg { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
 
-.table-header-enterprise { padding: 14px 20px; font-size: 0.65rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.15em; color: #94a3b8; }
 .table-cell { padding: 16px 20px; vertical-align: middle; }
 
-.text-black { color: #000000; }
-.text-red-700 { color: #b91c1c; }
-
-.grid { display: grid; gap: 1.5rem; }
-@media (min-width: 1024px) { .lg\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-
-tr { transition: background-color 0.2s ease; }
-.text-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-3 px-8 rounded-2xl text-sm font-black transition-all hover:bg-slate-50 text-black; }
 .btn-primary-action { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; padding: 14px 45px; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
-.badge-red-outline { @apply bg-red-50 text-red-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border border-red-100; }
+/* Botón Editar y Desplegar dentro de Historial */
+.btn-edit-inline { @apply bg-white border-2 border-slate-200 text-slate-500 py-1.5 px-4 rounded-xl text-[10px] font-black uppercase hover:bg-red-50 hover:text-red-700 hover:border-red-200; cursor: pointer; }
 
-.bg1{ background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
-.bg2{ background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.badge-red-outline { @apply bg-red-50 text-red-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border border-red-100; }
 </style>

@@ -254,4 +254,57 @@ class VisitaController extends Controller
             return response()->json(['message' => 'Bitácora no localizada.'], 404);
         }
     }
+
+    /**
+     * Edición de una visita de seguimiento (NO PRIMERA VISITA).
+     * REGLA: Solo se permite una modificación por visita de seguimiento para mantener la integridad del historial. Las primeras visitas no se pueden editar, deben ser anuladas y recreadas si
+     */
+
+        public function update(Request $request, $id)
+    {
+        $visita = Visita::findOrFail($id);
+
+        // REGLA: Las subsecuentes solo se editan una vez
+        if (!$visita->es_primera_visita && $visita->modificaciones_realizadas >= 1) {
+            return response()->json([
+                'message' => 'Esta visita de seguimiento ya fue modificada una vez y se encuentra bloqueada.'
+            ], 403);
+        }
+
+        $request->validate([
+            'persona_entrevistada' => 'required|string',
+            'cargo'                => 'required|string',
+            'libros_interes'       => 'required',
+            'comentarios'          => 'required|string|min:20',
+            'motivo_cambio'        => 'required_if:es_primera_visita,1|string|min:10',
+            'resultado_visita'     => 'required|in:seguimiento,compra,rechazo',
+        ]);
+
+        try {
+            return DB::transaction(function () use ($visita, $request) {
+                // 1. Guardar log de auditoría
+                VisitaLog::create([
+                    'visita_id' => $visita->id,
+                    'user_id'   => Auth::id(),
+                    'snapshot_anterior' => $visita->toArray(),
+                    'motivo_cambio'     => strtoupper($request->motivo_cambio ?? 'AJUSTE ÚNICO DE SEGUIMIENTO')
+                ]);
+
+                // 2. Actualizar visita e incrementar contador
+                $visita->update([
+                    'persona_entrevistada'    => $request->persona_entrevistada,
+                    'cargo'                   => $request->cargo,
+                    'libros_interes'          => $request->libros_interes,
+                    'comentarios'             => $request->comentarios,
+                    'resultado_visita'        => $request->resultado_visita,
+                    'proxima_visita_estimada' => $request->proxima_visita,
+                    'modificaciones_realizadas' => $visita->modificaciones_realizadas + 1
+                ]);
+
+                return response()->json(['message' => 'Expediente actualizado y log generado.']);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al actualizar: ' . $e->getMessage()], 500);
+        }
+    }
 }
