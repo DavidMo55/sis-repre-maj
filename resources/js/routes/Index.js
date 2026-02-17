@@ -17,6 +17,7 @@ import ProfileView from '../views/profile/ProfileView.vue';
 import PedidoEdit from '../views/EditpedidoView.vue';
 import GastoEdit from '../views/EditGastoView.vue';
 import VisitaEdit from '../views/VisitaEditView.vue';
+import CapacitacionesCalendarioView from '../views/CapacitacionesCalendarView.vue';
 
 const authGuard = (to, from, next) => {
     const token = localStorage.getItem('auth_token');
@@ -102,6 +103,11 @@ const routes = [
                 path: 'capacitaciones', 
                 name: 'Capacitaciones',
                 component: CapacitacionesIndexView
+            },
+            {
+                path: 'capacitaciones-calendario',
+                name: 'CapacitacionesCalendario',
+                component: CapacitacionesCalendarioView
             },
             {
                 path: 'profile',

@@ -1,233 +1,609 @@
 <template>
-  <div class="content-wrapper p-8">
-    <div class="max-w-7xl mx-auto">
-      
-      <header class="flex justify-between items-end mb-10">
-        <div class="stack-1">
-          <h1 class="text-3xl font-black text-slate-800 tracking-tight">Capacitaciones y agenda</h1>
-          <p class="text-slate-500 font-medium">
-            Administra sesiones programadas, confirma asistencia y gestiona el calendario técnico.
-          </p>
-        </div>
-        <div class="flex gap-3">
-          <button @click="router.push('/capacitaciones/crear')" class="btn-primary-agenda">
-            Nueva sesión
-          </button>
-        </div>
-      </header>
+    <div class="content-wrapper p-2 md:p-8 bg-slate-50 min-h-screen">
+        <div class="max-w-7xl mx-auto">
 
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-10">
-        
-        <aside class="lg:col-span-1 space-y-6 order-2 lg:order-1">
-          
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-            <h3 class="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest">Búsqueda rápida</h3>
-            <div class="space-y-4">
-              <div class="form-group-agenda">
-                <label>Estado</label>
-                <select v-model="statusFilter" class="input-agenda">
-                  <option value="all">Todos los estados</option>
-                  <option value="PROGRAMADA">Programada</option>
-                  <option value="ATENDIDA">Atendida</option>
-                  <option value="CANCELADA">Cancelada</option>
-                </select>
-              </div>
-              <button @click="refreshEvents" class="btn-filter-agenda w-full">Actualizar Vista</button>
+            <!-- Encabezado Principal -->
+            <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 animate-fade-in">
+                <div>
+                    <h1 class="text-3xl font-black text-slate-800 tracking-tight leading-tight uppercase">
+                        Capacitaciones y agenda
+                    </h1>
+                    <p class="text-xs md:text-sm text-slate-500 font-medium mt-1 uppercase tracking-widest italic">
+                        Administra sesiones programadas, confirma asistencia y gestiona el calendario técnico.
+                    </p>
+                </div>
+                <div class="flex gap-3 w-full sm:w-auto">
+                    <button @click="router.push({ name: 'CapacitacionesCalendario' })" class="btn-secondary !border-2 !rounded-2xl flex items-center gap-2 uppercase font-black text-[10px] px-6 transition-all hover:bg-slate-50">
+                        <i class="fas fa-calendar-alt"></i> VER CALENDARIO
+                    </button>
+                    <button @click="router.push('/capacitaciones/crear')" class="btn-primary flex items-center gap-2 shadow-lg px-8 py-3 transition-all active:scale-95">
+                        <i class="fas fa-plus-circle"></i> NUEVA SESIÓN
+                    </button>
+                </div>
+            </header>
+
+            <!-- SECCIÓN: SESIONES DE HOY -->
+            <section class="mb-8 animate-fade-in">
+                <div class="bg-white p-6 rounded-[2.5rem] shadow-premium border border-slate-100">
+                    <div class="flex items-center justify-between mb-4 px-2">
+                        <h2 class="text-sm font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                            <i class="fas fa-bolt text-amber-500"></i> Prioridades de hoy
+                        </h2>
+                        <span class="text-[10px] font-black text-slate-400 uppercase bg-slate-50 px-3 py-1 rounded-full border border-slate-100 tracking-tighter">
+                            {{ hoySesiones.length }} ACTIVIDADES
+                        </span>
+                    </div>
+
+                    <div v-if="hoySesiones.length > 0" class="today-grid">
+                        <div v-for="sesion in hoySesiones" :key="sesion.id"
+                            class="today-card group">
+                            <div class="today-time-block group-hover:border-red-100">
+                                <div class="today-hour">{{ sesion.hora.split(' ')[0] }}</div>
+                                <div class="today-ampm">{{ sesion.hora.split(' ')[1] }}</div>
+                            </div>
+                            <div class="today-info">
+                                <h4 class="today-title group-hover:text-red-700">{{ sesion.title }}</h4>
+                                <p class="today-sucursal">
+                                    <i class="fas fa-map-marker-alt"></i>{{ sesion.extendedProps.sucursal }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else class="text-center py-10 text-slate-300 text-[10px] font-black uppercase tracking-widest italic border-2 border-dashed border-slate-50 rounded-[1.5rem]">
+                        No hay actividades programadas para hoy
+                    </div>
+                </div>
+            </section>
+<br/><br/><br/>
+            <!-- SECCIÓN: FILTROS TÉCNICOS -->
+            <div class="filter-section bkk shadow-premium border border-slate-100 rounded-[2rem] p-6 mb-8 animate-fade-in">
+                <div class="section-title mb-6 font-black text-slate-700 uppercase tracking-widest text-[10px] flex items-center gap-2">
+                    <i class="fas fa-filter text-red-600"></i> Filtros de búsqueda técnica
+                </div>
+
+                <div class="filter-grid">
+                    <div class="form-group md:col-span-2">
+                        <label class="label-header">Buscar por Plantel o Profesional:</label>
+                        <div class="relative">
+                            <i class="fas fa-search search-icon text-slate-400"></i>
+                            <input v-model="filters.search" type="text" class="form-input pl-10 w-full" placeholder="Nombre de escuela o representante...">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="label-header">Estado de Sesión:</label>
+                        <select v-model="filters.status" class="form-input w-full font-bold text-xs uppercase">
+                            <option value="all">TODOS LOS ESTADOS</option>
+                            <option value="PROGRAMADA">PROGRAMADA</option>
+                            <option value="ATENDIDA">ATENDIDA</option>
+                            <option value="CANCELADA">CANCELADA</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group flex items-end gap-2">
+                        <button @click="refreshEvents" class="btn-primary flex-1 h-[42px] flex items-center justify-center gap-2">
+                            <i class="fas fa-sync-alt"></i> Buscar
+                        </button>
+                        <button v-if="hasFilters" @click="resetFilters" class="btn-secondary h-[42px] px-4 rounded-xl border-2 border-slate-100 text-slate-400 hover:text-red-600 transition-colors">
+                            <i class="fas fa-eraser"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
-          </div>
-
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-            <h3 class="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest">Sesiones de Hoy</h3>
-            <div class="space-y-4">
-              <div v-for="sesion in hoySesiones" :key="sesion.id" 
-                class="border-l-4 border-slate-800 pl-3 py-1 transition-all hover:bg-slate-50 cursor-pointer rounded-r-lg"
-                @click="focusEvent(sesion)">
-                <p class="text-[10px] font-black text-slate-400">{{ sesion.hora }}</p>
-                <p class="text-xs font-bold text-slate-700 truncate">{{ sesion.title }}</p>
-                <span class="status-pill-mini" :class="sesion.status.toLowerCase()">{{ sesion.status }}</span>
-              </div>
-              <p v-if="hoySesiones.length === 0" class="text-xs text-slate-400 italic text-center py-4">
-                No hay sesiones para hoy.
-              </p>
+<br/><br/><br/>
+            <!-- TABLA TÉCNICA (MODO DETALLADO) -->
+            <div class="table-responsive table-shadow-lg border rounded-[2rem] overflow-hidden shadow-sm bg-white animate-fade-in mt-4">
+                <table class="min-width-full divide-y divide-gray-200" style="width:100%">
+                    <thead class="bg-slate-900 text-white uppercase text-[9px] font-black tracking-[0.15em]">
+                        <tr>
+                            <th class="px-6 py-5 text-left w-48">Fecha y hora</th>
+                            <th class="px-6 py-5 text-left">Institución / Plantel</th>
+                            <th class="px-6 py-5 text-left">Representante</th>
+                            <th class="px-6 py-5 text-center w-36">Estado</th>
+                            <th class="px-6 py-5 w-28"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-100">
+                        <tr v-for="sesion in filteredSesiones" :key="sesion.id" class="hover:bg-slate-50/50 transition-colors group">
+                            <td class="table-cell">
+                                <div class="text-sm font-black text-slate-800 uppercase leading-tight">{{ formatDateLong(sesion.start) }}</div>
+                                <div class="text-[10px] text-red-600 font-bold uppercase mt-1 italic flex items-center gap-1.5 tracking-tighter">
+                                    <i class="fas fa-clock opacity-50"></i> {{ formatTime(sesion.start) }}
+                                </div>
+                            </td>
+                            <td class="table-cell">
+                                <div class="text-[11px] font-black text-slate-800 uppercase leading-tight truncate max-w-[250px]" :title="sesion.title">{{ sesion.title }}</div>
+                                <div class="text-[9px] text-slate-400 font-bold uppercase mt-1 tracking-tighter truncate">{{ sesion.extendedProps.sucursal }}</div>
+                            </td>
+                            <td class="table-cell">
+                                <div class="text-[11px] font-bold text-slate-500 uppercase">{{ sesion.extendedProps.profesional || '---' }}</div>
+                            </td>
+                            <td class="table-cell text-center">
+                                <span class="status-badge" :class="getStatusClass(sesion.extendedProps.status)">
+                                    <i class="fas fa-circle text-[6px] mr-2"></i> {{ sesion.extendedProps.status }}
+                                </span>
+                            </td>
+                            <td class="table-cell text-right">
+                                <button @click="router.push('/capacitaciones/editar/' + sesion.id)" class="text-red-link flex items-center justify-end gap-1 font-black">
+                                    GESTIONAR <i class="fas fa-chevron-right text-[8px] ml-1"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr v-if="filteredSesiones.length === 0">
+                            <td colspan="6" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">
+                                No se encontraron registros con los criterios actuales
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-          </div>
-        </aside>
 
-        <main class="lg:col-span-3 order-1 lg:order-2">
-          <div class="calendar-card shadow-xl">
-            <FullCalendar ref="fullCalendar" :options="calendarOptions" />
-          </div>
-        </main>
-      </div>
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from '../axios';
-
-// Componentes de FullCalendar
-import FullCalendar from '@fullcalendar/vue3';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import esLocale from '@fullcalendar/core/locales/es';
 
 const router = useRouter();
-const fullCalendar = ref(null);
-const statusFilter = ref('all');
 
-// Estado de las sesiones (Sincronizado con tus datos previos)
+const filters = reactive({
+    search: '',
+    status: 'all'
+});
+
 const sesiones = ref([
-  { 
-    id: '1', 
-    title: 'Cap. Angel Morales', 
-    start: '2026-01-10T12:21:00', 
-    end: '2026-01-10T13:30:00',
-    backgroundColor: '#f1f5f9',
-    textColor: '#64748b',
-    extendedProps: { status: 'PROGRAMADA', sucursal: 'Culiacán Norte' } 
-  },
-  { 
-    id: '2', 
-    title: 'Diana Méndez Rojas', 
-    start: '2026-01-09T10:18:00', 
-    backgroundColor: '#fee2e2',
-    textColor: '#ef4444',
-    extendedProps: { status: 'CANCELADA', sucursal: 'Consultorio Satélite' } 
-  },
-  { 
-    id: '3', 
-    title: 'Atención Técnica', 
-    start: '2026-01-10T15:00:00', 
-    backgroundColor: '#d1fae5',
-    textColor: '#059669',
-    extendedProps: { status: 'ATENDIDA', sucursal: 'Centro Histórico' } 
-  }
+    { id: '1', title: 'Diana Carolina Méndez Rojas', start: '2026-02-16T12:21:00', extendedProps: { status: 'PROGRAMADA', sucursal: 'Consultorio Satélite CDMX No.7', profesional: 'Angel David Morales Cuenca' } },
+    { id: '2', title: 'Plantel Educativo Morelos', start: '2026-02-15T10:18:00', extendedProps: { status: 'CANCELADA', sucursal: 'Centro Cuernavaca', profesional: 'Angel David Morales Cuenca' } },
+    { id: '3', title: 'Escuela Técnica Superior', start: '2026-02-16T15:00:00', extendedProps: { status: 'ATENDIDA', sucursal: 'CDMX Norte', profesional: 'Angel David Morales Cuenca' } },
+    { id: '4', title: 'Colegio Americano de México', start: '2026-02-17T09:30:00', extendedProps: { status: 'PROGRAMADA', sucursal: 'Lomas de Chapultepec', profesional: 'Angel David Morales Cuenca' } },
+    { id: '5', title: 'Instituto Tecnológico Central', start: '2026-02-17T11:00:00', extendedProps: { status: 'ATENDIDA', sucursal: 'Puebla Centro', profesional: 'Angel David Morales Cuenca' } },
+    { id: '6', title: 'Escuela Primaria Benito Juárez', start: '2026-02-18T14:20:00', extendedProps: { status: 'PROGRAMADA', sucursal: 'Veracruz Norte', profesional: 'Angel David Morales Cuenca' } }
 ]);
 
-// Configuración del Calendario FullCalendar
-const calendarOptions = computed(() => ({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-  initialView: 'dayGridMonth',
-  locale: esLocale,
-  headerToolbar: {
-    left: 'prev,next today',
-    center: 'title',
-    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-  },
-  buttonText: {
-    today: 'Hoy',
-    month: 'Mes',
-    week: 'Semana',
-    day: 'Día'
-  },
-  events: statusFilter.value === 'all' 
-    ? sesiones.value 
-    : sesiones.value.filter(s => s.extendedProps.status === statusFilter.value),
-  editable: true,
-  selectable: true,
-  dayMaxEvents: true,
-  height: '700px',
-  // Al hacer clic en una fecha vacía
-  select: (info) => {
-    if(confirm(`¿Deseas programar una nueva sesión para el ${info.startStr}?`)) {
-      router.push({ name: 'CapacitacionesCreate', query: { date: info.startStr } });
-    }
-  },
-  // Al hacer clic en un evento
-  eventClick: (info) => {
-    alert(`Sesión: ${info.event.title}\nEstado: ${info.event.extendedProps.status}\nSucursal: ${info.event.extendedProps.sucursal}`);
-  }
-}));
-
-// Lógica para la lista "Sesiones de Hoy"
 const hoySesiones = computed(() => {
-  const hoy = new Date().toISOString().slice(0, 10);
-  return sesiones.value
-    .filter(s => s.start.startsWith(hoy))
-    .map(s => ({
-      ...s,
-      hora: new Date(s.start).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }),
-      status: s.extendedProps.status
+    const hoy = new Date().toISOString().split('T')[0];
+    return sesiones.value.filter(s => s.start.startsWith(hoy)).map(s => ({
+        ...s,
+        hora: new Date(s.start).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", hour12: true }),
+        status: s.extendedProps.status
     }));
 });
 
-const focusEvent = (sesion) => {
-  const api = fullCalendar.value.getApi();
-  api.gotoDate(sesion.start);
-  api.changeView('timeGridDay');
+const filteredSesiones = computed(() => {
+    return sesiones.value.filter(s => {
+        const matchesSearch = !filters.search ||
+            s.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+            s.extendedProps.sucursal.toLowerCase().includes(filters.search.toLowerCase()) ||
+            (s.extendedProps.profesional && s.extendedProps.profesional.toLowerCase().includes(filters.search.toLowerCase()));
+        const matchesStatus = filters.status === 'all' || s.extendedProps.status === filters.status;
+        return matchesSearch && matchesStatus;
+    }).sort((a, b) => new Date(b.start) - new Date(a.start));
+});
+
+const getStatusClass = (status) => {
+    switch (status?.toUpperCase()) {
+        case 'ATENDIDA':   return 'bg-green-100 text-green-700 border border-green-200';
+        case 'PROGRAMADA': return 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+        case 'CANCELADA':  return 'bg-red-100 text-red-700 border border-red-200';
+        default:           return 'bg-slate-100 text-slate-500';
+    }
 };
 
-const refreshEvents = () => {
-  // Aquí iría la llamada axios.get('/api/capacitaciones')
-  console.log("Refrescando agenda...");
+const getStatusBorderColor = (status) => {
+    switch (status?.toUpperCase()) {
+        case 'ATENDIDA':   return 'bg-green-500';
+        case 'PROGRAMADA': return 'bg-amber-500';
+        case 'CANCELADA':  return 'bg-red-600';
+        default:           return 'bg-slate-300';
+    }
 };
 
-onMounted(refreshEvents);
+const formatDateLong = (date) => new Date(date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+const formatTime    = (date) => new Date(date).toLocaleTimeString('es-ES', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+const resetFilters  = () => { filters.search = ''; filters.status = 'all'; };
+const refreshEvents = () => console.log("Sincronizando agenda técnica...");
+
+const hasFilters = computed(() => filters.search !== '' || filters.status !== 'all');
 </script>
 
 <style scoped>
-.content-wrapper { background-color: #f8fafc; min-height: 100vh; }
-
-/* CONTENEDOR DEL CALENDARIO */
-.calendar-card {
-  @apply bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm;
+.today-grid {
+    display: grid;
+    /* Cada sesión ocupa su propia columna, mínimo 200px */
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
 }
 
-/* CUSTOMIZACIÓN DE FULLCALENDAR (PARA QUE SE VEA COMO KLINIA) */
-:deep(.fc) {
-  --fc-border-color: #f1f5f9;
-  --fc-button-bg-color: #ffffff;
-  --fc-button-border-color: #e2e8f0;
-  --fc-button-text-color: #64748b;
-  --fc-button-hover-bg-color: #f8fafc;
-  --fc-button-active-bg-color: #1e293b;
-  --fc-button-active-border-color: #1e293b;
-  --fc-event-resizer-thickness: 10px;
-  font-family: 'Inter', system-ui, sans-serif;
+.today-card {
+    background: #f8fafc;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 1.25rem;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 4px -2px rgba(0,0,0,0.05);
+}
+.today-card:hover {
+    border-color: #fecdd3;
+    background: white;
+    box-shadow: 0 6px 18px -6px rgba(180,40,60,0.1);
+    transform: translateY(-2px);
 }
 
-:deep(.fc-header-toolbar) {
-  @apply mb-8 px-2;
+.today-time-block {
+    background: white;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 14px;
+    padding: 8px 10px;
+    text-align: center;
+    flex-shrink: 0;
+    min-width: 58px;
+    transition: border-color 0.2s;
+}
+.today-hour {
+    font-size: 11px;
+    font-weight: 900;
+    color: #dc2626;
+    text-transform: uppercase;
+    line-height: 1;
+}
+.today-ampm {
+    font-size: 8px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin-top: 3px;
+    line-height: 1;
 }
 
-:deep(.fc-toolbar-title) {
-  @apply text-xl font-black text-slate-800 uppercase tracking-tighter;
+.today-info { flex: 1; min-width: 0; }
+.today-title {
+    font-size: 10px;
+    font-weight: 900;
+    color: #1e293b;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.15s;
+    letter-spacing: 0.02em;
+}
+.today-sucursal {
+    font-size: 8px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0.8;
 }
 
-:deep(.fc-button) {
-  @apply rounded-xl font-bold text-xs px-4 py-2 transition-all shadow-sm capitalize border;
+.cards-grid {
+    display: grid;
+    /* Por defecto: 3 columnas iguales en desktop */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: stretch; /* Todas las cards con la misma altura por fila */
 }
 
-:deep(.fc-button-primary:not(:disabled).fc-button-active) {
-  @apply bg-slate-800 border-slate-800 text-white shadow-lg scale-105;
+/* Tablet: 2 columnas */
+@media (max-width: 1024px) {
+    .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-:deep(.fc-daygrid-day-number) {
-  @apply text-[10px] font-black text-slate-400 p-3 uppercase;
+/* Móvil: 1 columna */
+@media (max-width: 640px) {
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
-:deep(.fc-col-header-cell-cushion) {
-  @apply text-[10px] font-black text-slate-300 uppercase py-3 tracking-widest;
+.session-card {
+    position: relative;
+    background: white;
+    border-radius: 1.5rem;
+    border: 1.5px solid #f1f5f9;
+    overflow: hidden;
+    display: flex;           /* flex horizontal: barra + cuerpo */
+    flex-direction: row;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+    box-shadow: 0 2px 12px -4px rgba(0,0,0,0.06);
 }
 
-:deep(.fc-event) {
-  @apply rounded-xl border-none p-1 px-2 cursor-pointer shadow-sm font-bold text-[10px];
+.session-card:hover {
+    border-color: #fecdd3;
+    box-shadow: 0 12px 32px -8px rgba(180, 40, 60, 0.12);
+    transform: translateY(-3px);
 }
 
-/* BOTONES Y FORMULARIOS */
-.btn-primary-agenda { @apply bg-slate-800 text-white px-6 py-2.5 rounded-2xl text-sm font-bold shadow-lg hover:bg-slate-700 transition-all active:scale-95; }
-.input-agenda { @apply w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-800 transition-all; }
-.btn-filter-agenda { @apply bg-slate-100 text-slate-600 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 hover:text-white transition-all; }
+/* Barra de color lateral (estado) */
+.status-bar {
+    width: 5px;
+    flex-shrink: 0;
+    border-radius: 1.5rem 0 0 1.5rem;
+}
 
-.status-pill-mini { @apply text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter; }
-.status-pill-mini.programada { @apply bg-slate-100 text-slate-500; }
-.status-pill-mini.atendida { @apply bg-emerald-100 text-emerald-600; }
-.status-pill-mini.cancelada { @apply bg-red-100 text-red-500; }
+/* Cuerpo de la tarjeta */
+.card-body {
+    flex: 1;
+    padding: 18px 18px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0; /* evita desbordamiento de texto */
+}
 
-.form-group-agenda label { @apply block text-[10px] font-black uppercase text-slate-400 mb-1 ml-1; }
-.stack-1 > * + * { margin-top: 0.25rem; }
+/* Fila superior: fecha + badge */
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.date-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.card-date {
+    font-size: 9px;
+    font-weight: 900;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.card-time {
+    font-size: 11px;
+    font-weight: 900;
+    color: #dc2626;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Título de la tarjeta */
+.card-title {
+    font-size: 11px;
+    font-weight: 900;
+    color: #1e293b;
+    text-transform: uppercase;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
+    /* Limitar a 2 líneas */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Sucursal */
+.card-subtitle {
+    font-size: 9px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Profesional */
+.card-prof {
+    font-size: 9px;
+    font-weight: 700;
+    color: #cbd5e1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Pie de tarjeta */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    margin-top: 4px;
+    border-top: 1px solid #f8fafc;
+}
+
+.card-actions-left {
+    display: flex;
+    gap: 6px;
+}
+
+.card-action-btn {
+    font-size: 8px;
+    font-weight: 900;
+    color: #94a3b8;
+    text-transform: uppercase;
+    background: #f8fafc;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 8px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.04em;
+}
+
+.card-action-btn:hover {
+    color: #dc2626;
+    border-color: #fecdd3;
+    background: white;
+}
+
+.card-manage-btn {
+    font-size: 9px;
+    font-weight: 900;
+    color: #b91c1c;
+    text-transform: uppercase;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.04em;
+    transition: color 0.15s;
+}
+
+.card-manage-btn:hover {
+    color: #7f1d1d;
+    text-decoration: underline;
+}
+
+/* Ícono del dot dentro del badge */
+.dot-icon {
+    font-size: 5px;
+    margin-right: 4px;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: #cbd5e1;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 2px dashed #f1f5f9;
+    border-radius: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.empty-icon {
+    font-size: 2rem;
+    opacity: 0.3;
+}
+
+/* =============================================
+   ESTILOS GLOBALES (sin cambios respecto al original)
+   ============================================= */
+.bkk { background-color: #fdfdfd; border: 1px solid #e2e8f0; padding: 25px; border-radius: 2rem; }
+.filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; align-items: flex-end; }
+
+.label-header {
+    display: block;
+    font-size: 10px;
+    font-weight: 900;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+}
+
+.form-input {
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 2px solid #f1f5f9;
+    font-weight: 700;
+    color: #334155;
+    background: #fafbfc;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    outline: none;
+}
+.form-input:focus { border-color: #e4989c; background: white; }
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%);
+    color: white;
+    border-radius: 16px;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(169, 51, 57, 0.2); }
+
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.table-cell { padding: 14px 16px; font-size: 0.85rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.text-red-link { color: #b91c1c; font-weight: 800; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; text-transform: uppercase; }
+
+.btn-note { padding: 5px 12px; background: #fafbfc; border: 2px solid #f1f5f9; border-radius: 10px; color: #64748b; font-size: 0.65rem; font-weight: 800; cursor: pointer; }
+
+.shadow-premium { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
+.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.custom-scroll::-webkit-scrollbar { height: 4px; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background-color: white;
+}
 </style>
