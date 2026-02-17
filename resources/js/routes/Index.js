@@ -19,8 +19,8 @@ import GastoEdit from '../views/EditGastoView.vue';
 import VisitaEdit from '../views/VisitaEditView.vue';
 import CapacitacionesCalendarioView from '../views/CapacitacionesCalendarView.vue';
 import NuevaCapacitacionView from '../views/NuevaCapacitacionView.vue';
-import EditCapacitacionView from '../views/DetalleIDCapacitacionesView.vue';
-import DetalleIDCapacitacionesView from '../views/CapacitacionesEditVie.vue';
+import DetalleIDCapacitacionesView  from '../views/DetalleIDCapacitacionesView.vue';
+import EditCapacitacionView  from '../views/CapacitacionesEditVie.vue';
 const authGuard = (to, from, next) => {
     const token = localStorage.getItem('auth_token');
 

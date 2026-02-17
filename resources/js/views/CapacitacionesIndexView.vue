@@ -37,7 +37,7 @@
                     <div v-if="hoySesiones.length > 0" class="today-grid">
                         <div v-for="sesion in hoySesiones" :key="sesion.id"
                             class="today-card group"
-                            @click="router.push({ name: 'EditCapacitacion', params: { id: sesion.id } })">
+                            @click="router.push({ name: 'DetalleIDCapacitacionesView', params: { id: sesion.id } })">
                             <div class="today-time-block group-hover:border-red-100">
                                 <div class="today-hour">{{ sesion.hora.split(' ')[0] }}</div>
                                 <div class="today-ampm">{{ sesion.hora.split(' ')[1] }}</div>
@@ -125,7 +125,7 @@
                                 </span>
                             </td>
                             <td class="table-cell text-right">
-                                <button @click="router.push({ name: 'EditCapacitacion', params: { id: sesion.id } })" class="text-red-link flex items-center justify-end gap-1 font-black">
+                                <button @click="router.push({ name: 'DetalleIDCapacitacionesView', params: { id: sesion.id } })" class="text-red-link flex items-center justify-end gap-1 font-black">
                                     GESTIONAR <i class="fas fa-chevron-right text-[8px] ml-1"></i>
                                 </button>
                             </td>
