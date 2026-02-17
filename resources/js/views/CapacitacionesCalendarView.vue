@@ -19,7 +19,6 @@
                 </div>
             </header>
 
-            <!-- ✅ Layout Principal: 30% detalles | 70% calendario -->
             <div class="main-layout">
                 
                 <!-- Panel de Detalles — 30% -->
@@ -28,12 +27,7 @@
                         <div v-if="selectedEvent" :key="selectedEvent.id" class="bg-white rounded-[2.5rem] shadow-premium border border-slate-100 overflow-hidden animate-fade-in">
                             <!-- Cabecera con color de estatus -->
                             <div class="p-6 text-white transition-colors duration-500" :class="getStatusBg(selectedEvent.extendedProps.status)">
-                                <div class="flex justify-between items-start">
-                                    <span class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Expediente de Cita</span>
-                                    <button @click="selectedEvent = null" class="text-white/50 hover:text-white transition-colors">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
+                               
                                 <h2 class="text-xl font-black uppercase tracking-tighter mt-4 leading-tight">
                                     {{ selectedEvent.title }}
                                 </h2>
@@ -177,17 +171,12 @@ const getStatusBg = (status) => {
 </script>
 
 <style scoped>
-
-/* =============================================
-   LAYOUT PRINCIPAL: 30% | 70%
-   ============================================= */
 .main-layout {
     display: flex;
     gap: 32px;
     align-items: flex-start;
 }
 
-/* Panel de detalles: exactamente 30% */
 .details-panel {
     width: 30%;
     flex-shrink: 0;       /* No se encoge */
@@ -195,13 +184,11 @@ const getStatusBg = (status) => {
     top: 112px;           /* sticky respecto al scroll */
 }
 
-/* Calendario: ocupa el resto (70%) */
 .calendar-panel {
     flex: 1;              /* flex: 1 = toma todo el espacio restante */
     min-width: 0;         /* evita desbordamiento */
 }
 
-/* En móvil/tablet: apilados en columna */
 @media (max-width: 1024px) {
     .main-layout {
         flex-direction: column;
@@ -219,9 +206,6 @@ const getStatusBg = (status) => {
     }
 }
 
-/* =============================================
-   ESTILOS GLOBALES
-   ============================================= */
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
 
 .label-mini {
@@ -261,10 +245,6 @@ const getStatusBg = (status) => {
     cursor: pointer;
     transition: 0.2s;
 }
-
-/* =============================================
-   FULLCALENDAR — PERSONALIZACIÓN
-   ============================================= */
 :deep(.fc) {
     --fc-border-color: #f1f5f9;
     --fc-button-bg-color: #ffffff;

@@ -16,7 +16,7 @@
                     <button @click="router.push({ name: 'CapacitacionesCalendario' })" class="btn-secondary !border-2 !rounded-2xl flex items-center gap-2 uppercase font-black text-[10px] px-6 transition-all hover:bg-slate-50">
                         <i class="fas fa-calendar-alt"></i> VER CALENDARIO
                     </button>
-                    <button @click="router.push('/capacitaciones/crear')" class="btn-primary flex items-center gap-2 shadow-lg px-8 py-3 transition-all active:scale-95">
+                    <button @click="router.push({ name: 'NuevaCapacitacion' })" class="btn-primary flex items-center gap-2 shadow-lg px-8 py-3 transition-all active:scale-95">
                         <i class="fas fa-plus-circle"></i> NUEVA SESIÓN
                     </button>
                 </div>
@@ -36,7 +36,8 @@
 
                     <div v-if="hoySesiones.length > 0" class="today-grid">
                         <div v-for="sesion in hoySesiones" :key="sesion.id"
-                            class="today-card group">
+                            class="today-card group"
+                            @click="router.push({ name: 'EditCapacitacion', params: { id: sesion.id } })">
                             <div class="today-time-block group-hover:border-red-100">
                                 <div class="today-hour">{{ sesion.hora.split(' ')[0] }}</div>
                                 <div class="today-ampm">{{ sesion.hora.split(' ')[1] }}</div>
@@ -124,7 +125,7 @@
                                 </span>
                             </td>
                             <td class="table-cell text-right">
-                                <button @click="router.push('/capacitaciones/editar/' + sesion.id)" class="text-red-link flex items-center justify-end gap-1 font-black">
+                                <button @click="router.push({ name: 'EditCapacitacion', params: { id: sesion.id } })" class="text-red-link flex items-center justify-end gap-1 font-black">
                                     GESTIONAR <i class="fas fa-chevron-right text-[8px] ml-1"></i>
                                 </button>
                             </td>
@@ -191,15 +192,6 @@ const getStatusClass = (status) => {
     }
 };
 
-const getStatusBorderColor = (status) => {
-    switch (status?.toUpperCase()) {
-        case 'ATENDIDA':   return 'bg-green-500';
-        case 'PROGRAMADA': return 'bg-amber-500';
-        case 'CANCELADA':  return 'bg-red-600';
-        default:           return 'bg-slate-300';
-    }
-};
-
 const formatDateLong = (date) => new Date(date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 const formatTime    = (date) => new Date(date).toLocaleTimeString('es-ES', { hour: 'numeric', minute: '2-digit', hour12: true });
 
@@ -212,7 +204,6 @@ const hasFilters = computed(() => filters.search !== '' || filters.status !== 'a
 <style scoped>
 .today-grid {
     display: grid;
-    /* Cada sesión ocupa su propia columna, mínimo 200px */
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 12px;
 }
@@ -289,230 +280,6 @@ const hasFilters = computed(() => filters.search !== '' || filters.status !== 'a
     opacity: 0.8;
 }
 
-.cards-grid {
-    display: grid;
-    /* Por defecto: 3 columnas iguales en desktop */
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    align-items: stretch; /* Todas las cards con la misma altura por fila */
-}
-
-/* Tablet: 2 columnas */
-@media (max-width: 1024px) {
-    .cards-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-/* Móvil: 1 columna */
-@media (max-width: 640px) {
-    .cards-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.session-card {
-    position: relative;
-    background: white;
-    border-radius: 1.5rem;
-    border: 1.5px solid #f1f5f9;
-    overflow: hidden;
-    display: flex;           /* flex horizontal: barra + cuerpo */
-    flex-direction: row;
-    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
-    box-shadow: 0 2px 12px -4px rgba(0,0,0,0.06);
-}
-
-.session-card:hover {
-    border-color: #fecdd3;
-    box-shadow: 0 12px 32px -8px rgba(180, 40, 60, 0.12);
-    transform: translateY(-3px);
-}
-
-/* Barra de color lateral (estado) */
-.status-bar {
-    width: 5px;
-    flex-shrink: 0;
-    border-radius: 1.5rem 0 0 1.5rem;
-}
-
-/* Cuerpo de la tarjeta */
-.card-body {
-    flex: 1;
-    padding: 18px 18px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 0; /* evita desbordamiento de texto */
-}
-
-/* Fila superior: fecha + badge */
-.card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 4px;
-}
-
-.date-block {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.card-date {
-    font-size: 9px;
-    font-weight: 900;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-}
-
-.card-time {
-    font-size: 11px;
-    font-weight: 900;
-    color: #dc2626;
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* Título de la tarjeta */
-.card-title {
-    font-size: 11px;
-    font-weight: 900;
-    color: #1e293b;
-    text-transform: uppercase;
-    line-height: 1.4;
-    letter-spacing: 0.02em;
-    /* Limitar a 2 líneas */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-/* Sucursal */
-.card-subtitle {
-    font-size: 9px;
-    font-weight: 700;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Profesional */
-.card-prof {
-    font-size: 9px;
-    font-weight: 700;
-    color: #cbd5e1;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Pie de tarjeta */
-.card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 10px;
-    margin-top: 4px;
-    border-top: 1px solid #f8fafc;
-}
-
-.card-actions-left {
-    display: flex;
-    gap: 6px;
-}
-
-.card-action-btn {
-    font-size: 8px;
-    font-weight: 900;
-    color: #94a3b8;
-    text-transform: uppercase;
-    background: #f8fafc;
-    border: 1.5px solid #f1f5f9;
-    border-radius: 8px;
-    padding: 4px 10px;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    letter-spacing: 0.04em;
-}
-
-.card-action-btn:hover {
-    color: #dc2626;
-    border-color: #fecdd3;
-    background: white;
-}
-
-.card-manage-btn {
-    font-size: 9px;
-    font-weight: 900;
-    color: #b91c1c;
-    text-transform: uppercase;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    letter-spacing: 0.04em;
-    transition: color 0.15s;
-}
-
-.card-manage-btn:hover {
-    color: #7f1d1d;
-    text-decoration: underline;
-}
-
-/* Ícono del dot dentro del badge */
-.dot-icon {
-    font-size: 5px;
-    margin-right: 4px;
-}
-
-/* Empty state */
-.empty-state {
-    text-align: center;
-    padding: 48px 20px;
-    color: #cbd5e1;
-    font-size: 10px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    border: 2px dashed #f1f5f9;
-    border-radius: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-
-.empty-icon {
-    font-size: 2rem;
-    opacity: 0.3;
-}
-
-/* =============================================
-   ESTILOS GLOBALES (sin cambios respecto al original)
-   ============================================= */
 .bkk { background-color: #fdfdfd; border: 1px solid #e2e8f0; padding: 25px; border-radius: 2rem; }
 .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; align-items: flex-end; }
 
@@ -596,9 +363,6 @@ const hasFilters = computed(() => filters.search !== '' || filters.status !== 'a
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
 .animate-fade-in { animation: fadeIn 0.4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-.custom-scroll::-webkit-scrollbar { height: 4px; }
-.custom-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 
 .table-responsive {
     width: 100%;

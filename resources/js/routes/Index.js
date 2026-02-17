@@ -18,7 +18,9 @@ import PedidoEdit from '../views/EditpedidoView.vue';
 import GastoEdit from '../views/EditGastoView.vue';
 import VisitaEdit from '../views/VisitaEditView.vue';
 import CapacitacionesCalendarioView from '../views/CapacitacionesCalendarView.vue';
-
+import NuevaCapacitacionView from '../views/NuevaCapacitacionView.vue';
+import EditCapacitacionView from '../views/DetalleIDCapacitacionesView.vue';
+import DetalleIDCapacitacionesView from '../views/CapacitacionesEditVie.vue';
 const authGuard = (to, from, next) => {
     const token = localStorage.getItem('auth_token');
 
@@ -103,6 +105,21 @@ const routes = [
                 path: 'capacitaciones', 
                 name: 'Capacitaciones',
                 component: CapacitacionesIndexView
+            },
+            {
+            path: 'capacitaciones/nueva',
+            name: 'NuevaCapacitacion',
+            component: NuevaCapacitacionView
+            },
+            {
+                path: 'capacitaciones/editar/:id',
+                name: 'EditCapacitacion',
+                component: EditCapacitacionView
+            },
+            {
+                path: 'capacitaciones/detalle/:id',
+                name: 'DetalleIDCapacitacion',
+                component: DetalleIDCapacitacionesView
             },
             {
                 path: 'capacitaciones-calendario',
