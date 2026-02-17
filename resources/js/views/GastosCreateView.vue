@@ -51,12 +51,12 @@
                                         <label class="label-mini uppercase">Concepto</label>
                                         <select v-model="tempSub.concepto" class="form-input text-sm font-bold w-full">
                                             <option value="" disabled>Seleccione...</option>
-                                            <option value="Peaje y gasolina">Gasolina</option>
+                                            <option value="Peaje">Gasolina</option>
                                             <option value="Peaje">Peaje</option>
                                             <option value="Alimentación">Alimentación</option>
                                             <option value="Hospedaje">Hospedaje</option>
-                                            <option value="Mantenimiento de vehículo">Mantenimiento</option>
-                                            <option value="Papelería y artículos">Papelería</option>
+                                            <option value="Mantenimiento">Mantenimiento</option>
+                                            <option value="Papelería ">Papelería</option>
                                             <option value="Otros">Otros (Especificar)</option>
                                         </select>
                                     </div>

@@ -104,10 +104,14 @@
                                 <label class="label-large">Celular / Teléfono</label>
                                 <p class="value-text tracking-tighter"><i class="fas fa-phone-alt mr-2 opacity-30"></i>{{ visita.telefono_plantel || visita.cliente?.telefono || 'N/A' }}</p>
                             </div>
-                            <div class="data-row">
-                                <label class="label-large">Correo Electrónico</label>
-                                <p class="value-text lowercase text-sm"><i class="fas fa-envelope mr-2 opacity-30"></i>{{ visita.email_plantel || visita.cliente?.email || 'N/A' }}</p>
-                            </div>
+                          <div class="data-row">
+                                    <label class="label-large">Correo Electrónico</label>
+                                    <!-- APLICACIÓN DE CORREO EN MINÚSCULAS CON ESTILO PRIORITARIO -->
+                                    <p class="value-text text-sm" style="text-transform: none !important;">
+                                        <i class="fas fa-envelope mr-2 opacity-30"></i>
+                                        {{ (visita.email_plantel || visita.cliente?.email || 'N/A').toLowerCase() === 'n/a' ? 'N/A' : (visita.email_plantel || visita.cliente?.email).toLowerCase() }}
+                                    </p>
+                                </div>
                             <div class="data-row">
                                 <label class="label-large">Nombre del Director / Coordinador</label>
                                 <p class="value-text italic leading-relaxed text-sm">{{ visita.director_plantel || visita.cliente?.contacto || 'Sin director registrado' }}</p>

@@ -118,7 +118,7 @@
                                         class="form-input pl-10 font-bold uppercase border-red-200" 
                                         v-model="searchReceiverQuery" 
                                         @input="searchExistingReceivers"
-                                        placeholder="ESCRIBA PARA BUSCAR..."
+                                        placeholder="ESCRIBA RFC, NOMBRE O CORREO..."
                                         autocomplete="off"
                                     >
                                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-red-400"></i>
@@ -194,9 +194,9 @@
                                     <label class="label-style">Régimen Fiscal *</label>
                                     <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs text-red-700 uppercase">
                                         <option value="">SELECCIONAR...</option>
-                                        <option value="601">601 - GENERAL MORALES</option>
-                                        <option value="612">612 - PF ACT. EMPRESARIAL</option>
-                                        <option value="626">626 - RESICO</option>
+                                        <option value="601 - GENERAL MORALES">601 - GENERAL MORALES</option>
+                                        <option value="612 - PF ACT. EMPRESARIAL">612 - PF ACT. EMPRESARIAL</option>
+                                        <option value="626 - RESICO">626 - RESICO</option>
                                     </select>
                                 </div>
                             </div>

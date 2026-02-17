@@ -73,12 +73,12 @@
                                         <label class="label-mini uppercase">Concepto</label>
                                         <select v-model="tempSub.concepto" class="form-input text-sm font-bold w-full">
                                             <option value="" disabled>Seleccione...</option>
-                                            <option value="Peaje y gasolina">Gasolina</option>
+                                            <option value="Peaje">Gasolina</option>
                                             <option value="Peaje">Peaje</option>
                                             <option value="Alimentación">Alimentación</option>
                                             <option value="Hospedaje">Hospedaje</option>
-                                            <option value="Mantenimiento de vehículo">Mantenimiento</option>
-                                            <option value="Papelería y artículos">Papelería</option>
+                                            <option value="Mantenimiento">Mantenimiento</option>
+                                            <option value="Papelería ">Papelería</option>
                                             <option value="Otros">Otros (Especificar)</option>
                                         </select>
                                     </div>
@@ -98,12 +98,7 @@
                                         <div class="relative">
                                             <br/><br/>
                                             <input type="file" ref="lineFileInput" @change="handleLineFileSelect" class="hidden" accept=".jpg,.jpeg,.png,.pdf">
-                                            <button type="button" @click="$refs.lineFileInput.click()" 
-                                                class="w-full flex items-center justify-between px-4 py-2.5 border-2 border-dashed rounded-xl text-[10px] font-black uppercase transition-all border-slate-200 text-slate-400 hover:border-red-200 hover:bg-red-50"
-                                                :class="{'border-green-200 bg-green-50 text-green-700': tempSub.file}">
-                                                <span class="truncate max-w-[120px]">{{ tempSub.file ? tempSub.file.name : 'ADJUNTAR' }}</span>
-                                                <i class="fas" :class="tempSub.file ? 'fa-check-circle' : 'fa-paperclip'"></i>
-                                            </button>
+                                           
                                         </div>
                                     </div>
                                 </div>
@@ -147,12 +142,12 @@
                                                             </div>
                                                             <div class="min-w-0 flex-1 space-y-1.5">
                                                                 <select v-model="item.concepto" class="status-select-mini form-input !text-[10px] !py-1.5 w-full uppercase border-none focus:ring-0">
-                                                                    <option value="Peaje y gasolina">Gasolina</option>
+                                                                    <option value="Peaje">Gasolina</option>
                                                                     <option value="Peaje">Peaje</option>
                                                                     <option value="Alimentación">Alimentación</option>
                                                                     <option value="Hospedaje">Hospedaje</option>
-                                                                    <option value="Mantenimiento de vehículo">Mantenimiento</option>
-                                                                    <option value="Papelería y artículos">Papelería</option>
+                                                                    <option value="Mantenimiento">Mantenimiento</option>
+                                                                    <option value="Papelería ">Papelería</option>
                                                                     <option value="Otros">Otros</option>
                                                                 </select>
                                                                 <br/>

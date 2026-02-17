@@ -91,10 +91,14 @@
                                 </div>
                             </div>
 
-                            <div v-if="pedido.receiver_type === 'nuevo' || pedido.cliente?.email" class="pt-3 border-t border-slate-50 min-w-0">
-                                <label class="label-mini label-large">Correo Electrónico</label>
-                                <p class="text-xs font-bold text-red-600    value-text    truncate" :title="pedido.receiver_type === 'nuevo' ? pedido.receptor?.correo : pedido.cliente?.email">
-                                    {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.correo || '---') : (pedido.cliente?.email || '---') }}
+                              <div v-if="pedido.receiver_type === 'nuevo' || pedido.cliente?.email" class="pt-3 border-t border-slate-50 min-w-0">
+                                <label class="label-mini label-large text-slate-400">Correo Electrónico</label>
+                                <p 
+                                    class="text-xs font-bold text-red-600 value-text truncate" 
+                                    style="text-transform: none !important;"
+                                    :title="pedido.receiver_type === 'nuevo' ? pedido.receptor?.correo : pedido.cliente?.email"
+                                >
+                                    {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.correo?.toLowerCase() || '---') : (pedido.cliente?.email?.toLowerCase() || '---') }}
                                 </p>
                             </div>
                             <div>

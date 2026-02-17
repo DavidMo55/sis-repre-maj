@@ -4,7 +4,7 @@
             <!-- Encabezado -->
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h1 class="text-xl md:text-2xl font-black text-black uppercase tracking-tighter">Edición de Pedido #{{ pedidoFolio }}</h1>
+                    <h1 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tighter">Edición de Pedido #{{ pedidoFolio }}</h1>
                     <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest mt-1">Modifique cualquier dato del expediente, incluyendo la logística y dirección.</p>
                 </div>
                 <button @click="router.push('/pedidos')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto uppercase">
@@ -118,16 +118,6 @@
                             </div>
                         </div>
 
-                        <transition name="fade-slide">
-                            <div v-if="isFormBlockedByDuplicates" class="bg-red-600 text-white rounded-4 shadow-lg p-4 flex items-center gap-4">
-                                <i class="fas fa-exclamation-triangle fs-4"></i>
-                                <div class="bgcolor flex-1 p-3 rounded-3 shadow-inner">
-                                    <h4 class="mb-1 font-black uppercase text-xs text-red-700">Registros duplicados detectados</h4>
-                                    <p class="mb-0 font-bold uppercase text-[9px] text-red-600">El RFC, Correo o Teléfono ya existen. Verifique o use "Buscar Datos".</p>
-                                </div>
-                            </div>
-                        </transition>
-
                         <!-- BÚSQUEDA DE RECEPTOR EXISTENTE -->
                         <div v-if="orderForm.receiverType === 'existente'" class="animate-fade-in space-y-4">
                             <div class="form-group relative">
@@ -138,7 +128,7 @@
                                         class="form-input pl-10 font-bold uppercase border-red-200" 
                                         v-model="searchReceiverQuery" 
                                         @input="searchExistingReceivers"
-                                        placeholder="ESCRIBA RFC O NOMBRE..."
+                                        placeholder="ESCRIBA RFC, NOMBRE O CORREO..."
                                         autocomplete="off"
                                     >
                                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-red-400"></i>
@@ -156,7 +146,7 @@
                             </div>
                         </div>
 
-                        <!-- FICHA RESUMEN (PARA CLIENTE O EXISTENTE) -->
+                        <!-- FICHA RESUMEN -->
                         <div v-if="['cliente', 'existente'].includes(orderForm.receiverType)" class="animate-fade-in">
                             <div v-if="activeReceiverDisplay" class="receiver-summary-card shadow-sm border border-red-100 rounded-[2.5rem] p-8 bg-white relative overflow-hidden group">
                                 <div class="relative z-10 space-y-1">
@@ -165,7 +155,10 @@
                                     
                                     <div class="flex flex-wrap gap-x-8 gap-y-2">
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span class="text-black font-black">{{ activeReceiverDisplay.rfc }}</span></p>
-                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-envelope mr-2 text-red-300"></i> {{ activeReceiverDisplay.correo || activeReceiverDisplay.email }}</p>
+                                        <p class="text-xs font-bold text-red-600" style="text-transform: none !important;">
+                                            <i class="fas fa-envelope mr-2 text-red-300"></i> 
+                                            {{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '---').toLowerCase() }}
+                                        </p>
                                     </div>
 
                                     <div class="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
@@ -185,24 +178,26 @@
                             </div>
                         </div>
 
-                        <!-- FORMULARIO MANUAL (COMPLETAMENTE EDITABLE) -->
+                        <!-- FORMULARIO MANUAL -->
                         <div v-if="orderForm.receiverType === 'nuevo'" class="animate-fade-in space-y-6 bg-white border border-red-100 p-8 rounded-[3rem] shadow-sm">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div class="form-group relative">
                                     <label class="label-style">RFC del Receptor *</label>
-                                    <input v-model="orderForm.receiver.rfc" @blur="validateUniqueness('rfc')" type="text" class="form-input font-mono uppercase font-black" :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50 text-red-700' : ''" placeholder="XXXXXXXXXXXXX" required maxlength="13">
+                                    <input v-model="orderForm.receiver.rfc"  @blur="validateUniqueness('rfc')" type="text" class="form-input font-mono uppercase font-black" :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50 text-red-700' : ''" placeholder="XXXXXXXXXXXXX" required minlength="12" maxlength="13">
+                                    <p v-if="fieldValidation.rfc.error" class="text-[9px] text-red-600 font-black mt-1 uppercase"><i class="fas fa-times-circle"></i> RFC ya registrado</p>
                                 </div>
                                 <div class="form-group relative">
                                     <label class="label-style">Nombre / Destinatario *</label>
-                                    <input v-model="orderForm.receiver.persona_recibe" @blur="validateUniqueness('persona_recibe')" type="text" class="form-input font-bold uppercase" :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700' : ''" placeholder="NOMBRE COMPLETO" required minlength="5">
+                                    <input v-model="orderForm.receiver.persona_recibe" @blur="validateUniqueness('persona_recibe')" type="text" class="form-input font-bold uppercase" :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700' : ''" placeholder="NOMBRE COMPLETO" required minlength="5" >
+                                    <p v-if="fieldValidation.persona_recibe.error" class="text-[9px] text-red-600 font-black mt-1 uppercase"><i class="fas fa-times-circle"></i> Nombre duplicado</p>
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal *</label>
                                     <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs uppercase">
                                         <option value="">SELECCIONAR...</option>
-                                        <option value="601">601 - GENERAL MORALES</option>
-                                        <option value="612">612 - PF ACT. EMPRESARIAL</option>
-                                        <option value="626">626 - RESICO</option>
+                                        <option value="601 - GENERAL MORALES">601 - GENERAL MORALES</option>
+                                        <option value="612 - PF ACT. EMPRESARIAL">612 - PF ACT. EMPRESARIAL</option>
+                                        <option value="626 - RESICO">626 - RESICO</option>
                                     </select>
                                 </div>
                             </div>
@@ -211,14 +206,15 @@
                                 <div class="form-group">
                                     <label class="label-style">Correo Electrónico *</label>
                                     <input v-model="orderForm.receiver.correo" @blur="validateUniqueness('correo')" type="email" class="form-input text-red-700 font-bold" :class="fieldValidation.correo.error ? 'border-red-600 bg-red-50' : ''" placeholder="correo@ejemplo.com" required>
+                                    <p v-if="fieldValidation.correo.error" class="text-[9px] text-red-600 font-black mt-1 uppercase"><i class="fas fa-times-circle"></i> Correo ya registrado</p>
                                 </div>
                                 <div class="form-group">
-                                    <label class="label-style">Teléfono de Contacto *</label>
+                                    <label class="label-style">Teléfono *</label>
                                     <input v-model="orderForm.receiver.telefono" @blur="validateUniqueness('telefono')" type="tel" class="form-input text-red-700 font-bold uppercase" :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50' : ''" placeholder="10 DÍGITOS" required minlength="10" maxlength="10">
+                                    <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase"><i class="fas fa-times-circle"></i> Teléfono ya registrado</p>
                                 </div>
                             </div>
 
-                            <!-- DIRECCIÓN MANUAL DESGLOSADA -->
                             <div class="bg-red-50/20 p-8 rounded-[2.5rem] border border-red-100 space-y-6">
                                 <p class="text-[10px] font-black text-red-800 uppercase tracking-widest border-b border-red-100 pb-2 mb-4">Ubicación de Entrega</p>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -253,17 +249,15 @@
                                 </div>
                             </div>
                         </div>
-
-                       
                     </div>
                 </div>
 
-                 <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
-                            <div class="form-group">
-                                <label class="label-style">Comentarios Generales del Pedido:</label>
-                                <textarea v-model="orderForm.comments" required minlength="10" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES PARA ALMACÉN..."></textarea>
-                            </div>
-                        </div>
+                <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
+                    <div class="form-group">
+                        <label class="label-style">Comentarios Generales del Pedido:</label>
+                        <textarea v-model="orderForm.comments" required minlength="10" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES PARA ALMACÉN..."></textarea>
+                    </div>
+                </div>
 
                 <!-- 3. GESTIÓN DE MATERIALES -->
                 <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.items}">
@@ -324,15 +318,53 @@
             </form>
         </div>
 
-        <!-- MODAL DE ÉXITO -->
+        <!-- MODALES DE SISTEMA -->
         <Teleport to="body">
             <Transition name="modal-pop">
-                <div v-if="successModal" class="modal-overlay-wrapper">
-                    <div class="modal-content-success animate-scale-in">
+                <div v-if="systemModal.visible" class="modal-overlay-wrapper" @click.self="systemModal.type !== 'success' ? systemModal.visible = false : null">
+                    
+                    <!-- VISTA DE ÉXITO -->
+                    <div v-if="systemModal.type === 'success'" class="modal-content-success animate-scale-in">
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
                         <h2 class="text-2xl font-black text-black mb-3 uppercase tracking-tighter">¡Pedido Actualizado!</h2>
-                        <p class="text-sm text-slate-500 mb-8 font-medium">Los cambios y la logística se han sincronizado con éxito.</p>
-                        <button @click="router.push('/pedidos')" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest rounded-2xl">Regresar al Historial</button>
+                        <p class="text-sm text-slate-500 mb-8 font-medium px-4">La información se ha sincronizado correctamente con la base de datos central.</p>
+                        <button type="button" @click="closeAndRedirect" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest">Regresar al Historial</button>
+                    </div>
+
+                    <!-- VISTA DE ALERTA DE DUPLICADOS O ERRORES -->
+                    <div v-else class="modal-content-success bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden border border-red-100 animate-scale-in">
+                        <div class="bg-red-600 h-4 w-full"></div>
+                        <div class="p-10 flex flex-col items-center">
+                            
+                            <!-- DISEÑO PERSONALIZADO PARA DUPLICADOS (REGLA SOLICITADA) -->
+                            <div v-if="isFormBlockedByDuplicates" class="w-full">
+                                <div class="bg-red-50 text-red-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-white ring-2 ring-red-50">
+                                    <i class="fas fa-exclamation-triangle text-3xl animate-pulse"></i>
+                                </div>
+                                <div class="flex flex-col justify-content-center rounded-3 p-4 shadow-inner border border-danger mb-8">
+                                    <h4 class="mb-2 font-black uppercase tracking-tighter text-red-700 text-sm">Atención: Registros duplicados</h4>
+                                    <p class="mb-0 font-bold uppercase text-[10px] text-red-600 leading-relaxed">
+                                        El RFC, Correo o Teléfono ya existen en el sistema. 
+                                        Verifique los campos marcados en rojo en el formulario o use la opción <strong>"Buscar Datos"</strong>.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- DISEÑO ESTÁNDAR PARA OTROS ERRORES -->
+                            <div v-else class="w-full flex flex-col items-center">
+                                <div class="w-20 h-20 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-6 shadow-inner border-4 border-white">
+                                    <i class="fas fa-ban text-3xl"></i>
+                                </div>
+                                <h2 class="text-2xl font-black text-black mb-2 uppercase tracking-tighter">{{ systemModal.title }}</h2>
+                                <div class="w-full space-y-3 bg-red-50/30 p-6 rounded-[2rem] border border-red-100/50 mb-8 mt-4">
+                                    <div v-for="(err, i) in systemModal.errorList" :key="i" class="text-[11px] font-black text-slate-700 uppercase leading-tight text-center">
+                                        <i class="fas fa-exclamation-circle text-red-500 mr-1"></i> {{ err }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" @click="systemModal.visible = false" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest rounded-2xl transition-transform hover:scale-105">Revisar formulario</button>
+                        </div>
                     </div>
                 </div>
             </Transition>
@@ -352,7 +384,6 @@ const id = route.params.id;
 const loading = ref(false);
 const loadingInitial = ref(true);
 const searchingCP = ref(false);
-const successModal = ref(false);
 const pedidoFolio = ref('');
 const searchingLibros = ref(false);
 const searchingClients = ref(false);
@@ -364,6 +395,8 @@ const selectedExistingReceiver = ref(null);
 const searchReceiverQuery = ref('');
 const estados = ref([]);
 const colonias = ref([]);
+
+const systemModal = reactive({ visible: false, type: 'success', title: '', message: '', errorList: [] });
 
 const orderForm = reactive({
     prioridad: 'media', 
@@ -386,11 +419,24 @@ const isFormBlockedByDuplicates = computed(() => {
     return fieldValidation.rfc.error || fieldValidation.correo.error || fieldValidation.telefono.error || fieldValidation.persona_recibe.error;
 });
 
+// REGLA: Al detectar duplicado, abrir modal automáticamente.
+watch(isFormBlockedByDuplicates, (val) => {
+    if (val) {
+        systemModal.type = 'error';
+        systemModal.title = 'Registros Duplicados';
+        systemModal.visible = true;
+    }
+});
+
 const activeReceiverDisplay = computed(() => {
     if (orderForm.receiverType === 'cliente') return selectedCliente.value;
     if (orderForm.receiverType === 'existente') return selectedExistingReceiver.value;
     return null;
 });
+
+const openModal = (title, message, type = 'info', errorList = []) => {
+    Object.assign(systemModal, { visible: true, title, message, type, errorList });
+};
 
 const fetchPedidoData = async () => {
     loadingInitial.value = true;
@@ -409,7 +455,6 @@ const fetchPedidoData = async () => {
         selectedCliente.value = p.cliente;
         orderForm.prioridad = p.prioridad;
         
-        // Identificar modo de origen
         if (p.receptor_id) {
             orderForm.receiverType = 'existente';
             selectedExistingReceiver.value = p.receptor;
@@ -420,10 +465,9 @@ const fetchPedidoData = async () => {
 
         orderForm.logistics.deliveryOption = p.delivery_option === 'none' ? 'entrega' : p.delivery_option;
         orderForm.logistics.paqueteria_nombre = p.paqueteria_nombre;
-        orderForm.logistics.comentarios_logistica = p.commentary_delivery_option;
+        orderForm.logistics.comentarios_logistica = p.commentary_delivery_option || p.comentarios_logistica;
         orderForm.comments = p.comments;
 
-        // Cargar datos actuales del receptor (snapshot)
         orderForm.receiver = {
             persona_recibe: p.receiver_nombre || '',
             rfc: p.receiver_rfc || '',
@@ -443,8 +487,7 @@ const fetchPedidoData = async () => {
             price: d.precio_unitario, totalCost: d.costo_total
         }));
     } catch (e) {
-        console.error(e);
-        router.push('/pedidos');
+        openModal("Error de Carga", "No se pudo recuperar el expediente del pedido del servidor.", "error", ["VERIFIQUE SU CONEXIÓN O CONTACTE A SOPORTE."]);
     } finally {
         loadingInitial.value = false;
     }
@@ -544,6 +587,8 @@ const addItemToCart = () => {
 };
 
 const submitUpdate = async () => {
+    if (isFormBlockedByDuplicates.value) return;
+
     loading.value = true;
     try {
         const itemsPayload = orderForm.orderItems.map(i => ({ 
@@ -552,7 +597,6 @@ const submitUpdate = async () => {
 
         const finalData = JSON.parse(JSON.stringify(orderForm));
         
-        // Mapeo Final de Receptor
         if (orderForm.receiverType === 'cliente' && selectedCliente.value) {
             finalData.receiver = {
                 persona_recibe: selectedCliente.value.contacto || selectedCliente.value.name,
@@ -576,18 +620,18 @@ const submitUpdate = async () => {
                 calle_num: selectedExistingReceiver.value.direccion
             };
         }
-        // En modo 'nuevo', el objeto ya tiene los campos componentes de la dirección
 
         await axios.put(`/pedidos/${id}`, { ...finalData, items: itemsPayload });
-        successModal.value = true;
+        openModal("¡Éxito!", "Los cambios se han guardado correctamente.", "success");
     } catch (e) {
-        alert(e.response?.data?.message || "Ocurrió un fallo en la actualización.");
+        const msg = e.response?.data?.message || "Ocurrió un fallo en la sincronización con el servidor.";
+        const list = e.response?.data?.errors ? Object.values(e.response.data.errors).flat() : [];
+        openModal("Fallo en Actualización", msg, "error", list);
     } finally {
         loading.value = false;
     }
 };
 
-// Limpieza de campos al entrar en modo manual
 watch(() => orderForm.receiverType, (newVal) => {
     if (newVal === 'nuevo') {
         orderForm.receiver = { 
@@ -597,6 +641,10 @@ watch(() => orderForm.receiverType, (newVal) => {
         selectedExistingReceiver.value = null;
         searchReceiverQuery.value = '';
         colonias.value = [];
+        fieldValidation.rfc.error = false;
+        fieldValidation.correo.error = false;
+        fieldValidation.telefono.error = false;
+        fieldValidation.persona_recibe.error = false;
     }
 });
 
@@ -604,6 +652,8 @@ const totalUnits = computed(() => orderForm.orderItems.reduce((s, i) => s + i.qu
 const orderTotal = computed(() => orderForm.orderItems.reduce((s, i) => s + i.totalCost, 0));
 const formatCurrency = (v) => Number(v).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 const availableSubTypes = computed(() => ['Solo Físico', 'Pack (Físico + Digital)', 'Licencia Digital']);
+
+const closeAndRedirect = () => { systemModal.visible = false; router.push('/pedidos'); };
 
 onMounted(fetchPedidoData);
 </script>
@@ -621,14 +671,22 @@ onMounted(fetchPedidoData);
 .shipping-card span { @apply text-[10px] font-black uppercase tracking-widest text-center; }
 .shipping-card.active { @apply border-black text-black shadow-xl scale-[1.02]; }
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; transition: 0.2s; text-transform: uppercase; font-size: 0.8rem; }
-.modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); }
+.modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); padding: 1rem; }
 .modal-content-success { background: white; padding: 50px; border-radius: 50px; text-align: center; width: 90%; max-width: 450px; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #fee2e2; }
-.success-icon-wrapper { width: 85px; height: 85px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 30px; border: 4px solid white; }
+.success-icon-wrapper { width: 85px; height: 85px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 25px; border: 4px solid white; }
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .table-cell { padding: 20px 24px; vertical-align: middle; color: #dc2626; font-weight: 700; }
 .btn-delete-item { background: none; border: none; color: #fca5a5; font-size: 11px; font-weight: 900; cursor: pointer; }
 .badge-material-sale { @apply bg-black text-white px-3 py-1 rounded-full text-[9px] font-black; }
 .badge-material-promo { @apply bg-red-600 text-white px-3 py-1 rounded-full text-[9px] font-black; }
-.bgcolor { background: #e7f684; border-radius: 12px; padding: 10px; }
+.bgcolor { background: #e7f684; border-radius: 12px; padding: 16px; }
+.text-danger { color: #dc2626; }
+.border-danger { border-color: #dc2626; }
+.animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* Animación para la Alerta */
+.fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(-20px); }
 </style>
