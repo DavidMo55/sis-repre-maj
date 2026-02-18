@@ -51,7 +51,7 @@
                                         <label class="label-mini uppercase">Concepto</label>
                                         <select v-model="tempSub.concepto" class="form-input text-sm font-bold w-full">
                                             <option value="" disabled>Seleccione...</option>
-                                            <option value="Peaje">Gasolina</option>
+                                            <option value="Gasolina">Gasolina</option>
                                             <option value="Peaje">Peaje</option>
                                             <option value="Alimentación">Alimentación</option>
                                             <option value="Hospedaje">Hospedaje</option>
@@ -63,7 +63,7 @@
 
                                     <div class="sm:col-span-6 lg:col-span-3">
                                         <label class="label-mini uppercase">Descripción</label>
-                                        <input v-model="tempSub.descripcion_otros" type="text" class="form-input text-sm w-full font-bold uppercase" placeholder="¿En qué se gastó?">
+                                        <input v-model="tempSub.descripcion_otros" type="text" class="form-input text-sm w-full font-bold uppercase" placeholder="¿En qué se gastó? mínimo 10 caracteres" required minlength="10" >
                                     </div>
 
                                     <div class="sm:col-span-2">
@@ -293,7 +293,7 @@ const totalMonto = computed(() => subExpenses.value.reduce((acc, item) => acc + 
 
 const isLineValid = computed(() => {
     const hasConcept = tempSub.concepto !== '';
-    const hasDescription = tempSub.concepto === 'Otros' ? (tempSub.descripcion_otros && tempSub.descripcion_otros.trim() !== '') : true;
+    const hasDescription = tempSub.descripcion_otros && tempSub.descripcion_otros.trim().length >= 10;
     const hasAmount = tempSub.monto !== null && tempSub.monto > 0;
     const hasFile = tempSub.file !== null;
     return hasConcept && hasDescription && hasAmount && hasFile;

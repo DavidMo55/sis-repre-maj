@@ -118,6 +118,16 @@
                             </div>
                         </div>
 
+                        <transition name="fade-slide">
+                            <div v-if="isFormBlockedByDuplicates" class="bg-red-600 text-white rounded-4 shadow-lg p-4 flex items-center gap-4">
+                                <i class="fas fa-exclamation-triangle fs-4"></i>
+                                <div class="bgcolor flex-1 p-3 rounded-3 shadow-inner">
+                                    <h4 class="mb-1 font-black uppercase text-xs text-red-700">Registros duplicados detectados</h4>
+                                    <p class="mb-0 font-bold uppercase text-[9px] text-red-600">El RFC, Correo o Teléfono ya existen. Verifique o use "Buscar Datos".</p>
+                                </div>
+                            </div>
+                        </transition>
+
                         <!-- BÚSQUEDA DE RECEPTOR EXISTENTE -->
                         <div v-if="orderForm.receiverType === 'existente'" class="animate-fade-in space-y-4">
                             <div class="form-group relative">
@@ -252,16 +262,27 @@
                     </div>
                 </div>
 
-                <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
+                <!-- 3. MOTIVO DEL CAMBIO -->
+                <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                    <div class="section-title text-black">
+                        <i class="fas fa-history text-red-700"></i> 3. Motivo de la Modificación
+                    </div>
                     <div class="form-group">
-                        <label class="label-style">Comentarios Generales del Pedido:</label>
-                        <textarea v-model="orderForm.comments" required minlength="10" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES PARA ALMACÉN..."></textarea>
+                        <label class="label-style">Explique el motivo del ajuste para la bitácora *</label>
+                        <textarea v-model="orderForm.motivo_cambio" class="form-input font-medium" rows="3" placeholder="Mínimo 10 caracteres..." required minlength="10"></textarea>
                     </div>
                 </div>
 
-                <!-- 3. GESTIÓN DE MATERIALES -->
+                <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
+                    <div class="form-group">
+                        <label class="label-style">Comentarios Generales del Pedido (Opcional):</label>
+                        <textarea v-model="orderForm.comments" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES PARA ALMACÉN..."></textarea>
+                    </div>
+                </div>
+
+                <!-- 4. GESTIÓN DE MATERIALES -->
                 <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.items}">
-                    <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 3. Selección de Material</div>
+                    <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 4. Selección de Material</div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-red-50/20 p-6 rounded-[2.5rem] border border-red-100">
                         <div class="md:col-span-2"><label class="label-mini">Tipo</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
@@ -318,7 +339,7 @@
             </form>
         </div>
 
-        <!-- MODALES DE SISTEMA -->
+   <!-- MODALES DE SISTEMA -->
         <Teleport to="body">
             <Transition name="modal-pop">
                 <div v-if="systemModal.visible" class="modal-overlay-wrapper" @click.self="systemModal.type !== 'success' ? systemModal.visible = false : null">
@@ -336,14 +357,14 @@
                         <div class="bg-red-600 h-4 w-full"></div>
                         <div class="p-10 flex flex-col items-center">
                             
-                            <!-- DISEÑO PERSONALIZADO PARA DUPLICADOS (REGLA SOLICITADA) -->
+                            <!-- DISEÑO PERSONALIZADO PARA DUPLICADOS  -->
                             <div v-if="isFormBlockedByDuplicates" class="w-full">
                                 <div class="bg-red-50 text-red-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-white ring-2 ring-red-50">
                                     <i class="fas fa-exclamation-triangle text-3xl animate-pulse"></i>
                                 </div>
-                                <div class="flex flex-col justify-content-center rounded-3 p-4 shadow-inner border border-danger mb-8">
+                                <div class="bgcolor flex flex-col justify-content-center rounded-3 p-4 shadow-inner border border-danger mb-8">
                                     <h4 class="mb-2 font-black uppercase tracking-tighter text-red-700 text-sm">Atención: Registros duplicados</h4>
-                                    <p class="mb-0 font-bold uppercase text-[10px] text-red-600 leading-relaxed">
+                                    <p class="mb-0 font-bold uppercase text-[10px] text-red-600 leading-relaxed text-center">
                                         El RFC, Correo o Teléfono ya existen en el sistema. 
                                         Verifique los campos marcados en rojo en el formulario o use la opción <strong>"Buscar Datos"</strong>.
                                     </p>
@@ -390,11 +411,12 @@ const searchingClients = ref(false);
 const searchingExisting = ref(false);
 const clientSuggestions = ref([]);
 const receiverSuggestions = ref([]);
+const estados = ref([]);
+const colonias = ref([]);
 const selectedCliente = ref(null); 
 const selectedExistingReceiver = ref(null);
 const searchReceiverQuery = ref('');
-const estados = ref([]);
-const colonias = ref([]);
+const generatedOrderId = ref('');
 
 const systemModal = reactive({ visible: false, type: 'success', title: '', message: '', errorList: [] });
 
@@ -407,6 +429,7 @@ const orderForm = reactive({
     logistics: { deliveryOption: 'paqueteria', paqueteria_nombre: '', comentarios_logistica: '' },
     comments: '', 
     orderItems: [], 
+    motivo_cambio: ''
 });
 
 const fieldValidation = reactive({ rfc: { error: false }, correo: { error: false }, telefono: { error: false }, persona_recibe: { error: false } });
@@ -419,7 +442,9 @@ const isFormBlockedByDuplicates = computed(() => {
     return fieldValidation.rfc.error || fieldValidation.correo.error || fieldValidation.telefono.error || fieldValidation.persona_recibe.error;
 });
 
-// REGLA: Al detectar duplicado, abrir modal automáticamente.
+/**
+ * Al detectar duplicado, abrir modal automáticamente.
+ */
 watch(isFormBlockedByDuplicates, (val) => {
     if (val) {
         systemModal.type = 'error';
@@ -436,6 +461,49 @@ const activeReceiverDisplay = computed(() => {
 
 const openModal = (title, message, type = 'info', errorList = []) => {
     Object.assign(systemModal, { visible: true, title, message, type, errorList });
+};
+
+const validateForm = () => {
+    const list = [];
+
+    // 1. Cliente
+    if (!orderForm.clientId) list.push("SELECCIONE UN PLANTEL O DISTRIBUIDOR VÁLIDO.");
+
+    // 2. Receptor
+    if (orderForm.receiverType === 'nuevo') {
+        if (!orderForm.receiver.rfc || orderForm.receiver.rfc.length < 12) list.push("EL RFC DEBE TENER ENTRE 12 Y 13 CARACTERES.");
+        if (!orderForm.receiver.persona_recibe || orderForm.receiver.persona_recibe.length < 5) list.push("EL NOMBRE DEL DESTINATARIO DEBE TENER AL MENOS 5 CARACTERES.");
+        if (!orderForm.receiver.correo || !orderForm.receiver.correo.includes('@') || orderForm.receiver.correo.length < 5) list.push("INGRESE UN CORREO ELECTRÓNICO VÁLIDO.");
+        if (!orderForm.receiver.telefono || orderForm.receiver.telefono.length !== 10) list.push("EL TELÉFONO DEBE TENER EXACTAMENTE 10 DÍGITOS.");
+        if (!orderForm.receiver.cp || orderForm.receiver.cp.length !== 5) list.push("EL CÓDIGO POSTAL DEBE TENER 5 DÍGITOS.");
+        if (!orderForm.receiver.calle_num || orderForm.receiver.calle_num.length < 5) list.push("LA DIRECCIÓN (CALLE/NÚMERO) DEBE TENER AL MENOS 5 CARACTERES.");
+        if (!orderForm.receiver.colonia) list.push("SELECCIONE UNA COLONIA.");
+    } else if (orderForm.receiverType === 'existente' && !selectedExistingReceiver.value) {
+        list.push("SELECCIONE UN RECEPTOR DE LA LISTA DE BÚSQUEDA.");
+    }
+
+    // 3. Logística
+    if (orderForm.logistics.deliveryOption === 'paqueteria') {
+        if (!orderForm.logistics.paqueteria_nombre || orderForm.logistics.paqueteria_nombre.length < 3) {
+            list.push("ESPECIFIQUE LA EMPRESA DE PAQUETERÍA (MÍN. 3 CARACTERES).");
+        }
+    } else {
+        if (!orderForm.logistics.comentarios_logistica || orderForm.logistics.comentarios_logistica.length < 10) {
+            list.push("LAS INSTRUCCIONES LOGÍSTICAS DEBEN TENER AL MENOS 10 CARACTERES.");
+        }
+    }
+
+    // 4. Motivo del cambio
+    if (!orderForm.motivo_cambio || orderForm.motivo_cambio.length < 10) {
+        list.push("EL MOTIVO DEL CAMBIO ES OBLIGATORIO (MÍN. 10 CARACTERES).");
+    }
+
+    // 5. Materiales
+    if (orderForm.orderItems.length === 0) {
+        list.push("LA CANASTA DE MATERIALES ESTÁ VACÍA.");
+    }
+
+    return list;
 };
 
 const fetchPedidoData = async () => {
@@ -464,9 +532,9 @@ const fetchPedidoData = async () => {
         }
 
         orderForm.logistics.deliveryOption = p.delivery_option === 'none' ? 'entrega' : p.delivery_option;
-        orderForm.logistics.paqueteria_nombre = p.paqueteria_nombre;
-        orderForm.logistics.comentarios_logistica = p.commentary_delivery_option || p.comentarios_logistica;
-        orderForm.comments = p.comments;
+        orderForm.logistics.paqueteria_nombre = p.paqueteria_nombre || '';
+        orderForm.logistics.comentarios_logistica = p.commentary_delivery_option || p.comentarios_logistica || '';
+        orderForm.comments = p.comments || '';
 
         orderForm.receiver = {
             persona_recibe: p.receiver_nombre || '',
@@ -482,9 +550,9 @@ const fetchPedidoData = async () => {
         };
 
         orderForm.orderItems = p.detalles.map(d => ({
-            id: d.id, bookId: d.libro_id, bookName: d.libro?.titulo,
+            id: d.id, bookId: d.libro_id, bookName: d.libro?.titulo || 'Material no identificado',
             tipo_material: d.tipo, sub_type: d.tipo_licencia, quantity: d.cantidad,
-            price: d.precio_unitario, totalCost: d.costo_total
+            price: parseFloat(d.precio_unitario), totalCost: parseFloat(d.costo_total)
         }));
     } catch (e) {
         openModal("Error de Carga", "No se pudo recuperar el expediente del pedido del servidor.", "error", ["VERIFIQUE SU CONEXIÓN O CONTACTE A SOPORTE."]);
@@ -589,6 +657,12 @@ const addItemToCart = () => {
 const submitUpdate = async () => {
     if (isFormBlockedByDuplicates.value) return;
 
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+        openModal("Información Insuficiente", "Se requiere completar los campos con la información mínima solicitada.", "error", validationErrors);
+        return;
+    }
+
     loading.value = true;
     try {
         const itemsPayload = orderForm.orderItems.map(i => ({ 
@@ -673,7 +747,7 @@ onMounted(fetchPedidoData);
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; transition: 0.2s; text-transform: uppercase; font-size: 0.8rem; }
 .modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); padding: 1rem; }
 .modal-content-success { background: white; padding: 50px; border-radius: 50px; text-align: center; width: 90%; max-width: 450px; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #fee2e2; }
-.success-icon-wrapper { width: 85px; height: 85px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 25px; border: 4px solid white; }
+.success-icon-wrapper { width: 85px; height: 85px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 30px; border: 4px solid white; }
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .table-cell { padding: 20px 24px; vertical-align: middle; color: #dc2626; font-weight: 700; }

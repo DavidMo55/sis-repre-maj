@@ -73,7 +73,7 @@
                                         <label class="label-mini uppercase">Concepto</label>
                                         <select v-model="tempSub.concepto" class="form-input text-sm font-bold w-full">
                                             <option value="" disabled>Seleccione...</option>
-                                            <option value="Peaje">Gasolina</option>
+                                            <option value="Gasolina">Gasolina</option>
                                             <option value="Peaje">Peaje</option>
                                             <option value="Alimentación">Alimentación</option>
                                             <option value="Hospedaje">Hospedaje</option>
@@ -85,7 +85,7 @@
 
                                     <div class="sm:col-span-6 lg:col-span-3">
                                         <label class="label-mini uppercase">Descripción</label>
-                                        <input v-model="tempSub.descripcion_otros" type="text" class="form-input text-sm w-full font-bold uppercase" placeholder="¿En qué se gastó?">
+                                        <input v-model="tempSub.descripcion_otros" type="text" class="form-input text-sm w-full font-bold uppercase" placeholder="¿En qué se gastó? mínimo 10 caracteres" required minlength="10" >
                                     </div>
 
                                     <div class="sm:col-span-6 lg:col-span-2">
@@ -142,7 +142,7 @@
                                                             </div>
                                                             <div class="min-w-0 flex-1 space-y-1.5">
                                                                 <select v-model="item.concepto" class="status-select-mini form-input !text-[10px] !py-1.5 w-full uppercase border-none focus:ring-0">
-                                                                    <option value="Peaje">Gasolina</option>
+                                                                    <option value="Gasolina">Gasolina</option>
                                                                     <option value="Peaje">Peaje</option>
                                                                     <option value="Alimentación">Alimentación</option>
                                                                     <option value="Hospedaje">Hospedaje</option>
@@ -156,6 +156,7 @@
                                                                     type="text" 
                                                                     class="edit-inline-input form-input text-[10px]" 
                                                                     placeholder="Descripción..."
+                                                                    required minlength="10" 
                                                                 >
                                                             </div>
                                                         </div>
@@ -174,13 +175,11 @@
                                                                 <i v-else class="fas fa-exclamation-circle text-[10px]"></i>
                                                                 
                                                                 <span class="text-[9px] font-black truncate uppercase tracking-tighter">
-                                                                    {{ item.file ? 'ADJUNTO' : (item.hasCloudFile ? 'EN NUBE' : 'FALTANTE') }}
+                                                                    {{ item.file ? 'ADJUNTO' : (item.hasCloudFile ? 'Documento Adjunto' : 'FALTANTE') }}
+                                                                    {{ item.file ? '' : (item.hasCloudFile ? '' : '- Requerido') }}
                                                                 </span>
-                                                            </div>
-                                                            <div class="flex gap-2">
-                                                                <button type="button" @click="triggerChangeFile(item.localId)" class="text-[8px] btn-secondary font-black text-blue-600 uppercase hover:underline">Sustituir</button>
-                                                                <button v-if="item.file" type="button" @click="item.file = null" class="text-[8px] btn-secondary  font-black text-red-600 uppercase hover:underline">Quitar</button>
-                                                            </div>
+                                                            </div>  
+                                                       
                                                        </div>
                                                     </td>
 
@@ -285,7 +284,7 @@
             </form>
         </div>
 
-        <!-- MODAL DE OVERLAY DINÁMICO -->
+       <!-- MODAL DE OVERLAY DINÁMICO -->
         <Teleport to="body">
             <Transition name="modal-pop">
                 <div v-if="modal.visible" class="modal-overlay-wrapper" @click.self="modal.type !== 'success' && !modal.confirm ? modal.visible = false : null">
@@ -297,11 +296,18 @@
                                 <i :class="['fas fa-2xl', modal.type === 'danger' ? 'fa-exclamation-triangle' : 'fa-info-circle']"></i>
                             </div>
                             <h3 class="text-xl md:text-2xl font-black text-slate-800 leading-tight mb-2 uppercase tracking-tighter">{{ modal.title }}</h3>
-                            <p class="text-slate-500 text-sm leading-relaxed font-medium whitespace-pre-wrap">{{ modal.message }}</p>
+                            
+                            <!-- Lista de errores específicos -->
+                            <div v-if="modal.errorList && modal.errorList.length" class="mt-4 space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <p v-for="(err, i) in modal.errorList" :key="i" class="text-[11px] font-black text-slate-600 uppercase tracking-tight text-center">
+                                    <i class="fas fa-caret-right text-red-400 mr-1"></i> {{ err }}
+                                </p>
+                            </div>
+                            <p v-else class="text-slate-500 text-sm leading-relaxed font-medium whitespace-pre-wrap">{{ modal.message }}</p>
                         </div>
                         <div class="bg-slate-50 p-6 flex gap-3 border-t">
-                            <button v-if="modal.confirm" @click="closeModal" class="flex-1 btn-primary py-4 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">Cancelar</button>
-                            <button @click="handleModalConfirm" class="flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all active:scale-95" :class="modal.type === 'danger' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white'">
+                            <button v-if="modal.confirm" @click="closeModal" class="flex-1 btn-secondary !py-4 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest border-none bg-transparent cursor-pointer">Cancelar</button>
+                            <button @click="handleModalConfirm" class="flex-1 btn-primary py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all active:scale-95 border-none cursor-pointer" :class="modal.type === 'danger' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white'">
                                 {{ modal.confirm ? 'Confirmar' : 'Entendido' }}
                             </button>
                         </div>
@@ -311,7 +317,7 @@
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
                         <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tighter">¡Éxito!</h2>
                         <p class="text-sm text-slate-500 mb-8 font-medium px-4">{{ modal.message }}</p>
-                        <button @click="closeAndRedirect" class="btn-primary w-full py-4 bg-slate-900 border-none text-white uppercase font-black tracking-widest rounded-2xl shadow-xl">Continuar</button>
+                        <button @click="closeAndRedirect" class="btn-primary w-full py-4 bg-slate-900 border-none text-white uppercase font-black tracking-widest rounded-2xl shadow-xl cursor-pointer">Continuar</button>
                     </div>
 
                 </div>
@@ -358,9 +364,11 @@ const allFilesPresent = computed(() => {
 });
 
 const isLineValid = computed(() => {
-    return tempSub.concepto !== '' && 
-           tempSub.monto > 0 && 
-           tempSub.file !== null; // Al añadir uno nuevo, el archivo SIEMPRE es requerido
+    const hasConcept = tempSub.concepto !== '';
+    const hasDescription = tempSub.descripcion_otros && tempSub.descripcion_otros.trim().length >= 10;
+    const hasAmount = tempSub.monto !== null && tempSub.monto > 0;
+    const hasFile = tempSub.file !== null;
+    return hasConcept && hasDescription && hasAmount && hasFile;
 });
 
 onMounted(async () => {

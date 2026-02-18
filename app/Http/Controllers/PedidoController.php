@@ -86,7 +86,7 @@ class PedidoController extends Controller
     /**
      * Registro de pedido con lógica de Receptores y Clientes centralizada.
      */
-public function store(Request $request)
+      public function store(Request $request)
     {
         $validatedData = $request->validate([
             'clientId' => 'required|exists:clientes,id',
@@ -95,13 +95,13 @@ public function store(Request $request)
             'receptor_id'  => 'nullable|required_if:receiverType,existente|exists:pedido_receptores,id',
             
             // Datos del Receptor (Solo obligatorios si el tipo es nuevo)
-            'receiver.persona_recibe' => 'required|string|max:255',
-            'receiver.rfc' => 'required|string|min:12|max:13',
-            'receiver.regimen_fiscal' => 'required|string', 
-            'receiver.telefono' => 'required|string',
-            'receiver.correo' => 'required|email',
+            'receiver.persona_recibe' => 'required_if:receiverType,nuevo|string|max:255',
+            'receiver.rfc' => 'required_if:receiverType,nuevo|string|min:12|max:13',
+            'receiver.regimen_fiscal' => 'required_if:receiverType,nuevo|string', 
+            'receiver.telefono' => 'required_if:receiverType,nuevo|string',
+            'receiver.correo' => 'required_if:receiverType,nuevo|email',
             
-            // Dirección desglosada (Solo requerida si es nuevo para alimentar Dipomex o BD)
+            // Dirección desglosada
             'receiver.cp' => 'required_if:receiverType,nuevo|string|size:5',
             'receiver.estado' => 'required_if:receiverType,nuevo|string', 
             'receiver.municipio' => 'required_if:receiverType,nuevo|string',
@@ -126,26 +126,18 @@ public function store(Request $request)
             return DB::transaction(function () use ($validatedData, $request) {
                 $user = $request->user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+                
+                $regimenFull = $validatedData['receiver']['regimen_fiscal'] ?? '601 - GENERAL DE LEY PERSONAS MORALES';
                 $receptorId = $validatedData['receptor_id'] ?? null;
                 $direccionFormateada = '';
 
-                // Extraer solo el código del régimen (ej: "612") para evitar error de longitud (max 10)
-                $regimenRaw = $validatedData['receiver']['regimen_fiscal'];
-                $regimenCode = explode(' ', trim($regimenRaw))[0];
-
-                // PROCESAMIENTO DE DIRECCIÓN Y RECEPTOR SEGÚN TIPO
                 if ($validatedData['receiverType'] === 'nuevo') {
-                    $direccionFormateada = $validatedData['receiver']['calle_num'] . 
-                                       ", COL. " . $validatedData['receiver']['colonia'] . 
-                                       ", " . $validatedData['receiver']['municipio'] . 
-                                       ", " . $validatedData['receiver']['estado'] . 
-                                       ", CP " . $validatedData['receiver']['cp'];
-
+                    $direccionFormateada = "{$validatedData['receiver']['calle_num']}, COL. {$validatedData['receiver']['colonia']}, {$validatedData['receiver']['municipio']}, {$validatedData['receiver']['estado']}, CP {$validatedData['receiver']['cp']}";
                     $receptor = PedidoReceptor::create([
                         'cliente_id'              => $validatedData['clientId'],
                         'nombre'                  => strtoupper($validatedData['receiver']['persona_recibe']),
                         'rfc'                     => strtoupper($validatedData['receiver']['rfc']),
-                        'receiver_regimen_fiscal' => $regimenCode, 
+                        'receiver_regimen_fiscal' => strtoupper($regimenFull), 
                         'telefono'                => $validatedData['receiver']['telefono'],
                         'correo'                  => $validatedData['receiver']['correo'],
                         'direccion'               => strtoupper($direccionFormateada)
@@ -159,11 +151,8 @@ public function store(Request $request)
                     $direccionFormateada = $cliente->direccion;
                 }
 
-                // FIX receiver_type: El ENUM de la DB solo acepta ['cliente', 'nuevo'].
-                // Mapeamos 'existente' a 'nuevo' porque ambos usan la tabla de receptores.
                 $dbReceiverType = ($validatedData['receiverType'] === 'existente') ? 'nuevo' : $validatedData['receiverType'];
 
-                // CREACIÓN DEL PEDIDO
                 $pedido = Pedido::create([
                     'user_id'                 => $ownerId,
                     'cliente_id'              => $validatedData['clientId'],
@@ -171,12 +160,12 @@ public function store(Request $request)
                     'tipo_pedido'             => $request->tipo_pedido ?? 'normal',
                     'receptor_id'             => $receptorId,
                     'receiver_type'           => $dbReceiverType,
-                    'receiver_regimen_fiscal' => $regimenCode,
+                    'receiver_regimen_fiscal' => strtoupper($regimenFull),
                     'delivery_option'         => $validatedData['logistics']['deliveryOption'] === 'entrega' ? 'none' : $validatedData['logistics']['deliveryOption'],
                     'paqueteria_nombre'       => strtoupper($request->input('logistics.paqueteria_nombre') ?? ''),
                     'commentary_delivery_option' => strtoupper($request->input('logistics.comentarios_logistica') ?? ''),
                     'delivery_address'        => strtoupper($direccionFormateada),
-                    'comments'                => strtoupper($validatedData['comments'] ?? 'GUARDADO CON DATOS CARGADOS'), 
+                    'comments'                => strtoupper($validatedData['comments'] ?? 'ORDEN PROCESADA'), 
                     'status'                  => 'PENDIENTE',
                 ]);
                 
@@ -201,6 +190,7 @@ public function store(Request $request)
             return response()->json(['message' => 'Error: ' . $e->getMessage()], 422);
         }
     }
+
     /**
      * Subida de factura por personal de oficina.
      */
@@ -224,14 +214,12 @@ public function store(Request $request)
     }
 
 
-   public function update(Request $request, $id)
+  public function update(Request $request, $id)
     {
         $pedido = Pedido::with('detalles.libro')->findOrFail($id);
 
         if ($pedido->status !== 'PENDIENTE') {
-            return response()->json([
-                'message' => "El pedido en estado {$pedido->status} no puede ser modificado."
-            ], 403);
+            return response()->json(['message' => "No se puede modificar un pedido en estado {$pedido->status}"], 403);
         }
 
         $validatedData = $request->validate([
@@ -240,58 +228,53 @@ public function store(Request $request)
             'receiverType' => 'required|in:cliente,nuevo,existente',
             'receptor_id'  => 'nullable|required_if:receiverType,existente|exists:pedido_receptores,id',
             
-            // Datos del Receptor
-            'receiver.persona_recibe' => 'required|string|max:255',
-            'receiver.rfc' => 'required|string|min:12|max:13',
-            'receiver.regimen_fiscal' => 'required|string', 
-            'receiver.telefono' => 'required|string',
-            'receiver.correo' => 'required|email',
-            
-            // Dirección
-            'receiver.cp' => 'required|string',
-            'receiver.estado' => 'required|string', 
-            'receiver.municipio' => 'required|string',
-            'receiver.colonia' => 'required|string',
-            'receiver.calle_num' => 'required|string',
+            // Datos del Receptor (Opcionales si no es tipo nuevo para evitar bloqueos por campos vacíos en el frontend)
+            'receiver.persona_recibe' => 'nullable|required_if:receiverType,nuevo|string|max:255',
+            'receiver.rfc' => 'nullable|required_if:receiverType,nuevo|string|min:12|max:13',
+            'receiver.regimen_fiscal' => 'nullable|required_if:receiverType,nuevo|string', 
+            'receiver.telefono' => 'nullable|required_if:receiverType,nuevo|string',
+            'receiver.correo' => 'nullable|required_if:receiverType,nuevo|email',
+            'receiver.cp' => 'nullable|required_if:receiverType,nuevo|string',
+            'receiver.estado' => 'nullable|required_if:receiverType,nuevo|string', 
+            'receiver.municipio' => 'nullable|required_if:receiverType,nuevo|string',
+            'receiver.colonia' => 'nullable|required_if:receiverType,nuevo|string',
+            'receiver.calle_num' => 'nullable|required_if:receiverType,nuevo|string',
             
             'logistics.deliveryOption' => 'required',
             'items' => 'required|array|min:1',
-            'motivo_cambio' => 'nullable|string|max:255'
+            'motivo_cambio' => 'required|string|min:10'
         ]);
 
         try {
             return DB::transaction(function () use ($pedido, $request, $validatedData) {
-                // 1. Snapshot para la bitácora
-                $snapshot = [
-                    'cabecera' => $pedido->makeHidden(['detalles'])->toArray(),
-                    'detalles' => $pedido->detalles->toArray(),
-                    'fecha_snapshot' => now()->toDateTimeString()
-                ];
-
+                // 1. Log de Auditoría (Snapshot de integridad)
                 PedidoLog::create([
                     'pedido_id' => $pedido->id,
                     'user_id' => Auth::id(),
-                    'snapshot_anterior' => $snapshot,
-                    'motivo_cambio' => strtoupper($request->motivo_cambio ?? 'EDICIÓN INTEGRAL DE DATOS')
+                    'snapshot_anterior' => [
+                        'cabecera' => $pedido->makeHidden(['detalles'])->toArray(),
+                        'detalles' => $pedido->detalles->toArray()
+                    ],
+                    'motivo_cambio' => strtoupper($request->motivo_cambio)
                 ]);
 
-                // 2. Determinar Lógica de Receptor y Dirección
+                // 2. Lógica de Receptor y Dirección
                 $receptorId = null;
                 $direccionFormateada = '';
-                $receiverData = $validatedData['receiver'];
-                $regimenCode = explode(' ', trim($receiverData['regimen_fiscal']))[0];
+                
+                // Mapeo de Régimen Fiscal (Usamos el que viene en la validación o el que ya tiene el pedido)
+                $regimenFull = $validatedData['receiver']['regimen_fiscal'] ?? $pedido->receiver_regimen_fiscal;
 
                 if ($validatedData['receiverType'] === 'nuevo') {
-                    // Reconstruir dirección completa a partir del desglose
+                    $receiverData = $validatedData['receiver'];
                     $direccionFormateada = "{$receiverData['calle_num']}, COL. {$receiverData['colonia']}, {$receiverData['municipio']}, {$receiverData['estado']}, CP {$receiverData['cp']}";
                     
-                    // Guardar o actualizar en pedidos receptores
                     $receptor = PedidoReceptor::updateOrCreate(
                         ['rfc' => strtoupper($receiverData['rfc'])],
                         [
                             'cliente_id'              => $validatedData['clientId'],
                             'nombre'                  => strtoupper($receiverData['persona_recibe']),
-                            'receiver_regimen_fiscal' => $regimenCode, 
+                            'receiver_regimen_fiscal' => strtoupper($regimenFull), 
                             'telefono'                => $receiverData['telefono'],
                             'correo'                  => $receiverData['correo'],
                             'direccion'               => strtoupper($direccionFormateada)
@@ -299,25 +282,23 @@ public function store(Request $request)
                     );
                     $receptorId = $receptor->id;
                 } elseif ($validatedData['receiverType'] === 'existente') {
-                    // Jalamos el ID directo del receptor seleccionado
                     $receptor = PedidoReceptor::findOrFail($validatedData['receptor_id']);
                     $receptorId = $receptor->id;
                     $direccionFormateada = $receptor->direccion;
-                } else { // 'cliente'
-                    // Usamos la ficha del cliente (receptor_id queda nulo)
+                } else {
                     $cliente = Cliente::findOrFail($validatedData['clientId']);
                     $direccionFormateada = $cliente->direccion;
-                    $receptorId = null;
                 }
 
                 $dbReceiverType = ($validatedData['receiverType'] === 'existente') ? 'nuevo' : $validatedData['receiverType'];
 
-                // 3. Actualizar Pedido (CORRECCIÓN: Eliminadas columnas snapshot 'receiver_nombre', etc. que no existen en DB)
+                // 3. Actualización de Cabecera
                 $pedido->update([
                     'cliente_id'              => $validatedData['clientId'],
                     'prioridad'               => $validatedData['prioridad'],
                     'receptor_id'             => $receptorId,
                     'receiver_type'           => $dbReceiverType,
+                    'receiver_regimen_fiscal' => strtoupper($regimenFull),
                     'delivery_address'        => strtoupper($direccionFormateada),
                     'delivery_option'         => $request->input('logistics.deliveryOption') === 'entrega' ? 'none' : $request->input('logistics.deliveryOption'),
                     'paqueteria_nombre'       => strtoupper($request->input('logistics.paqueteria_nombre') ?? ''),
@@ -325,7 +306,7 @@ public function store(Request $request)
                     'comments'                => strtoupper($request->comments ?? ''),
                 ]);
 
-                // 4. Sincronizar materiales
+                // 4. Sincronización de Materiales (Borrado y Re-creación)
                 $pedido->detalles()->delete();
                 foreach ($request->items as $item) {
                     PedidoDetalle::create([
