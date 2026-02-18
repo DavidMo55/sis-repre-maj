@@ -5,7 +5,6 @@
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 md:p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div class="min-w-0 flex-1">
                     <h1 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tighter truncate">Modificar Paquete</h1>
-                    <p class="text-xs md:text-sm text-slate-500 font-medium truncate">Expediente ID: <span class="text-red-700 font-black">#{{ gastoId }}</span></p>
                 </div>
                 <div class="flex flex-wrap gap-2 w-full sm:w-auto">
                     <button @click="router.push({ name: 'GastoDetail', params: { id: gastoId } })" class="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all hover:bg-slate-50 text-black uppercase border-2 border-slate-200">
