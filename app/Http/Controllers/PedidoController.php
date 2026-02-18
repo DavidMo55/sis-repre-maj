@@ -55,9 +55,7 @@ class PedidoController extends Controller
                             ->paginate(15);
             
             return response()->json($pedidos);
-
         } catch (\Exception $e) {
-            Log::error("Error en PedidoController@index: " . $e->getMessage());
             return response()->json(['message' => 'Error al listar pedidos.'], 500);
         }
     }
@@ -65,21 +63,20 @@ class PedidoController extends Controller
     /**
      * Detalle de un pedido verificando propiedad efectiva.
      */
-    public function show(Request $request, $id)
+ public function show(Request $request, $id)
     {
         try {
             $user = $request->user();
             $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-            $pedido = Pedido::with(['cliente', 'detalles.libro', 'receptor']) 
+            $pedido = Pedido::with(['cliente', 'detalles.libro', 'receptor', 'logs.user']) 
                         ->where('id', $id)
                         ->where('user_id', $ownerId)
                         ->firstOrFail();
                         
             return response()->json($pedido);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response()->json(['message' => 'Pedido no encontrado.'], 404);
+            return response()->json(['message' => 'Pedido no localizado.'], 404);
         }
     }
 

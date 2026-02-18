@@ -638,5 +638,16 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 .btn-icon-delete-simple { background: none; border: none; color: #cbd5e1; font-size: 0.9rem; cursor: pointer; transition: color 0.2s; }
 .btn-icon-delete-simple:hover { color: #dc2626; }
 
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
 .btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-3 px-8 rounded-2xl text-sm font-black transition-all hover:bg-slate-50 text-black; }
 </style>

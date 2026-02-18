@@ -14,6 +14,10 @@ class Pedido extends Model
 
     protected $table = 'pedidos'; 
 
+    /**
+     * Atributos asignables en masa.
+     * Se incluyen los campos de logística avanzada, receptor e identidad fiscal.
+     */
     protected $fillable = [
         'numero_referencia',
         'user_id',
@@ -44,8 +48,14 @@ class Pedido extends Model
         'factura_path'
     ];
     
-    protected $appends = ['display_id', 'total_unidades', 'total_costo']; 
+    /**
+     * Atributos virtuales que se adjuntan automáticamente al JSON.
+     */
+    protected $appends = ['display_id', 'total_unidades', 'total_costo', 'factura_url']; 
 
+    /**
+     * Accesor para el ID visual del pedido.
+     */
     protected function displayId(): Attribute
     {
         return Attribute::make(
@@ -53,6 +63,9 @@ class Pedido extends Model
         );
     }
 
+    /**
+     * Calcula el total de libros en el pedido.
+     */
     protected function totalUnidades(): Attribute
     {
         return Attribute::make(
@@ -60,6 +73,9 @@ class Pedido extends Model
         );
     }
 
+    /**
+     * Calcula la inversión total del pedido.
+     */
     protected function totalCosto(): Attribute
     {
         return Attribute::make(
@@ -67,23 +83,55 @@ class Pedido extends Model
         );
     }
 
+    /**
+     * Genera la URL pública de la factura si existe.
+     */
+    protected function facturaUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->factura_path ? asset('storage/' . $this->factura_path) : null,
+        );
+    }
+
+
+    /**
+     * Relación con el desglose de materiales.
+     */
     public function detalles()
     {
         return $this->hasMany(PedidoDetalle::class, 'pedido_id');
     }
 
+    /**
+     * Relación con el Plantel o Distribuidor principal.
+     */
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);
     }
 
+    /**
+     * Relación con el receptor seleccionado de la agenda.
+     */
     public function receptor()
     {
         return $this->belongsTo(PedidoReceptor::class, 'receptor_id');
     }
 
+    /**
+     * Relación con el representante (dueño del registro).
+     */
     public function representative()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Relación con el Historial de Auditoría (Logs).
+     * Esta relación es la que permite ver los motivos de cambio y comentarios de edición.
+     */
+    public function logs()
+    {
+        return $this->hasMany(PedidoLog::class, 'pedido_id');
     }
 }

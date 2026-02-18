@@ -214,17 +214,18 @@
                                 </div>
 
                                 <div class="space-y-4">
+                                    <button type="button" @click="handleFinalSubmit('BORRADOR')" class="w-full btn-secondary py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase transition-all bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
+                                        <i v-if="loading && form.status === 'BORRADOR'" class="fas fa-spinner fa-spin"></i>
+                                        <i v-else class="fas fa-save"></i>
+                                        {{ (loading && form.status === 'BORRADOR') ? 'Guardando...' : 'Guardar como Borrador' }}
+                                    </button>
                                     <button type="button" @click="handleFinalSubmit('FINALIZADO')" class="btn-primary w-full py-5 rounded-[2rem] text-sm font-black tracking-widest uppercase shadow-2xl transition-all flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
                                         <i v-if="loading && form.status === 'FINALIZADO'" class="fas fa-spinner fa-spin"></i>
                                         <i v-else class="fas fa-paper-plane"></i>
                                         {{ (loading && form.status === 'FINALIZADO') ? 'Enviando...' : 'Finalizar y Postear' }}
                                     </button>
 
-                                    <button type="button" @click="handleFinalSubmit('BORRADOR')" class="w-full btn-secondary py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase transition-all bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
-                                        <i v-if="loading && form.status === 'BORRADOR'" class="fas fa-spinner fa-spin"></i>
-                                        <i v-else class="fas fa-save"></i>
-                                        {{ (loading && form.status === 'BORRADOR') ? 'Guardando...' : 'Guardar como Borrador' }}
-                                    </button>
+                                    
                                 </div>
                             </div>
                         </div>
@@ -508,6 +509,17 @@ table {
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
 
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
 </style>

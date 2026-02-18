@@ -34,7 +34,7 @@
             <div v-else-if="visita" class="space-y-8 animate-fade-in pb-20">
                 
                 <!-- 1. IDENTIDAD DEL PLANTEL -->
-                <div class="info-card shadow-premium border-t-8 border-t-red-700">
+                <div class="info-card shadow-premium border-t-8 border-t-red-700 bg-white p-10 rounded-[2.5rem] border border-slate-100">
                     <div class="section-title">
                         <i class="fas fa-school text-red-700"></i> 1. Identidad y Ubicación del Plantel
                     </div>
@@ -109,7 +109,7 @@
                                     <!-- APLICACIÓN DE CORREO EN MINÚSCULAS CON ESTILO PRIORITARIO -->
                                     <p class="value-text text-sm" style="text-transform: none !important;">
                                         <i class="fas fa-envelope mr-2 opacity-30"></i>
-                                        {{ (visita.email_plantel || visita.cliente?.email || 'N/A').toLowerCase() === 'n/a' ? 'N/A' : (visita.email_plantel || visita.cliente?.email).toLowerCase() }}
+                                        {{ (visita.email_plantel || visita.cliente?.email || 'N/A').toLowerCase() }}
                                     </p>
                                 </div>
                             <div class="data-row">
@@ -121,10 +121,10 @@
                 </div>
 <br/><br/>
                 <!-- 5. HISTORIAL CRONOLÓGICO DESPLEGABLE -->
-                <div class="info-card space-y-6 mt-16">
+                <div class="info-card space-y-6 mt-16 bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-premium">
                     <div class="flex items-center gap-3 px-2">
                         <div class="w-2 h-8 bg-red-700 rounded-full"></div>
-                        <div class="section-title text-black !border-black/5">
+                        <div class="section-title text-black !border-b-0 !mb-0">
                             <i class="fas fa-handshake text-black"></i> 2. Historial Cronológico de Interacciones
                         </div>
                     </div>
@@ -156,15 +156,15 @@
 
                                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
                                     
-                                    <!-- BOTÓN MODIFICAR (Independiente) -->
+                                    <!-- BOTÓN MODIFICAR (Integridad: Solo una edición permitida para todos los tipos) -->
                                     <button 
-                                        v-if="h.es_primera_visita || (h.modificaciones_realizadas || 0) < 1"
+                                        v-if="(h.modificaciones_realizadas || 0) < 1"
                                         @click="router.push({ name: 'VisitaEdit', params: { id: h.id } })"
                                         class="btn-secondary hover:scale-105 transition-all"
                                     >
                                         <i class="fas fa-edit mr-1"></i> MODIFICAR
                                     </button>
-<br/><br/><br/>
+
                                     <!-- BOTÓN VER MÁS (Controlador del Acordeón) -->
                                     <button 
                                         @click="toggleExpand(h.id)"
@@ -173,7 +173,7 @@
                                         <i class="fas" :class="expandedId === h.id ? 'fa-eye-slash' : 'fa-plus-circle'"></i>
                                         <span class="ml-2">{{ expandedId === h.id ? 'OCULTAR' : 'VER DETALLE' }}</span>
                                     </button>
-<br/><br/>
+
                                     <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
                                         {{ h.resultado_visita }}
                                     </span>
@@ -327,7 +327,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../axios';
 
@@ -349,8 +349,9 @@ const fetchVisitaDetail = async () => {
         const response = await axios.get(`/visitas/${route.params.id}`);
         visita.value = response.data;
         
-        if (visita.value.cliente_id || visita.value.nombre_plantel) {
-            fetchFullHistory();
+        // REGLA MAESTRA: Sincronizamos por cliente_id para que no se pierdan seguimientos al editar nombres
+        if (visita.value.cliente_id) {
+            fetchFullHistory(visita.value.cliente_id);
         }
     } catch (err) {
         error.value = err.response?.data?.message || "No se pudo recuperar la información de la bitácora.";
@@ -359,20 +360,25 @@ const fetchVisitaDetail = async () => {
     }
 };
 
-const fetchFullHistory = async () => {
+const fetchFullHistory = async (clienteId) => {
     loadingHistory.value = true;
     try {
-        const term = visita.value.nombre_plantel || visita.value.cliente?.name;
+        /**
+         * CORRECCIÓN DE LÓGICA:
+         * Filtramos estrictamente por cliente_id y activamos full_history: 1.
+         * Esto asegura que recuperemos TODOS los registros asociados al plantel,
+         * ignorando si el nombre cambió durante una edición.
+         */
         const response = await axios.get('/visitas', { 
             params: { 
-                search: term,
+                cliente_id: clienteId,
                 full_history: 1 
             } 
         });
         
         const dataReceived = response.data.data || response.data;
         
-        // REGLA: Mostrar todas las interacciones ordenadas cronológicamente por ID ascendente
+        // Ordenamos por ID ascendente para mostrar la línea de tiempo correcta
         historial.value = Array.isArray(dataReceived) 
             ? dataReceived.sort((a,b) => a.id - b.id)
             : [];
@@ -387,6 +393,7 @@ const fetchFullHistory = async () => {
 const proximoCompromisoFinal = computed(() => {
     if (!visita.value) return null;
 
+    // Buscamos la agenda en el registro más reciente del historial
     const conAgenda = [...historial.value]
         .filter(h => h.proxima_visita_estimada)
         .sort((a, b) => b.id - a.id);
@@ -440,18 +447,17 @@ const getMonthShort = (dateString) => {
     return date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase();
 };
 
-const getDay = (dateString) => {
-    if (!dateString) return '--';
-    const cleanDate = dateString.split('T')[0];
-    const [year, month, day] = cleanDate.split('-');
-    return day;
-};
-
 const getOutcomeClass = (outcome) => {
     const base = 'status-badge uppercase font-black tracking-widest ';
     if (outcome === 'compra') return base + 'bg-green-100 text-green-700 border-green-200';
     if (outcome === 'rechazo') return base + 'bg-red-100 text-red-700 border-red-200';
     return base + 'bg-orange-100 text-orange-700 border-orange-200';
+};
+
+const getOutcomeIcon = (outcome) => {
+    if (outcome === 'compra') return 'fas fa-check-circle';
+    if (outcome === 'rechazo') return 'fas fa-times-circle';
+    return 'fas fa-clock';
 };
 
 onMounted(fetchVisitaDetail);
@@ -476,9 +482,6 @@ onMounted(fetchVisitaDetail);
 .table-cell { padding: 16px 20px; vertical-align: middle; }
 
 .btn-primary-action { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; padding: 14px 45px; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px; }
-
-/* Botón Editar y Desplegar dentro de Historial */
-.btn-edit-inline { @apply bg-white border-2 border-slate-200 text-slate-500 py-1.5 px-4 rounded-xl text-[10px] font-black uppercase hover:bg-red-50 hover:text-red-700 hover:border-red-200; cursor: pointer; }
 
 .btn-secondary {
     padding: 8px 15px;

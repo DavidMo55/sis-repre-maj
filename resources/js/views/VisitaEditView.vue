@@ -141,7 +141,18 @@
 
                             <div class="form-group mb-6">
                                 <label class="label-style">Cargo / Puesto de la Persona *</label>
-                                <input v-model="form.visita.cargo" type="text" class="form-input font-bold uppercase" required>
+                                <select v-model="form.visita.cargo" class="form-input font-bold" required :disabled="loading">
+                                    <option value="Director/Coordinador">Director/Coordinador</option>
+                                    <option value="Subdirector">Subdirector</option>
+                                    <option value="Jefe de Departamento">Jefe de Departamento</option>
+                                    <option value="Profesor">Profesor</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <div v-if="form.visita.cargo === 'Otro'" class="form-group mb-6 animate-fade-in">
+                                <label class="label-style">Especifique el Cargo *</label>
+                                <input v-model="form.visita.cargo_especifico" type="text" class="form-input font-bold border-red-100 uppercase" placeholder="Escriba el puesto real..." required :disabled="loading">
                             </div>
                         </div>
 
@@ -201,15 +212,13 @@
                                                     </select>
                                                 </td>
                                                 <td class="table-cell text-center">
-                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600"><i class="fas fa-trash-alt">Quitar</i></button>
+                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600"><i class="fas fa-trash-alt"></i></button>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-                            </div>
-                            <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
 
                             <!-- MUESTRAS (SIEMPRE OPCIONAL) -->
                             <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
@@ -245,7 +254,7 @@
                                                     <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center" />
                                                 </td>
                                                 <td class="table-cell text-right">
-                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600"><i class="fas fa-trash-alt">Quitar</i></button>
+                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600"><i class="fas fa-trash-alt"></i></button>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -269,8 +278,7 @@
                                 <label class="label-style">Comentarios Generales *</label>
                                 <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" required minlength="20"></textarea>
                             </div>
-                            </div>
-                            <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+
                             <div class="form-group p-6 bg-red-50 rounded-[2.5rem] border-2 border-red-100 shadow-inner">
                                 <label class="label-style !text-red-800">Motivo del Ajuste (Log de Auditoría) *</label>
                                 <textarea v-model="form.motivo_cambio" class="form-input border-red-200 font-bold uppercase text-xs" rows="3" placeholder="EXPLIQUE POR QUÉ SE EDITA ESTE REGISTRO..." required minlength="10"></textarea>
@@ -295,7 +303,7 @@
         <Teleport to="body">
             <Transition name="modal-pop">
                 <div v-if="showSuccess" class="modal-overlay-wrapper">
-                    <div class="modal-content-success animate-scale-in form-section shadow-premium border-2 border-green-100 bg-white p-10 rounded-[2.5rem] text-center">
+                    <div class="modal-content-success animate-scale-in">
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
                         <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tighter">¡Expediente Actualizado!</h2>
                         <p class="text-sm text-slate-500 mb-8 font-medium px-4">Los cambios han sido registrados y el log de auditoría se generó con éxito.</p>
@@ -337,6 +345,8 @@ const interestSuggestions = ref([]);
 const deliveredSuggestions = ref([]);
 const selectedSerieIdA = ref('');
 
+const standardCargos = ['Director/Coordinador', 'Subdirector', 'Jefe de Departamento', 'Profesor'];
+
 let bookTimer = null;
 
 const form = reactive({
@@ -352,7 +362,7 @@ const form = reactive({
         latitud: null, 
         longitud: null 
     },
-    visita: { fecha: '', persona_entrevistada: '', cargo: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '' },
+    visita: { fecha: '', persona_entrevistada: '', cargo: '', cargo_especifico: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '' },
     motivo_cambio: ''
 });
 
@@ -401,7 +411,17 @@ const fetchInitialData = async () => {
         // Hidratar Visita
         form.visita.fecha = visita.value.fecha?.split('T')[0] || '';
         form.visita.persona_entrevistada = visita.value.persona_entrevistada || '';
-        form.visita.cargo = visita.value.cargo || '';
+        
+        // Lógica de Cargo: Determinar si es standard o custom
+        const savedCargo = visita.value.cargo || '';
+        if (standardCargos.includes(savedCargo)) {
+            form.visita.cargo = savedCargo;
+            form.visita.cargo_especifico = '';
+        } else {
+            form.visita.cargo = 'Otro';
+            form.visita.cargo_especifico = savedCargo;
+        }
+
         form.visita.comentarios = visita.value.comentarios || '';
         form.visita.resultado_visita = visita.value.resultado_visita || 'seguimiento';
         form.visita.proxima_visita = visita.value.proxima_visita_estimada?.split('T')[0] || '';
@@ -484,8 +504,11 @@ const handleSubmit = async () => {
             .map(n => n.nombre)
             .join(', ');
 
+        const finalCargo = form.visita.cargo === 'Otro' ? form.visita.cargo_especifico : form.visita.cargo;
+
         const payload = {
             ...form.visita,
+            cargo: finalCargo,
             motivo_cambio: form.motivo_cambio,
             plantel: { ...form.plantel, niveles: nivelNombres },
             libros_interes: {
@@ -513,7 +536,7 @@ onMounted(fetchInitialData);
 .label-style { @apply text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block; }
 .label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-widest; }
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
-.form-section { background: white; border: 5px solid #f1f5f9; border-radius: 2rem; }
+.form-section { background: white; border: 1px solid #f1f5f9; }
 .section-title { font-weight: 900; color: #a93339; margin-bottom: 25px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; }
 
 .form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.9rem; }
@@ -540,5 +563,16 @@ onMounted(fetchInitialData);
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em; padding-right: 2.25rem; appearance: none; }
 </style>

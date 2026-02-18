@@ -57,7 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/visitas/seguimiento', [VisitaController::class, 'storeSeguimiento']); 
     Route::get('/search/prospectos', [SearchController::class, 'searchProspectos']);
     Route::get('/clientes/{cliente_id}/historial', [VisitaController::class, 'historialPorCliente']);
-
+    Route::put('/visitas/{id}', [VisitaController::class, 'update']); 
     // --- SECCIÓN DE PERFIL ---
     Route::prefix('profile')->group(function () {
         Route::get('/myprofile', [ProfileController::class, 'show']); // Responde a /api/profile
