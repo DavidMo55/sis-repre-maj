@@ -21,22 +21,33 @@ class VisitaController extends Controller
     {
         try {
             $user = $request->user();
+            if (!$user) {
+                return response()->json(['message' => 'No autenticado.'], 401);
+            }
+            
             $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
             $query = Visita::where('user_id', $ownerId);
 
-            // FIX 1: Filtrado técnico por ID de Cliente (Prioridad Máxima para el detalle)
-            // Si el frontend pide un cliente específico, ignoramos el filtro de "solo primeras visitas"
+            // Definimos las relaciones base
+            $relations = ['estado', 'cliente'];
+
+            // Si el frontend solicita logs (para la tabla de auditoría en el detalle)
+            if ($request->has('include_logs')) {
+                $relations[] = 'logs.user';
+            }
+
+            // Filtrado técnico por ID de Cliente (Prioridad para la cadena de historial)
             if ($request->filled('cliente_id')) {
                 $query->where('cliente_id', $request->cliente_id);
             } else {
-                // Si es la lista general de bitácoras, mostrar solo la "cabecera" (primera visita)
+                // Si es la lista general, mostrar solo cabeceras (primeras visitas)
                 if (!$request->has('full_history')) {
                     $query->where('es_primera_visita', 1);
                 }
             }
 
-            // Filtros de búsqueda y fecha
+            // Filtros de búsqueda general
             if ($request->filled('search') && !$request->filled('cliente_id')) {
                 $term = $request->search;
                 $query->where(function($q) use ($term) {
@@ -48,12 +59,13 @@ class VisitaController extends Controller
                 });
             }
 
+            // Filtros adicionales
             if ($request->filled('desde')) $query->whereDate('fecha', '>=', $request->desde);
             if ($request->filled('hasta')) $query->whereDate('fecha', '<=', $request->hasta);
             if ($request->filled('resultado')) $query->where('resultado_visita', $request->resultado);
             if ($request->filled('estado_id')) $query->where('estado_id', $request->estado_id);
 
-            $visitas = $query->with(['estado', 'cliente'])
+            $visitas = $query->with($relations)
                 ->orderBy('id', 'desc') 
                 ->paginate(15);
 
@@ -61,12 +73,12 @@ class VisitaController extends Controller
 
         } catch (\Exception $e) {
             Log::error("Error en VisitaController@index: " . $e->getMessage());
-            return response()->json(['message' => 'Error al cargar el historial.'], 500);
+            return response()->json(['message' => 'Error al cargar el historial de bitácoras.'], 500);
         }
     }
 
     /**
-     * Registro de Primera Visita (Apertura de Prospecto).
+     * Registro de Primera Visita (Prospectación Inicial).
      */
     public function storePrimeraVisita(Request $request)
     {
@@ -90,10 +102,7 @@ class VisitaController extends Controller
             $rfc = strtoupper($request->input('plantel.rfc'));
             $name = $request->input('plantel.name');
 
-            // Verificación de duplicados en Clientes maestros
-            $duplicado = Cliente::where('rfc', $rfc)
-                ->orWhere('name', $name)
-                ->first();
+            $duplicado = Cliente::where('rfc', $rfc)->orWhere('name', $name)->first();
 
             if ($duplicado) {
                 return response()->json([
@@ -113,7 +122,7 @@ class VisitaController extends Controller
                     'tipo'            => $tipoFinal,
                     'name'            => strtoupper($name),
                     'rfc'             => strtoupper($rfc),
-                    'nivel_educativo' => implode(', ', $request->input('plantel.niveles')),
+                    'nivel_educativo' => is_array($request->input('plantel.niveles')) ? implode(', ', $request->input('plantel.niveles')) : $request->input('plantel.niveles'),
                     'contacto'        => strtoupper($request->input('plantel.director')),
                     'telefono'        => $request->input('plantel.telefono'),
                     'email'           => strtolower($request->input('plantel.email')),
@@ -157,7 +166,7 @@ class VisitaController extends Controller
     }
 
     /**
-     * Registro de Seguimiento.
+     * Registro de Visita Subsecuente (Seguimiento).
      */
     public function storeSeguimiento(Request $request)
     {
@@ -211,53 +220,70 @@ class VisitaController extends Controller
     }
 
     /**
-     * Consulta con validación de propiedad.
+     * Detalle de una bitácora con logs de auditoría incluidos.
+     * CORREGIDO: Se añade try-catch y verificación de usuario para evitar 500.
      */
     public function show(Request $request, $id)
     {
-        $user = $request->user();
-        $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+        try {
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['message' => 'Sesión expirada.'], 401);
+            }
 
-        $visita = Visita::where('id', $id)
-            ->where('user_id', $ownerId)
-            ->with(['cliente', 'estado'])
-            ->first();
+            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-        if (!$visita) {
-            return response()->json(['message' => 'Expediente no encontrado o sin permisos.'], 404);
+            $visita = Visita::where('id', $id)
+                ->where('user_id', $ownerId)
+                ->with(['cliente', 'estado', 'logs.user'])
+                ->first();
+
+            if (!$visita) {
+                return response()->json(['message' => 'Bitácora no encontrada o sin permisos de acceso.'], 404);
+            }
+
+            return response()->json($visita);
+        } catch (\Exception $e) {
+            Log::error("Error en VisitaController@show para ID {$id}: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Error interno al recuperar el detalle.',
+                'debug' => env('APP_DEBUG') ? $e->getMessage() : null
+            ], 500);
         }
-
-        return response()->json($visita);
     }
 
     /**
-     * Actualización con Bitácora de Auditoría.
+     * Actualización de Visita con registro de auditoría.
      */
     public function update(Request $request, $id)
     {
-        $user = $request->user();
-        $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
-
-        // FIX 2: Validación de propiedad antes de editar
-        $visita = Visita::where('id', $id)->where('user_id', $ownerId)->firstOrFail();
-
-        if (!$visita->es_primera_visita && $visita->modificaciones_realizadas >= 1) {
-            return response()->json(['message' => 'Esta visita de seguimiento está bloqueada (ya fue editada).'], 403);
-        }
-
-        $validated = $request->validate([
-            'persona_entrevistada' => 'required|string|max:255',
-            'cargo'                => 'required|string|max:255',
-            'comentarios'          => 'required|string|min:20',
-            'resultado_visita'     => 'required|in:seguimiento,compra,rechazo',
-            'motivo_cambio'        => 'required|string|min:10',
-            'plantel'              => 'required|array',
-            'libros_interes'       => 'required|array'
-        ]);
-
         try {
-            return DB::transaction(function () use ($visita, $request, $ownerId) {
-                // Registrar log ANTES del cambio
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['message' => 'No autorizado.'], 401);
+            }
+
+            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
+            $visita = Visita::where('id', $id)->where('user_id', $ownerId)->firstOrFail();
+
+            // REGLA: Solo una modificación permitida para mantener integridad académica
+            if ($visita->modificaciones_realizadas >= 1) {
+                return response()->json(['message' => 'Esta intervención ya cuenta con un ajuste previo y está bloqueada.'], 403);
+            }
+
+            $validated = $request->validate([
+                'persona_entrevistada' => 'required|string|max:255',
+                'cargo'                => 'required|string|max:255',
+                'comentarios'          => 'required|string|min:20',
+                'resultado_visita'     => 'required|in:seguimiento,compra,rechazo',
+                'motivo_cambio'        => 'required|string|min:10',
+                'plantel'              => 'required|array',
+                'libros_interes'       => 'required|array'
+            ]);
+
+            return DB::transaction(function () use ($visita, $request) {
+                // 1. Guardar log ANTES del cambio
                 VisitaLog::create([
                     'visita_id' => $visita->id,
                     'user_id'   => Auth::id(),
@@ -265,6 +291,7 @@ class VisitaController extends Controller
                     'motivo_cambio'     => strtoupper($request->motivo_cambio)
                 ]);
 
+                // 2. Actualización de Identidad (Si es primera visita)
                 if ($visita->es_primera_visita) {
                     $plantel = $request->plantel;
                     $visita->nombre_plantel = strtoupper($plantel['name']);
@@ -278,7 +305,7 @@ class VisitaController extends Controller
                     $visita->email_plantel = strtolower($plantel['email']);
                     $visita->director_plantel = strtoupper($plantel['director']);
                     
-                    // Actualizar también el Cliente Maestro
+                    // Sincronización con el Cliente Maestro
                     if ($visita->cliente_id) {
                         Cliente::where('id', $visita->cliente_id)->update([
                             'name' => $visita->nombre_plantel,
@@ -291,6 +318,7 @@ class VisitaController extends Controller
                     }
                 }
 
+                // 3. Datos de la Intervención
                 $visita->fecha = $request->fecha ?? $visita->fecha;
                 $visita->persona_entrevistada = strtoupper($request->persona_entrevistada);
                 $visita->cargo = strtoupper($request->cargo);
@@ -298,15 +326,17 @@ class VisitaController extends Controller
                 $visita->resultado_visita = $request->resultado_visita;
                 $visita->libros_interes = $request->libros_interes; 
                 $visita->proxima_visita_estimada = $request->proxima_visita;
+                
+                // Incrementar contador de seguridad
                 $visita->modificaciones_realizadas += 1;
 
                 $visita->save();
 
-                return response()->json(['message' => 'Expediente actualizado y auditado correctamente.']);
+                return response()->json(['message' => 'Expediente actualizado y registrado en bitácora de auditoría.']);
             });
         } catch (\Exception $e) {
             Log::error("Error actualizando visita: " . $e->getMessage());
-            return response()->json(['message' => 'Fallo en la actualización.'], 500);
+            return response()->json(['message' => 'Error al sincronizar cambios.'], 500);
         }
     }
 }

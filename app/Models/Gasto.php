@@ -39,4 +39,9 @@ class Gasto extends Model
     {
         return $this->hasMany(Comprobante::class, 'gasto_id');
     }
+
+    public function logs()
+    {
+        return $this->hasMany(GastoLog::class, 'gasto_id');
+    }
 }

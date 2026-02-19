@@ -10,7 +10,6 @@
                     <p class="text-xs md:text-sm text-red-600 font-bold mt-1 uppercase tracking-widest italic">Gestión logística y auditoría de materiales.</p>
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                    <!-- BOTÓN DE EDICIÓN: Solo visible si el estatus permite modificaciones -->
                     <button 
                         v-if="pedido && pedido.status === 'PENDIENTE'"
                         @click="router.push({ name: 'PedidoEdit', params: { id: pedido.id } })" 
@@ -25,13 +24,13 @@
                 </div>
             </div>
             
-            <!-- Loader de Sistema -->
+            <!-- Loader -->
             <div v-if="loading" class="loading-state py-20 text-center animate-pulse">
                 <i class="fas fa-circle-notch fa-spin text-4xl text-red-600 mb-4"></i>
                 <p class="text-slate-400 font-black uppercase tracking-widest text-[10px]">Sincronizando con base de datos central...</p>
             </div>
 
-            <!-- Error de Sincronización -->
+            <!-- Error -->
             <div v-else-if="error" class="error-message-container p-6 md:p-10 text-center bg-red-50 border-2 border-red-100 rounded-[2.5rem] shadow-sm animate-fade-in mx-2">
                 <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-exclamation-triangle fa-2xl"></i>
@@ -148,18 +147,13 @@
                                     </span>
                                 </div>
                             </div>
-
-                            <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
-                                <span class="text-[10px] font-black text-slate-400 label-large uppercase tracking-widest">Unidades:</span>
-                                <span class="text-sm value-text font-black text-slate-700 uppercase">{{ calculateTotalItems(pedido.detalles) }} Materiales</span>
-                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 3. DESGLOSE DE MATERIALES -->
                 <div class="mt-8">
-                    <div class="info-card !p-0 shadow-premium border border-slate-200 rounded-[2.5rem] bg-white overflow-hidden">
+                    <div class="info-card !p-0 shadow-premium border border-slate-200 rounded-[2.5rem] bg-white overflow-hidden border-slate-100">
                         <div class="p-8 border-b border-slate-50 flex items-center gap-3">
                             <i class="fas fa-list-ol text-red-700"></i>
                             <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Selección Técnica de Materiales</h2>
@@ -204,110 +198,91 @@
                     </div>
                 </div>
 
-                <!-- 4. OBSERVACIONES GENERALES -->
-                <div v-if="pedido.comments" class="info-card border-none bg-amber-50/50 p-8 rounded-[2.5rem] border border-amber-100 shadow-sm relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center opacity-40">
-                        <i class="fas fa-quote-right text-3xl text-amber-300 rotate-12"></i>
+                <!-- 4. COMENTARIOS GENERALES -->
+                <div v-if="pedido.comments" class="comments-section bg-white p-8 md:p-10 rounded-[3rem] border-2 border-amber-200 shadow-premium relative overflow-hidden animate-fade-in mx-2">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-amber-50 rounded-full flex items-center justify-center opacity-40">
+                        <i class="fas fa-quote-right text-6xl text-amber-200 rotate-12"></i>
                     </div>
-                    <h3 class="text-[10px] font-black text-amber-600 uppercase mb-3 tracking-widest flex items-center gap-2 relative z-10">
-                        <i class="fas fa-comment-dots"></i> 4. Comentarios Generales del Pedido
-                    </h3>
-                    <p class="text-sm value-text text-slate-700 italic leading-relaxed whitespace-pre-wrap font-medium relative z-10">"{{ pedido.comments }}"</p>
+                    
+                    <div class="relative z-10">
+                        <span class="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
+                            <i class="fas fa-comment-dots"></i> Notas del Representante
+                        </span>
+                        <div class="bg-amber-50/50 p-6 rounded-[2rem] border border-dashed border-amber-200">
+                            <p class="text-slate-800 text-base md:text-lg font-bold italic leading-relaxed whitespace-pre-wrap">
+                                "{{ pedido.comments }}"
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- 5. HISTORIAL DE MODIFICACIONES (AUDITORÍA) -->
-                <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                    <div class="section-title !mb-8 !border-b-0">
-                        <i class="fas fa-history text-slate-800"></i> 5. Historial de Ajustes Académicos
+                <!-- 5. HISTORIAL DE AJUSTES (REDISEÑADO A TABLA ESTÉTICA) -->
+                <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden">
+                    <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Bitácora de Ajustes Académicos</h2>
+                        </div>
+                        <span v-if="pedido.logs?.length" class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
+                            {{ pedido.logs.length }} MODIFICACIONES
+                        </span>
                     </div>
 
-                    <div v-if="pedido.logs && pedido.logs.length" class="relative">
-                        <!-- Línea de tiempo vertical -->
-                        <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-red-300 via-slate-200 to-transparent hidden md:block"></div>
-
-                        <div class="space-y-5">
-                            <div
-                                v-for="(log, index) in pedido.logs"
-                                :key="log.id"
-                                class="log-card relative md:pl-16 group"
-                            >
-                                <!-- Dot en la línea de tiempo -->
-                                <div
-                                    class="absolute left-3.5 top-6 w-5 h-5 rounded-full border-4 border-white shadow-md hidden md:flex items-center justify-center z-10"
-                                    :class="index === 0 ? 'bg-red-600' : 'bg-slate-300'"
-                                ></div>
-
-                                <!-- Tarjeta del log -->
-                                <div
-                                    class="rounded-2xl border overflow-hidden transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-0.5"
-                                    :class="index === 0
-                                        ? 'border-red-200 bg-gradient-to-br from-red-50 to-white shadow-sm shadow-red-100'
-                                        : 'border-slate-100 bg-white shadow-sm'"
-                                >
-                                    <!-- Header de la tarjeta -->
-                                    <div
-                                        class="flex items-center justify-between px-6 py-3 border-b"
-                                        :class="index === 0 ? 'border-red-100 bg-red-600/5' : 'border-slate-50 bg-slate-50'"
-                                    >
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm border-collapse">
+                            <thead class="bg-slate-50 text-slate-400 uppercase text-[9px] font-black tracking-[0.2em] border-b border-slate-100">
+                                <tr>
+                                    <th class="px-8 py-4 text-center w-24">Ajuste</th>
+                                    <th class="px-6 py-4 text-left">Motivo de la Modificación</th>
+                                    <th class="px-6 py-4 text-left w-56">Responsable</th>
+                                    <th class="px-8 py-4 text-right w-48">Fecha de Sincronización</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50 bg-white">
+                                <tr v-for="(log, index) in pedido.logs" :key="log.id" class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-8 py-6 text-center">
+                                        <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
+                                              :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
+                                            #{{ pedido.logs.length - index }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-6">
+                                        <p class="text-[13px] font-bold text-slate-700 italic leading-relaxed uppercase">
+                                            "{{ log.motivo_cambio || 'Sin justificación técnica' }}"
+                                        </p>
+                                    </td>
+                                    <td class="px-6 py-6">
                                         <div class="flex items-center gap-2">
-                                            <span
-                                                class="w-6 h-6 rounded-lg flex items-center justify-center text-[9px] font-black text-white shrink-0"
-                                                :class="index === 0 ? 'bg-red-600' : 'bg-slate-400'"
-                                            >
-                                                #{{ pedido.logs.length - index }}
-                                            </span>
-                                            <span
-                                                class="text-[9px] font-black uppercase tracking-widest"
-                                                :class="index === 0 ? 'text-red-600' : 'text-slate-400'"
-                                            >
-                                                {{ index === 0 ? 'Último Ajuste Registrado' : 'Ajuste Anterior' }}
-                                            </span>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <span
-                                                class="text-[9px] font-black text-white px-2.5 py-1 rounded-lg uppercase tracking-wider"
-                                                :class="index === 0 ? 'bg-slate-900' : 'bg-slate-300'"
-                                            >
-                                                <i class="fas fa-user-shield mr-1 opacity-60"></i>
+                                            <div class="w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-[8px] font-black">
+                                                {{ log.user?.name?.charAt(0) || 'S' }}
+                                            </div>
+                                            <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
                                                 {{ log.user?.name || 'Sistema' }}
                                             </span>
                                         </div>
-                                    </div>
-
-                                    <!-- Cuerpo de la tarjeta -->
-                                    <div class="px-6 py-5 flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
-                                        <div class="min-w-0 flex-1">
-                                            <p
-                                                class="text-[9px] font-black uppercase tracking-widest mb-2 flex items-center gap-1.5"
-                                                :class="index === 0 ? 'text-red-500' : 'text-slate-400'"
-                                            >
-                                                <i class="fas fa-comment-alt text-[8px]"></i>
-                                                Motivo del Ajuste:
-                                            </p>
-                                            <p class="text-sm font-bold text-slate-800 italic leading-snug">
-                                                "{{ log.motivo_cambio || 'Sin comentario registrado.' }}"
-                                            </p>
+                                    </td>
+                                    <td class="px-8 py-6 text-right">
+                                        <div class="flex flex-col items-end">
+                                            <span class="text-[11px] font-black text-slate-800 uppercase">{{ formatDateOnly(log.created_at) }}</span>
+                                            <span class="text-[9px] font-bold text-slate-400 mt-0.5 tracking-tighter">{{ formatTimeOnly(log.created_at) }}</span>
                                         </div>
-
-                                        <!-- Fecha -->
-                                        <div class="shrink-0 flex flex-col items-end gap-1 text-right border-l pl-6 border-slate-100">
-                                            <i class="fas fa-calendar-alt text-slate-200 text-xl"></i>
-                                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Fecha</p>
-                                            <p class="text-xs font-black text-slate-700 uppercase whitespace-nowrap">{{ formatDate(log.created_at) }}</p>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Estado cuando no hay ediciones -->
+                                <tr v-if="!pedido.logs || pedido.logs.length === 0">
+                                    <td colspan="4" class="px-6 py-16 text-center">
+                                        <div class="flex flex-col items-center opacity-40">
+                                            <i class="fas fa-shield-alt text-4xl text-slate-300 mb-4"></i>
+                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Expediente con integridad original</p>
+                                            <p class="text-[9px] text-slate-400 mt-1 italic">No se han registrado ajustes posteriores al registro inicial.</p>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Estado cuando no hay ediciones -->
-                    <div v-else class="text-center py-16 bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center">
-                        <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
-                            <i class="fas fa-check-circle text-slate-200 text-2xl"></i>
-                        </div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Este pedido no ha sido editado</p>
-                        <p class="text-[9px] text-slate-300 uppercase mt-1 italic">Mantiene su integridad original desde el registro.</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -320,15 +295,15 @@
                         <div class="flex items-center justify-between p-5 rounded-2xl border-2 transition-all" 
                              :class="pedido.factura_path ? 'border-red-50 bg-red-50/20' : 'border-slate-50 bg-slate-50/30 opacity-60'">
                             <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-white shadow-sm shrink-0">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm shrink-0">
                                     <i class="fas fa-file-invoice text-xl" :class="pedido.factura_path ? 'text-red-600' : 'text-slate-300'"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest label-large">Archivo Factura</p>
-                                    <p class="text-xs font-bold value-text text-slate-700 truncate">{{ pedido.factura_path ? 'PDF DISPONIBLE' : 'NO CARGADA' }}</p>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest label-large">Factura PDF</p>
+                                    <p class="text-xs font-bold value-text text-slate-700 truncate uppercase">{{ pedido.factura_path ? 'DESCARGA LISTA' : 'PENDIENTE' }}</p>
                                 </div>
                             </div>
-                            <a v-if="pedido.factura_path" :href="pedido.factura_url" target="_blank" class="btn-icon-action bg-red-600 shrink-0 shadow-lg shadow-red-100 hover:scale-110 transition-transform"><i class="fas fa-download"></i></a>
+                            <a v-if="pedido.factura_path" :href="pedido.factura_url" target="_blank" class="btn-icon-action bg-red-600 shrink-0 shadow-lg shadow-red-100 hover:scale-110 transition-transform border-none cursor-pointer"><i class="fas fa-download"></i></a>
                         </div>
                     </div>
                 </div>
@@ -415,15 +390,14 @@ const getDeliveryOption = (option) => {
     }
 };
 
-const formatDate = (dateString) => {
+const formatDateOnly = (dateString) => {
     if (!dateString) return '---';
-    return new Date(dateString).toLocaleDateString('es-MX', { 
-        day: 'numeric', 
-        month: 'short', 
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    return new Date(dateString).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+const formatTimeOnly = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 };
 
 onMounted(() => {
@@ -455,18 +429,13 @@ onMounted(() => {
     letter-spacing: 0.05em;
 }
 
-.btn-icon-action { width: 34px; height: 34px; color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; border: none; cursor: pointer; }
-.btn-edit-action { @apply bg-slate-900 text-white py-2.5 px-6 rounded-xl text-xs font-black transition-all hover:bg-slate-700; border: none; cursor: pointer; }
-.btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-2.5 px-6 rounded-xl text-xs font-black transition-all hover:bg-slate-50 text-black; cursor: pointer; }
+.btn-icon-action { width: 34px; height: 34px; color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; flex-shrink: 0; border: none; cursor: pointer; }
+.btn-edit-action { @apply bg-slate-900 text-white py-2.5 px-6 rounded-xl text-sm font-black transition-all hover:bg-slate-700; border: none; cursor: pointer; }
+.btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-2.5 px-6 rounded-xl text-sm font-black transition-all hover:bg-slate-50 text-black; cursor: pointer; }
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .value-text { color: #be5e5e; line-height: 1.4; }
 .label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
-
-/* Log timeline cards */
-.log-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
 </style>

@@ -122,4 +122,9 @@ class Visita extends Model
     {
         return $this->belongsTo(Estado::class, 'estado_id');
     }
+
+    public function logs()
+{
+    return $this->hasMany(VisitaLog::class, 'visita_id');
+}
 }
