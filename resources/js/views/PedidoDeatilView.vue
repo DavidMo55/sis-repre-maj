@@ -199,7 +199,7 @@
                 </div>
 
                 <!-- 4. COMENTARIOS GENERALES -->
-                <div v-if="pedido.comments" class="comments-section bg-white p-8 md:p-10 rounded-[3rem] border-2 border-amber-200 shadow-premium relative overflow-hidden animate-fade-in mx-2">
+                <div v-if="pedido.comments" class="info-card comments-section bg-white p-8 md:p-10 rounded-[3rem] border-2 border-amber-200 shadow-premium relative overflow-hidden animate-fade-in mx-2">
                     <div class="absolute -right-6 -top-6 w-32 h-32 bg-amber-50 rounded-full flex items-center justify-center opacity-40">
                         <i class="fas fa-quote-right text-6xl text-amber-200 rotate-12"></i>
                     </div>
