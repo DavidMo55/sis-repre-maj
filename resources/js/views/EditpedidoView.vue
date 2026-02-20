@@ -109,7 +109,7 @@
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="existente" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
-                                    <span class="text-[11px] font-black text-red-700 uppercase">Buscar Datos</span>
+                                    <span class="text-[11px] font-black text-red-700 uppercase">Mis Receptores</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="nuevo" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
@@ -118,27 +118,17 @@
                             </div>
                         </div>
 
-                        <transition name="fade-slide">
-                            <div v-if="isFormBlockedByDuplicates" class="bg-red-600 text-white rounded-4 shadow-lg p-4 flex items-center gap-4">
-                                <i class="fas fa-exclamation-triangle fs-4"></i>
-                                <div class="bgcolor flex-1 p-3 rounded-3 shadow-inner">
-                                    <h4 class="mb-1 font-black uppercase text-xs text-red-700">Registros duplicados detectados</h4>
-                                    <p class="mb-0 font-bold uppercase text-[9px] text-red-600">El RFC, Correo o Teléfono ya existen. Verifique o use "Buscar Datos".</p>
-                                </div>
-                            </div>
-                        </transition>
-
                         <!-- BÚSQUEDA DE RECEPTOR EXISTENTE -->
                         <div v-if="orderForm.receiverType === 'existente'" class="animate-fade-in space-y-4">
                             <div class="form-group relative">
-                                <label class="label-style">Buscar Receptor Registrado</label>
+                                <label class="label-style">Buscar en mi agenda personal (Nombre, RFC o Teléfono)</label>
                                 <div class="relative">
                                     <input 
                                         type="text" 
                                         class="form-input pl-10 font-bold uppercase border-red-200" 
                                         v-model="searchReceiverQuery" 
                                         @input="searchExistingReceivers"
-                                        placeholder="ESCRIBA RFC, NOMBRE O CORREO..."
+                                        placeholder="SOLO REGISTROS PROPIOS..."
                                         autocomplete="off"
                                     >
                                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-red-400"></i>
@@ -153,6 +143,9 @@
                                         </div>
                                     </li>
                                 </ul>
+                                <p v-if="searchReceiverQuery.length >= 3 && !receiverSuggestions.length && !searchingExisting" class="text-[9px] font-bold text-slate-400 mt-2 italic">
+                                    * Si el receptor no aparece, es porque pertenece a otro representante.
+                                </p>
                             </div>
                         </div>
 
@@ -188,26 +181,46 @@
                             </div>
                         </div>
 
-                        <!-- FORMULARIO MANUAL -->
+                        <!-- FORMULARIO MANUAL CON VALIDACIÓN INMEDIATA -->
                         <div v-if="orderForm.receiverType === 'nuevo'" class="animate-fade-in space-y-6 bg-white border border-red-100 p-8 rounded-[3rem] shadow-sm">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div class="form-group relative">
                                     <label class="label-style">RFC del Receptor *</label>
-                                    <input v-model="orderForm.receiver.rfc"  @blur="validateUniqueness('rfc')" type="text" class="form-input font-mono uppercase font-black" :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50 text-red-700' : ''" placeholder="XXXXXXXXXXXXX" required minlength="12" maxlength="13">
-                                    <p v-if="fieldValidation.rfc.error" class="text-[9px] text-red-600 font-black mt-1 uppercase"><i class="fas fa-times-circle"></i> RFC ya registrado</p>
+                                    <input 
+                                        v-model="orderForm.receiver.rfc"  
+                                        @blur="validateUniqueness('rfc')" 
+                                        type="text" 
+                                        class="form-input font-mono uppercase font-black" 
+                                        :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50 text-red-700' : ''" 
+                                        placeholder="XXXXXXXXXXXXX" 
+                                        required minlength="12" maxlength="13"
+                                    >
+                                    <p v-if="fieldValidation.rfc.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message || 'RFC ya registrado' }}
+                                    </p>
                                 </div>
                                 <div class="form-group relative">
                                     <label class="label-style">Nombre / Destinatario *</label>
-                                    <input v-model="orderForm.receiver.persona_recibe" @blur="validateUniqueness('persona_recibe')" type="text" class="form-input font-bold uppercase" :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700' : ''" placeholder="NOMBRE COMPLETO" required minlength="5" >
-                                    <p v-if="fieldValidation.persona_recibe.error" class="text-[9px] text-red-600 font-black mt-1 uppercase"><i class="fas fa-times-circle"></i> Nombre duplicado</p>
+                                    <input 
+                                        v-model="orderForm.receiver.persona_recibe" 
+                                        @blur="validateUniqueness('persona_recibe')" 
+                                        type="text" 
+                                        class="form-input font-bold uppercase" 
+                                        :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700' : ''" 
+                                        placeholder="NOMBRE COMPLETO" 
+                                        required minlength="5" 
+                                    >
+                                    <p v-if="fieldValidation.persona_recibe.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.persona_recibe.message || 'Nombre no disponible' }}
+                                    </p>
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal *</label>
                                     <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs uppercase">
                                         <option value="">SELECCIONAR...</option>
-                                        <option value="601 - GENERAL MORALES">601 - GENERAL MORALES</option>
-                                        <option value="612 - PF ACT. EMPRESARIAL">612 - PF ACT. EMPRESARIAL</option>
-                                        <option value="626 - RESICO">626 - RESICO</option>
+                                        <option value="601">601 - GENERAL MORALES</option>
+                                        <option value="612">612 - PF ACT. EMPRESARIAL</option>
+                                        <option value="626">626 - RESICO</option>
                                     </select>
                                 </div>
                             </div>
@@ -215,13 +228,31 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="form-group">
                                     <label class="label-style">Correo Electrónico *</label>
-                                    <input v-model="orderForm.receiver.correo" @blur="validateUniqueness('correo')" type="email" class="form-input text-red-700 font-bold" :class="fieldValidation.correo.error ? 'border-red-600 bg-red-50' : ''" placeholder="correo@ejemplo.com" required>
-                                    <p v-if="fieldValidation.correo.error" class="text-[9px] text-red-600 font-black mt-1 uppercase"><i class="fas fa-times-circle"></i> Correo ya registrado</p>
+                                    <input 
+                                        v-model="orderForm.receiver.correo" 
+                                        @blur="validateUniqueness('correo')" 
+                                        type="email" 
+                                        class="form-input text-red-700 font-bold" 
+                                        :class="fieldValidation.correo.error ? 'border-red-600 bg-red-50' : ''" 
+                                        placeholder="correo@ejemplo.com" required
+                                    >
+                                    <p v-if="fieldValidation.correo.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.correo.message || 'Correo ya registrado' }}
+                                    </p>
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">Teléfono *</label>
-                                    <input v-model="orderForm.receiver.telefono" @blur="validateUniqueness('telefono')" type="tel" class="form-input text-red-700 font-bold uppercase" :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50' : ''" placeholder="10 DÍGITOS" required minlength="10" maxlength="10">
-                                    <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase"><i class="fas fa-times-circle"></i> Teléfono ya registrado</p>
+                                    <input 
+                                        v-model="orderForm.receiver.telefono" 
+                                        @blur="validateUniqueness('telefono')" 
+                                        type="tel" 
+                                        class="form-input text-red-700 font-bold uppercase" 
+                                        :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50' : ''" 
+                                        placeholder="10 DÍGITOS" required minlength="10" maxlength="10"
+                                    >
+                                    <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.telefono.message || 'Teléfono ya registrado' }}
+                                    </p>
                                 </div>
                             </div>
 
@@ -296,10 +327,10 @@
                         <div class="md:col-span-3"><label class="label-mini">Formato</label><select class="form-input font-bold text-red-700 uppercase text-xs" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
                         <div class="md:col-span-1"><label class="label-mini">Cant.</label><input type="number" min="1" class="form-input font-bold text-red-700 text-center" v-model.number="currentOrderItem.quantity"></div>
                         <div class="md:col-span-2"><label class="label-mini">Precio ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
-                        <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95"><i class="fas fa-cart-plus"></i>Agregar</button></div>
+                        <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95"><i class="fas fa-cart-plus"></i>Añadir</button></div>
                     </div>
 
-                    <div class="mt-8 overflow-hidden rounded-[2.5rem] border border-red-100 bg-white">
+                    <div class="mt-8 overflow-hidden rounded-[2.5rem] border border-red-100 bg-white shadow-premium">
                         <div class="table-responsive">
                             <table class="min-width-full divide-y divide-red-200">
                                 <thead class="bg-black text-white text-[9px] font-black uppercase tracking-widest">
@@ -339,7 +370,7 @@
             </form>
         </div>
 
-   <!-- MODALES DE SISTEMA -->
+        <!-- MODALES DE SISTEMA -->
         <Teleport to="body">
             <Transition name="modal-pop">
                 <div v-if="systemModal.visible" class="modal-overlay-wrapper" @click.self="systemModal.type !== 'success' ? systemModal.visible = false : null">
@@ -357,16 +388,15 @@
                         <div class="bg-red-600 h-4 w-full"></div>
                         <div class="p-10 flex flex-col items-center">
                             
-                            <!-- DISEÑO PERSONALIZADO PARA DUPLICADOS  -->
+                            <!-- DISEÑO PERSONALIZADO PARA DUPLICADOS (REGLA SOLICITADA) -->
                             <div v-if="isFormBlockedByDuplicates" class="w-full">
                                 <div class="bg-red-50 text-red-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-white ring-2 ring-red-50">
                                     <i class="fas fa-exclamation-triangle text-3xl animate-pulse"></i>
                                 </div>
-                                <div class="bgcolor flex flex-col justify-content-center rounded-3 p-4 shadow-inner border border-danger mb-8">
-                                    <h4 class="mb-2 font-black uppercase tracking-tighter text-red-700 text-sm">Atención: Registros duplicados</h4>
+                                <div class="text-danger bgcolor flex flex-col justify-content-center rounded-3 p-4 shadow-inner border border-danger mb-8">
+                                    <h4 class="mb-2 font-black uppercase tracking-tighter text-red-700 text-sm">Atención: Integridad de Datos</h4>
                                     <p class="mb-0 font-bold uppercase text-[10px] text-red-600 leading-relaxed text-center">
-                                        El RFC, Correo o Teléfono ya existen en el sistema. 
-                                        Verifique los campos marcados en rojo en el formulario o use la opción <strong>"Buscar Datos"</strong>.
+                                        {{ systemModal.errorList[0] || 'Este dato ya existe globalmente en el sistema.' }}
                                     </p>
                                 </div>
                             </div>
@@ -416,7 +446,6 @@ const colonias = ref([]);
 const selectedCliente = ref(null); 
 const selectedExistingReceiver = ref(null);
 const searchReceiverQuery = ref('');
-const generatedOrderId = ref('');
 
 const systemModal = reactive({ visible: false, type: 'success', title: '', message: '', errorList: [] });
 
@@ -432,7 +461,14 @@ const orderForm = reactive({
     motivo_cambio: ''
 });
 
-const fieldValidation = reactive({ rfc: { error: false }, correo: { error: false }, telefono: { error: false }, persona_recibe: { error: false } });
+// Validación extendida con soporte para mensajes de backend
+const fieldValidation = reactive({ 
+    rfc: { error: false, message: '' }, 
+    correo: { error: false, message: '' }, 
+    telefono: { error: false, message: '' }, 
+    persona_recibe: { error: false, message: '' } 
+});
+
 const validatingFields = reactive({ rfc: false, correo: false, telefono: false, persona_recibe: false });
 const currentOrderItem = reactive({ bookId: null, bookName: '', tipo_material: 'venta', category: '', sub_type: '', quantity: 1, price: 0, bookSuggestions: [] });
 const errors = reactive({ clientId: false, items: false });
@@ -443,15 +479,24 @@ const isFormBlockedByDuplicates = computed(() => {
 });
 
 /**
- * Al detectar duplicado, abrir modal automáticamente.
+ * REGLA: Al detectar duplicado global, abrir modal automáticamente informando privacidad.
  */
 watch(isFormBlockedByDuplicates, (val) => {
     if (val) {
+        const activeError = fieldValidation.rfc.message || fieldValidation.correo.message || fieldValidation.telefono.message || fieldValidation.persona_recibe.message;
         systemModal.type = 'error';
-        systemModal.title = 'Registros Duplicados';
+        systemModal.title = 'Conflicto de Datos';
+        systemModal.errorList = [activeError || 'Este dato ya existe bajo otro representante.'];
         systemModal.visible = true;
     }
 });
+
+const clearDuplicateErrors = () => {
+    Object.keys(fieldValidation).forEach(k => {
+        fieldValidation[k].error = false;
+        fieldValidation[k].message = '';
+    });
+};
 
 const activeReceiverDisplay = computed(() => {
     if (orderForm.receiverType === 'cliente') return selectedCliente.value;
@@ -465,44 +510,10 @@ const openModal = (title, message, type = 'info', errorList = []) => {
 
 const validateForm = () => {
     const list = [];
-
-    // 1. Cliente
     if (!orderForm.clientId) list.push("SELECCIONE UN PLANTEL O DISTRIBUIDOR VÁLIDO.");
-
-    // 2. Receptor
-    if (orderForm.receiverType === 'nuevo') {
-        if (!orderForm.receiver.rfc || orderForm.receiver.rfc.length < 12) list.push("EL RFC DEBE TENER ENTRE 12 Y 13 CARACTERES.");
-        if (!orderForm.receiver.persona_recibe || orderForm.receiver.persona_recibe.length < 5) list.push("EL NOMBRE DEL DESTINATARIO DEBE TENER AL MENOS 5 CARACTERES.");
-        if (!orderForm.receiver.correo || !orderForm.receiver.correo.includes('@') || orderForm.receiver.correo.length < 5) list.push("INGRESE UN CORREO ELECTRÓNICO VÁLIDO.");
-        if (!orderForm.receiver.telefono || orderForm.receiver.telefono.length !== 10) list.push("EL TELÉFONO DEBE TENER EXACTAMENTE 10 DÍGITOS.");
-        if (!orderForm.receiver.cp || orderForm.receiver.cp.length !== 5) list.push("EL CÓDIGO POSTAL DEBE TENER 5 DÍGITOS.");
-        if (!orderForm.receiver.calle_num || orderForm.receiver.calle_num.length < 5) list.push("LA DIRECCIÓN (CALLE/NÚMERO) DEBE TENER AL MENOS 5 CARACTERES.");
-        if (!orderForm.receiver.colonia) list.push("SELECCIONE UNA COLONIA.");
-    } else if (orderForm.receiverType === 'existente' && !selectedExistingReceiver.value) {
-        list.push("SELECCIONE UN RECEPTOR DE LA LISTA DE BÚSQUEDA.");
-    }
-
-    // 3. Logística
-    if (orderForm.logistics.deliveryOption === 'paqueteria') {
-        if (!orderForm.logistics.paqueteria_nombre || orderForm.logistics.paqueteria_nombre.length < 3) {
-            list.push("ESPECIFIQUE LA EMPRESA DE PAQUETERÍA (MÍN. 3 CARACTERES).");
-        }
-    } else {
-        if (!orderForm.logistics.comentarios_logistica || orderForm.logistics.comentarios_logistica.length < 10) {
-            list.push("LAS INSTRUCCIONES LOGÍSTICAS DEBEN TENER AL MENOS 10 CARACTERES.");
-        }
-    }
-
-    // 4. Motivo del cambio
-    if (!orderForm.motivo_cambio || orderForm.motivo_cambio.length < 10) {
-        list.push("EL MOTIVO DEL CAMBIO ES OBLIGATORIO (MÍN. 10 CARACTERES).");
-    }
-
-    // 5. Materiales
-    if (orderForm.orderItems.length === 0) {
-        list.push("LA CANASTA DE MATERIALES ESTÁ VACÍA.");
-    }
-
+    if (orderForm.receiverType === 'existente' && !selectedExistingReceiver.value) list.push("SELECCIONE UN RECEPTOR DE LA LISTA DE BÚSQUEDA.");
+    if (orderForm.orderItems.length === 0) list.push("LA CANASTA DE MATERIALES ESTÁ VACÍA.");
+    if (!orderForm.motivo_cambio || orderForm.motivo_cambio.length < 10) list.push("EL MOTIVO DEL CAMBIO ES OBLIGATORIO (MÍN. 10 CARACTERES).");
     return list;
 };
 
@@ -555,15 +566,13 @@ const fetchPedidoData = async () => {
             price: parseFloat(d.precio_unitario), totalCost: parseFloat(d.costo_total)
         }));
     } catch (e) {
-        openModal("Error de Carga", "No se pudo recuperar el expediente del pedido del servidor.", "error", ["VERIFIQUE SU CONEXIÓN O CONTACTE A SOPORTE."]);
+        openModal("Error de Carga", "Fallo al recuperar el expediente.", "error", ["VERIFIQUE CONEXIÓN."]);
     } finally {
         loadingInitial.value = false;
     }
 };
 
-const handleCPInput = () => { 
-    if (orderForm.receiver.cp?.length === 5) fetchAddressByCP(orderForm.receiver.cp); 
-};
+const handleCPInput = () => { if (orderForm.receiver.cp?.length === 5) fetchAddressByCP(orderForm.receiver.cp); };
 
 const fetchAddressByCP = async (cp) => {
     searchingCP.value = true;
@@ -577,6 +586,9 @@ const fetchAddressByCP = async (cp) => {
     } catch (e) { console.warn(e); } finally { searchingCP.value = false; }
 };
 
+/**
+ * VALIDACIÓN GLOBAL DE UNICIDAD (Proactiva)
+ */
 const validateUniqueness = async (field) => {
     if (orderForm.receiverType !== 'nuevo') return;
     let val = '';
@@ -586,13 +598,28 @@ const validateUniqueness = async (field) => {
     else if (field === 'correo') val = orderForm.receiver.correo?.trim().toLowerCase();
     else if (field === 'telefono') val = orderForm.receiver.telefono?.trim();
 
-    if (!val || val.length < 5) { fieldValidation[field].error = false; return; }
+    if (!val || val.length < 5) { 
+        fieldValidation[field].error = false; 
+        fieldValidation[field].message = '';
+        return; 
+    }
+
     validatingFields[field] = true;
     try {
-        const res = await axios.get('/search/receptores/rfc', { params: { [queryParam]: val } });
-        fieldValidation[field].error = !!(res.data && res.data.id);
-    } catch (e) { fieldValidation[field].error = false; }
-    finally { validatingFields[field] = false; }
+        const res = await axios.get('/search/receptores/check-rfc', { params: { [queryParam]: val } });
+        
+        if (res.data.status === 'conflict') {
+            fieldValidation[field].error = true;
+            fieldValidation[field].message = res.data.message;
+        } else {
+            fieldValidation[field].error = false;
+            fieldValidation[field].message = '';
+        }
+    } catch (e) { 
+        fieldValidation[field].error = false; 
+    } finally { 
+        validatingFields[field] = false; 
+    }
 };
 
 const searchClients = () => {
@@ -609,7 +636,6 @@ const searchClients = () => {
 const selectClient = (c) => {
     if (!c) return;
     orderForm.clientId = c.id; orderForm.clientName = c.name; selectedCliente.value = c; clientSuggestions.value = [];
-    if (orderForm.receiverType === 'cliente') orderForm.receiver.regimen_fiscal = c.regimen_fiscal ? c.regimen_fiscal.split(' ')[0] : '';
 };
 
 const searchExistingReceivers = () => {
@@ -659,7 +685,7 @@ const submitUpdate = async () => {
 
     const validationErrors = validateForm();
     if (validationErrors.length > 0) {
-        openModal("Información Insuficiente", "Se requiere completar los campos con la información mínima solicitada.", "error", validationErrors);
+        openModal("Información Insuficiente", "Revisar campos marcados.", "error", validationErrors);
         return;
     }
 
@@ -696,11 +722,11 @@ const submitUpdate = async () => {
         }
 
         await axios.put(`/pedidos/${id}`, { ...finalData, items: itemsPayload });
-        openModal("¡Éxito!", "Los cambios se han guardado correctamente.", "success");
+        openModal("¡Éxito!", "Actualización finalizada.", "success");
     } catch (e) {
-        const msg = e.response?.data?.message || "Ocurrió un fallo en la sincronización con el servidor.";
+        const msg = e.response?.data?.message || "Error en sincronización.";
         const list = e.response?.data?.errors ? Object.values(e.response.data.errors).flat() : [];
-        openModal("Fallo en Actualización", msg, "error", list);
+        openModal("Fallo", msg, "error", list);
     } finally {
         loading.value = false;
     }
@@ -708,17 +734,10 @@ const submitUpdate = async () => {
 
 watch(() => orderForm.receiverType, (newVal) => {
     if (newVal === 'nuevo') {
-        orderForm.receiver = { 
-            persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', 
-            correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' 
-        };
+        orderForm.receiver = { persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' };
         selectedExistingReceiver.value = null;
         searchReceiverQuery.value = '';
-        colonias.value = [];
-        fieldValidation.rfc.error = false;
-        fieldValidation.correo.error = false;
-        fieldValidation.telefono.error = false;
-        fieldValidation.persona_recibe.error = false;
+        clearDuplicateErrors();
     }
 });
 
@@ -746,8 +765,8 @@ onMounted(fetchPedidoData);
 .shipping-card.active { @apply border-black text-black shadow-xl scale-[1.02]; }
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; transition: 0.2s; text-transform: uppercase; font-size: 0.8rem; }
 .modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); padding: 1rem; }
-.modal-content-success { background: white; padding: 50px; border-radius: 50px; text-align: center; width: 90%; max-width: 450px; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #fee2e2; }
-.success-icon-wrapper { width: 85px; height: 85px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 30px; border: 4px solid white; }
+.modal-content-success { background: white; padding: 45px; border-radius: 40px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #f1f5f9; }
+.success-icon-wrapper { width: 75px; height: 75px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 30px; border: 4px solid white; }
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .table-cell { padding: 20px 24px; vertical-align: middle; color: #dc2626; font-weight: 700; }

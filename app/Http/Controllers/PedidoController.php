@@ -36,12 +36,13 @@ class PedidoController extends Controller
 
             return response()->json($response->json(), $response->status());
         } catch (\Exception $e) {
+            Log::error("Error Dipomex: " . $e->getMessage());
             return response()->json(['error' => true, 'message' => 'Error al conectar con el servicio postal'], 500);
         }
     }
 
     /**
-     * Listado de pedidos con soporte para delegados.
+     * Listado de pedidos con soporte para delegados y representantes.
      */
     public function index(Request $request)
     {
@@ -56,12 +57,13 @@ class PedidoController extends Controller
             
             return response()->json($pedidos);
         } catch (\Exception $e) {
+            Log::error("Error index pedidos: " . $e->getMessage());
             return response()->json(['message' => 'Error al listar pedidos.'], 500);
         }
     }
 
     /**
-     * Detalle de un pedido verificando propiedad efectiva y cargando auditoría.
+     * Detalle técnico de un pedido con Auditoría y Receptor.
      */
     public function show(Request $request, $id)
     {
@@ -77,11 +79,15 @@ class PedidoController extends Controller
             return response()->json($pedido);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['message' => 'Pedido no localizado.'], 404);
+        } catch (\Exception $e) {
+            Log::error("Error show pedido: " . $e->getMessage());
+            return response()->json(['message' => 'Error interno.'], 500);
         }
     }
 
     /**
-     * Registro de pedido con integración simultánea a tablas de seguimiento e inventario.
+     * Registro de pedido con Doble Escritura (Local + Inventario Externo).
+     * REGLA DE PRIVACIDAD: Los receptores se vinculan al ownerId para limitar su búsqueda.
      */
     public function store(Request $request)
     {
@@ -90,6 +96,8 @@ class PedidoController extends Controller
             'prioridad' => 'required|in:baja,media,alta',
             'receiverType' => 'required|in:cliente,nuevo,existente',
             'receptor_id'  => 'nullable|required_if:receiverType,existente|exists:pedido_receptores,id',
+            
+            // Datos del Receptor
             'receiver.persona_recibe' => 'required_if:receiverType,nuevo|string|max:255',
             'receiver.rfc' => 'required_if:receiverType,nuevo|string|min:12|max:13',
             'receiver.regimen_fiscal' => 'required_if:receiverType,nuevo|string', 
@@ -100,10 +108,14 @@ class PedidoController extends Controller
             'receiver.municipio' => 'required_if:receiverType,nuevo|string',
             'receiver.colonia' => 'required_if:receiverType,nuevo|string',
             'receiver.calle_num' => 'required_if:receiverType,nuevo|string',
+            
+            // Logística
             'logistics.deliveryOption' => 'required|in:paqueteria,recoleccion,entrega',
             'logistics.paqueteria_nombre' => 'nullable|required_if:logistics.deliveryOption,paqueteria|string',
             'logistics.comentarios_logistica' => 'nullable|string|max:255',
             'comments' => 'nullable|string|max:1000',
+
+            // Materiales
             'items' => 'required|array|min:1',
             'items.*.bookId' => 'required|exists:libros,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -117,7 +129,7 @@ class PedidoController extends Controller
                 $user = $request->user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
                 
-                // 1. Cálculos de Totales para tabla 'pedidos'
+                // 1. Cálculos de Totales
                 $totalQuantity = collect($validatedData['items'])->sum('quantity');
                 $totalAmount = collect($validatedData['items'])->sum(function($item) {
                     return $item['quantity'] * ($item['price'] ?? 0);
@@ -130,11 +142,24 @@ class PedidoController extends Controller
 
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $r = $validatedData['receiver'];
+                    $rfcFormatted = strtoupper($r['rfc']);
+
+                    // VALIDACIÓN DE DUPLICIDAD GLOBAL: El RFC debe ser único en todo el sistema
+                    $receptorExistente = PedidoReceptor::where('rfc', $rfcFormatted)->first();
+                    if ($receptorExistente) {
+                        return response()->json([
+                            'message' => 'Integridad de datos: El RFC ya está registrado. Si no puede buscarlo, el registro pertenece a otro representante.'
+                        ], 422);
+                    }
+
                     $direccionFormateada = "{$r['calle_num']}, COL. {$r['colonia']}, {$r['municipio']}, {$r['estado']}, CP {$r['cp']}";
+                    
+                    // CREACIÓN: Guardamos el user_id (Dueño) para aislamiento de búsqueda posterior
                     $receptor = PedidoReceptor::create([
+                        'user_id'                 => $ownerId, // REGLA: Dueño del receptor
                         'cliente_id'              => $validatedData['clientId'],
                         'nombre'                  => strtoupper($r['persona_recibe']),
-                        'rfc'                     => strtoupper($r['rfc']),
+                        'rfc'                     => $rfcFormatted,
                         'receiver_regimen_fiscal' => strtoupper($regimenFull), 
                         'telefono'                => $r['telefono'],
                         'correo'                  => $r['correo'],
@@ -151,7 +176,7 @@ class PedidoController extends Controller
 
                 $dbReceiverType = ($validatedData['receiverType'] === 'existente') ? 'nuevo' : $validatedData['receiverType'];
 
-                // 3. Creación del Pedido (Estructura Unificada)
+                // 3. Escritura en DB Local (Tabla pedidos)
                 $pedido = Pedido::create([
                     'user_id'                 => $ownerId,
                     'cliente_id'              => $validatedData['clientId'],
@@ -166,30 +191,48 @@ class PedidoController extends Controller
                     'delivery_address'        => strtoupper($direccionFormateada),
                     'comments'                => strtoupper($validatedData['comments'] ?? 'ORDEN PROCESADA'), 
                     'status'                  => 'PENDIENTE',
-                    // Campos del SQL de Inventario
+                    // Campos de compatibilidad con Inventario
                     'total_quantity'          => $totalQuantity,
                     'total'                   => $totalAmount,
                     'estado'                  => 'proceso',
                     'actualizado_por'         => strtoupper($user->name),
-                    'comentarios'             => strtoupper($validatedData['comments'] ?? ''),
                 ]);
                 
                 $pedido->update(['numero_referencia' => 'PED-' . Carbon::now()->format('ymd') . '-' . str_pad($pedido->id, 4, '0', STR_PAD_LEFT)]);
 
-                // 4. Registro de ítems en ambas estructuras (Peticiones y Detalles)
+                // 4. Escritura en DB Externa (mysql_inventario)
+                try {
+                    $dbInventario = DB::connection('mysql_inventario');
+                    $idInventario = $dbInventario->table('pedidos')->insertGetId([
+                        'user_id'         => $ownerId,
+                        'cliente_id'      => $validatedData['clientId'],
+                        'total_quantity'  => $totalQuantity,
+                        'total'           => $totalAmount,
+                        'total_solicitar' => 0,
+                        'estado'          => 'proceso',
+                        'comentarios'     => strtoupper($validatedData['comments'] ?? 'SINERGIA WEB'),
+                        'actualizado_por' => strtoupper($user->name),
+                        'created_at'      => now(),
+                        'updated_at'      => now()
+                    ]);
+                } catch (\Exception $eEx) {
+                    Log::error("Error insert cabecera inventario: " . $eEx->getMessage());
+                    throw new \Exception("Fallo en sincronización de inventario.");
+                }
+
+                // 5. Registro de ítems en ambas estructuras
                 foreach ($validatedData['items'] as $item) {
                     $libro = Libro::find($item['bookId']);
                     
-                    // Mapeo lógico para 'tipo' en peticiones (profesor, demo, alumno)
                     $tipoPeticion = 'alumno';
                     if ($item['tipo_material'] === 'promocion') {
                         $tipoPeticion = str_contains(strtolower($item['sub_type']), 'demo') ? 'demo' : 'profesor';
                     }
 
-                    // Inserción en tabla 'peticiones' (Inventario)
-                    DB::table('peticiones')->insert([
-                        'pedido_id'  => $pedido->id,
-                        'pack_id'    => $libro->serie_id ?? null,
+                    // A. Peticiones (Inventario Externo)
+                    $dbInventario->table('peticiones')->insert([
+                        'pedido_id'  => $idInventario,
+                        'pack_id'    => null, 
                         'libro_id'   => $item['bookId'],
                         'tipo'       => $tipoPeticion,
                         'quantity'   => $item['quantity'],
@@ -199,7 +242,7 @@ class PedidoController extends Controller
                         'updated_at' => now()
                     ]);
 
-                    // Inserción en 'pedido_detalles' (Seguimiento)
+                    // B. Detalles (Seguimiento Local)
                     PedidoDetalle::create([
                         'pedido_id'       => $pedido->id,
                         'libro_id'        => $item['bookId'],
@@ -211,16 +254,16 @@ class PedidoController extends Controller
                     ]);
                 }
 
-                return response()->json(['message' => 'Pedido e Inventario generados.', 'order_id' => $pedido->numero_referencia], 201);
+                return response()->json(['message' => 'Pedido e Inventario registrados.', 'order_id' => $pedido->numero_referencia], 201);
             });
         } catch (\Exception $e) {
-            Log::error("Error en store Pedido: " . $e->getMessage());
-            return response()->json(['message' => 'Error: ' . $e->getMessage()], 422);
+            Log::error("Fallo general store pedido: " . $e->getMessage());
+            return response()->json(['message' => $e->getMessage()], 422);
         }
     }
 
     /**
-     * Actualización de pedido con sincronización de inventario.
+     * Actualización de pedido con Sincronización y Auditoría.
      */
     public function update(Request $request, $id)
     {
@@ -240,10 +283,13 @@ class PedidoController extends Controller
 
         try {
             return DB::transaction(function () use ($pedido, $request, $validatedData) {
-                // 1. Log de Auditoría
+                $user = Auth::user();
+                $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
+                // 1. Log de Auditoría Local (Snapshot)
                 PedidoLog::create([
                     'pedido_id' => $pedido->id,
-                    'user_id' => Auth::id(),
+                    'user_id' => $user->id,
                     'snapshot_anterior' => [
                         'cabecera' => $pedido->makeHidden(['detalles'])->toArray(),
                         'detalles' => $pedido->detalles->toArray()
@@ -251,19 +297,29 @@ class PedidoController extends Controller
                     'motivo_cambio' => strtoupper($request->motivo_cambio)
                 ]);
 
-                // 2. Cálculos y Dirección
+                // 2. Cálculos de Totales
                 $totalQuantity = collect($validatedData['items'])->sum('quantity');
                 $totalAmount = collect($validatedData['items'])->sum(function($i){ return $i['quantity'] * ($i['price'] ?? 0); });
 
+                // 3. Actualización de Dirección/Receptor
                 $receptorId = $request->receptor_id;
                 $direccionFormateada = $pedido->delivery_address;
 
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $r = $request->input('receiver');
+                    $rfcFormatted = strtoupper($r['rfc']);
+
+                    // VALIDACIÓN DE PROPIEDAD: Si el RFC existe pero es de otro, bloqueamos.
+                    $receptorExistente = PedidoReceptor::where('rfc', $rfcFormatted)->first();
+                    if ($receptorExistente && $receptorExistente->user_id !== $ownerId) {
+                        return response()->json(['message' => 'Este RFC ya está asignado a otro representante.'], 422);
+                    }
+
                     $direccionFormateada = "{$r['calle_num']}, COL. {$r['colonia']}, {$r['municipio']}, {$r['estado']}, CP {$r['cp']}";
                     $receptor = PedidoReceptor::updateOrCreate(
-                        ['rfc' => strtoupper($r['rfc'])],
+                        ['rfc' => $rfcFormatted],
                         [
+                            'user_id' => $ownerId,
                             'cliente_id' => $validatedData['clientId'],
                             'nombre' => strtoupper($r['persona_recibe']),
                             'receiver_regimen_fiscal' => strtoupper($r['regimen_fiscal'] ?? $pedido->receiver_regimen_fiscal),
@@ -275,7 +331,7 @@ class PedidoController extends Controller
                     $receptorId = $receptor->id;
                 }
 
-                // 3. Actualización de Cabecera (Ambas estructuras)
+                // 4. Actualización Local
                 $pedido->update([
                     'cliente_id'              => $validatedData['clientId'],
                     'prioridad'               => $validatedData['prioridad'],
@@ -286,31 +342,54 @@ class PedidoController extends Controller
                     'paqueteria_nombre'       => strtoupper($request->input('logistics.paqueteria_nombre') ?? ''),
                     'total_quantity'          => $totalQuantity,
                     'total'                   => $totalAmount,
-                    'actualizado_por'         => strtoupper(Auth::user()->name),
+                    'actualizado_por'         => strtoupper($user->name),
                 ]);
 
-                // 4. Sincronización de Materiales (Limpiar y Reinsertar en ambas tablas)
+                // 5. Sincronización Externa
+                try {
+                    $dbInv = DB::connection('mysql_inventario');
+                    $pedidoExterno = $dbInv->table('pedidos')
+                        ->where('cliente_id', $pedido->cliente_id)
+                        ->where('estado', 'proceso')
+                        ->orderBy('id', 'desc')
+                        ->first();
+
+                    if ($pedidoExterno) {
+                        $dbInv->table('pedidos')->where('id', $pedidoExterno->id)->update([
+                            'total' => $totalAmount,
+                            'total_quantity' => $totalQuantity,
+                            'actualizado_por' => strtoupper($user->name),
+                            'updated_at' => now()
+                        ]);
+
+                        $dbInv->table('peticiones')->where('pedido_id', $pedidoExterno->id)->delete();
+
+                        foreach ($request->items as $item) {
+                            $libro = Libro::find($item['bookId']);
+                            $tipoPeticion = ($item['tipo_material'] === 'promocion') 
+                                ? (str_contains(strtolower($item['sub_type']), 'demo') ? 'demo' : 'profesor') 
+                                : 'alumno';
+
+                            $dbInv->table('peticiones')->insert([
+                                'pedido_id'  => $pedidoExterno->id,
+                                'pack_id'    => null,
+                                'libro_id'   => $item['bookId'],
+                                'tipo'       => $tipoPeticion,
+                                'quantity'   => $item['quantity'],
+                                'price'      => $item['price'] ?? 0,
+                                'total'      => $item['quantity'] * ($item['price'] ?? 0),
+                                'created_at' => now(),
+                                'updated_at' => now()
+                            ]);
+                        }
+                    }
+                } catch (\Exception $eInv) {
+                    Log::warning("Fallo al actualizar inventario externo: " . $eInv->getMessage());
+                }
+
+                // 6. Actualizar detalles locales
                 $pedido->detalles()->delete();
-                DB::table('peticiones')->where('pedido_id', $pedido->id)->delete();
-
                 foreach ($request->items as $item) {
-                    $libro = Libro::find($item['bookId']);
-                    $tipoPeticion = ($item['tipo_material'] === 'promocion') 
-                        ? (str_contains(strtolower($item['sub_type']), 'demo') ? 'demo' : 'profesor') 
-                        : 'alumno';
-
-                    DB::table('peticiones')->insert([
-                        'pedido_id'  => $pedido->id,
-                        'pack_id'    => $libro->serie_id ?? null,
-                        'libro_id'   => $item['bookId'],
-                        'tipo'       => $tipoPeticion,
-                        'quantity'   => $item['quantity'],
-                        'price'      => $item['price'] ?? 0,
-                        'total'      => $item['quantity'] * ($item['price'] ?? 0),
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-
                     PedidoDetalle::create([
                         'pedido_id'       => $pedido->id,
                         'libro_id'        => $item['bookId'],
@@ -322,11 +401,11 @@ class PedidoController extends Controller
                     ]);
                 }
 
-                return response()->json(['message' => 'Pedido e Inventario actualizados.'], 200);
+                return response()->json(['message' => 'Expediente e Inventario actualizados correctamente.'], 200);
             });
         } catch (\Exception $e) {
-            Log::error("Error en update Pedido: " . $e->getMessage());
-            return response()->json(['message' => 'Error al procesar la actualización.'], 422);
+            Log::error("Error update pedido: " . $e->getMessage());
+            return response()->json(['message' => 'Error al procesar: ' . $e->getMessage()], 422);
         }
     }
 

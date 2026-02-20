@@ -9,100 +9,49 @@ use App\Models\Estado;
 use App\Models\PedidoReceptor;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class SearchController extends Controller
 {
     /**
-     * Buscador de Clientes y Distribuidores para Pedidos.
-     * Filtra estrictamente por tipos autorizados para venta y estatus activo.
+     * Buscador de Instituciones (Clientes, Distribuidores y Prospectos).
+     * Se utiliza tanto en Pedidos como en el módulo de Visitas.
      */
     public function searchClientes(Request $request)
     {   
-    $query = $request->input('query');
-
-    if (empty($query) || strlen($query) < 3) {
-        return response()->json([]);
-    }
-
-    try {
-        $clientes = Cliente::select(
-                'id', 
-                'name', 
-                'tipo', 
-                'direccion', 
-                'contacto', 
-                'telefono', 
-                'email',
-                'rfc',            
-                'regimen_fiscal', 
-                'cp',             
-                'municipio',      
-                'colonia',        
-                'calle_num',      
-                'estado_id'
-            )
-            ->where('name', 'like', "%{$query}%")
-            ->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR'])
-            ->where('status', 'activo')
-            ->limit(10)
-            ->get();
-
-        return response()->json($clientes);
-
-    } catch (\Exception $e) {
-        Log::error("Error en SearchController@searchClientes: " . $e->getMessage());
-        return response()->json(['message' => 'Error al buscar clientes'], 500);
-    }
-}
-
-    /**
-     * Buscador de Prospectos para el módulo de Visitas.
-     * Permite encontrar planteles que aún no son clientes formales.
-     */
-    public function searchProspectos(Request $request)
-    {
         $query = $request->input('query');
+        // Permite incluir prospectos mediante un parámetro (útil para Visitas)
+        $includeProspectos = $request->boolean('include_prospectos');
 
         if (empty($query) || strlen($query) < 3) {
             return response()->json([]);
         }
 
-        $prospectos = Cliente::select('id', 'name', 'direccion', 'contacto', 'tipo')
-            ->where('name', 'like', "%{$query}%")
-            ->limit(10)
-            ->get();
-
-        return response()->json($prospectos);
-    }
-
-     /**
-     * Obtener listado de Niveles Educativos desde la nueva tabla.
-     */
-    public function getNiveles()
-    {
         try {
-            // Estructura: id, nombre
-            return response()->json(DB::table('niveles_educativos')->select('id', 'nombre')->get());
+            $builder = Cliente::select(
+                    'id', 'name', 'tipo', 'direccion', 'contacto', 'telefono', 'email',
+                    'rfc', 'regimen_fiscal', 'cp', 'municipio', 'colonia', 'calle_num', 'estado_id',
+                    'latitud', 'longitud', 'nivel_educativo'
+                )
+                ->where('name', 'like', "%{$query}%")
+                ->where('status', 'activo');
+
+            // Si no se especifica incluir prospectos, filtramos por tipos de venta
+            if (!$includeProspectos) {
+                $builder->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR']);
+            }
+
+            return response()->json($builder->limit(10)->get());
+
         } catch (\Exception $e) {
-            return response()->json([], 500);
+            Log::error("Error en SearchController@searchClientes: " . $e->getMessage());
+            return response()->json(['message' => 'Error al buscar instituciones'], 500);
         }
     }
 
     /**
-     * Obtener listado de Series vinculadas a niveles educativos.
-     */
-    public function getSeries()
-    {
-        try {
-            // Estructura: id, serie (nombre), nivel_educativo_id
-            return response()->json(DB::table('series')->select('id', 'serie as nombre', 'nivel_educativo_id')->get());
-        } catch (\Exception $e) {
-            return response()->json([], 500);
-        }
-    }
-
-    /**
-     * Buscador de Libros filtrado por Serie.
+     * Buscador de Materiales Educativos (Libros).
+     * Permite filtrado dinámico por Serie y Estatus.
      */
     public function searchLibros(Request $request)
     {
@@ -118,7 +67,7 @@ class SearchController extends Controller
                 ->where('titulo', 'like', "%{$query}%")
                 ->where('estado', 'activo');
 
-            // Filtrado opcional por serie si no es "otro"
+            // Filtrado opcional por serie
             if ($serieId && $serieId !== 'otro') {
                 $builder->where('serie_id', $serieId);
             }
@@ -130,10 +79,105 @@ class SearchController extends Controller
             return response()->json(['message' => 'Error al buscar libros'], 500);
         }
     }
-    
+
     /**
-     * Obtener listado de Estados para formularios de direcciones.
+     * Buscador de Agenda de Receptores con Aislamiento de Privacidad.
+     * REGLA: Un representante solo puede ver y buscar sus propios receptores.
      */
+    public function searchReceptores(Request $request)
+    {
+        $query = $request->input('query');
+        $user = Auth::user();
+        
+        // Soporte para delegados: Identificamos quién es el dueño efectivo de la cuenta
+        $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
+        if (empty($query) || strlen($query) < 3) {
+            return response()->json([]);
+        }
+
+        try {
+            // Aislamiento: El filtro 'user_id' impide ver registros ajenos
+            $receptores = PedidoReceptor::where('user_id', $ownerId)
+                ->where(function($q) use ($query) {
+                    $q->where('rfc', 'like', "%{$query}%")
+                      ->orWhere('nombre', 'like', "%{$query}%")
+                      ->orWhere('correo', 'like', "%{$query}%")
+                      ->orWhere('telefono', 'like', "%{$query}%");
+                })
+                ->limit(10)
+                ->get();
+
+            return response()->json($receptores);
+        } catch (\Exception $e) {
+            Log::error("Error en SearchController@searchReceptores: " . $e->getMessage());
+            return response()->json(['message' => 'Error en búsqueda de agenda'], 500);
+        }
+    }
+
+    /**
+     * Validación de Unicidad Global de Receptores (RFC, Correo, Teléfono, Nombre).
+     * REGLA: Busca en toda la base de datos para prevenir duplicados globales y 
+     * marca el registro como privado si pertenece a otro representante.
+     */
+    public function checkRfcUniqueness(Request $request)
+    {
+        // Obtenemos los parámetros de consulta (rfc, nombre, correo o telefono)
+        $rfc = $request->query('rfc');
+        $correo = $request->query('correo');
+        $telefono = $request->query('telefono');
+        $name = $request->query('nombre');
+        
+        $user = Auth::user();
+        $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
+        $query = PedidoReceptor::query();
+
+        // Aplicamos el filtro por el primer parámetro encontrado
+        if ($rfc) $query->where('rfc', strtoupper($rfc));
+        elseif ($correo) $query->where('correo', strtolower($correo));
+        elseif ($telefono) $query->where('telefono', $telefono);
+        elseif ($name) $query->where('nombre', strtoupper($name));
+        else return response()->json([]);
+
+        // Búsqueda GLOBAL (Sin filtro de usuario) para detectar si ya existe en el sistema
+        $existente = $query->orderBy('created_at', 'desc')->first();
+
+        if (!$existente) {
+            return response()->json(['message' => 'Disponible'], 404);
+        }
+
+        /**
+         * LÓGICA DE PRIVACIDAD:
+         * Si el registro existe pero el user_id no es el del usuario actual,
+         * marcamos is_private como true para que el frontend bloquee el ingreso manual.
+         */
+        $existente->is_private = ($existente->user_id !== $ownerId);
+
+        return response()->json($existente);
+    }
+
+    /**
+     * Catálogos base para formularios (Niveles, Series y Estados).
+     */
+    public function getNiveles()
+    {
+        try {
+            return response()->json(DB::table('niveles_educativos')->select('id', 'nombre')->get());
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
+    }
+
+    public function getSeries()
+    {
+        try {
+            return response()->json(DB::table('series')->select('id', 'serie as nombre', 'nivel_educativo_id')->get());
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
+    }
+
     public function getEstados()
     {
         try {
@@ -142,66 +186,4 @@ class SearchController extends Controller
             return response()->json([], 500);
         }
     }
-
-
-/**
- * Verifica si un RFC, Correo o Teléfono ya existe en la tabla pedido_receptores.
- * Se usa para prevenir duplicados exactos.
- */
-public function searchReceptorByRFC(Request $request)
-{
-    // Obtenemos los posibles parámetros
-    $rfc = $request->query('rfc');
-    $correo = $request->query('correo');
-    $telefono = $request->query('telefono');
-    $name = $request->query('nombre');
-
-    $query = PedidoReceptor::query();
-
-    // Regla: Si se envía uno, buscamos por ese específicamente
-    if ($rfc) {
-        $query->where('rfc', strtoupper($rfc));
-    } elseif ($correo) {
-        $query->where('correo', strtolower($correo));
-    } elseif ($telefono) {
-        $query->where('telefono', $telefono);
-    } elseif ($name) {
-        $query->where('nombre', strtoupper($name));
-    } else {
-        return response()->json([]);
-    }
-
-    // Retornamos el primero que encuentre (orden reciente)
-    $receptor = $query->orderBy('created_at', 'desc')->first();
-
-    if (!$receptor) {
-        return response()->json(['message' => 'Disponible'], 404);
-    }
-
-    return response()->json($receptor);
-}
-
-public function searchReceptores(Request $request)
-    {
-        $query = $request->input('query');
-
-        if (empty($query) || strlen($query) < 3) {
-            return response()->json([]);
-        }
-
-        try {
-            $receptores = PedidoReceptor::where('rfc', 'like', "%{$query}%")
-                ->orWhere('nombre', 'like', "%{$query}%")
-                ->orWhere('correo', 'like', "%{$query}%")
-                ->orWhere('telefono', 'like', "%{$query}%")
-                ->limit(10)
-                ->get();
-
-            return response()->json($receptores);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Error en búsqueda'], 500);
-        }
-    }
-
-
 }

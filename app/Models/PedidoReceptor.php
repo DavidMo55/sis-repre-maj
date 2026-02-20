@@ -13,6 +13,7 @@ class PedidoReceptor extends Model
 
     protected $fillable = [
         'cliente_id',
+        'user_id',
         'nombre',
         'rfc',
         'receiver_regimen_fiscal',

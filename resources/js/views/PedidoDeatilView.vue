@@ -13,12 +13,12 @@
                     <button 
                         v-if="pedido && pedido.status === 'PENDIENTE'"
                         @click="router.push({ name: 'PedidoEdit', params: { id: pedido.id } })" 
-                        class="btn-edit-action shadow-sm shrink-0 w-full sm:w-auto uppercase flex items-center justify-center gap-2"
+                        class="btn-primary shadow-sm shrink-0 w-full sm:w-auto uppercase flex items-center justify-center gap-2"
                     >
                         <i class="fas fa-edit"></i> Editar Pedido
                     </button>
 
-                    <button @click="router.push('/pedidos')" class="btn-secondary-custom shadow-sm shrink-0 w-full sm:w-auto flex items-center justify-center gap-2">
+                    <button @click="router.push('/pedidos')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto flex items-center justify-center gap-2">
                         <i class="fas fa-arrow-left"></i> Volver al Historial
                     </button>
                 </div>
@@ -435,6 +435,21 @@ onMounted(() => {
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
+
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
 
 .value-text { color: #be5e5e; line-height: 1.4; }
 .label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }

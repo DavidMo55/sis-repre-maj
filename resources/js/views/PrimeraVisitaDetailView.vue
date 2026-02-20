@@ -130,7 +130,7 @@
                                     <button 
                                         v-if="(h.modificaciones_realizadas || 0) < 1"
                                         @click.stop="router.push({ name: 'VisitaEdit', params: { id: h.id } })"
-                                        class="btn-edit-inline"
+                                        class="btn-secondary"
                                     >
                                         <i class="fas fa-edit mr-1"></i> MODIFICAR
                                     </button>
