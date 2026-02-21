@@ -267,7 +267,7 @@
                                                         </select>
                                                     </td>
                                                     <td class="table-cell text-center">
-                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-icon-delete-simple"><i class="fas fa-trash-alt"></i></button>
+                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-icon-delete-simple"><i class="fas fa-trash-alt"></i>Quitar</button>
                                                     </td>
                                                 </tr>
                                             </tbody>

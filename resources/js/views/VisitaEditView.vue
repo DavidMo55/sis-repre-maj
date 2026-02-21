@@ -22,7 +22,7 @@
                 <p class="text-slate-400 font-black uppercase tracking-widest text-xs italic">Recuperando expediente del servidor...</p>
             </div>
 
-            <!-- BLOQUEO POR REGLA DE NEGOCIO -->
+            <!-- BLOQUEO POR REGLA DE NEGOCIO (Seguimiento ya editado) -->
             <div v-else-if="isLocked" class="py-20 text-center bg-white rounded-[2.5rem] shadow-premium border-2 border-red-100 animate-fade-in mx-2">
                 <div class="w-20 h-20 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
                     <i class="fas fa-lock fa-3xl"></i>
@@ -36,6 +36,7 @@
 
             <form v-else @submit.prevent="handleSubmit">
                 
+                <!-- Alerta de Error de Validación -->
                 <div v-if="errorMessage" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl animate-fade-in shadow-sm flex items-center gap-3">
                     <i class="fas fa-exclamation-circle text-red-600"></i>
                     <p class="text-red-700 text-[10px] font-black uppercase tracking-widest">{{ errorMessage }}</p>
@@ -50,14 +51,20 @@
                             <span v-if="!visita.es_primera_visita" class="ml-auto text-[8px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-black">PROTEGIDO</span>
                         </div>
                         
-                        <div class="form-group mb-6">
+                        <div class="form-group mb-6 relative">
                             <label class="label-style">Nombre del Plantel *</label>
-                            <input v-model="form.plantel.name" type="text" class="form-input font-bold uppercase" :disabled="!visita.es_primera_visita" required>
+                            <input v-model="form.plantel.name" @blur="validateUniqueness('name')" type="text" class="form-input font-bold uppercase" :class="fieldValidation.name.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" required>
+                            <p v-if="fieldValidation.name.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                <i class="fas fa-times-circle"></i> {{ fieldValidation.name.message }}
+                            </p>
                         </div>
 
-                        <div class="form-group mb-6">
-                            <label class="label-style">RFC del Plantel *</label>
-                            <input v-model="form.plantel.rfc" type="text" class="form-input uppercase font-mono border-red-100 font-black text-red-900" :disabled="!visita.es_primera_visita" required maxlength="13">
+                        <div class="form-group mb-6 relative">
+                            <label class="label-style">RFC del Plantel (Identificador Único) *</label>
+                            <input v-model="form.plantel.rfc" @blur="validateUniqueness('rfc')" type="text" class="form-input uppercase font-mono border-red-100 font-black text-red-900" :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" required maxlength="13">
+                            <p v-if="fieldValidation.rfc.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message }}
+                            </p>
                         </div>
 
                         <!-- GPS -->
@@ -80,7 +87,7 @@
 
                         <!-- NIVELES -->
                         <div class="form-group mb-6">
-                            <label class="label-style">Niveles Educativos *</label>
+                            <label class="label-style">Niveles Educativos del Plantel *</label>
                             <div class="grid grid-cols-2 gap-3">
                                 <label v-for="nivel in nivelesCatalog" :key="nivel.id" 
                                     class="flex items-center gap-3 p-3 border-2 rounded-2xl transition-all shadow-sm" 
@@ -106,25 +113,32 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="form-group">
                                 <label class="label-style">Celular / Teléfono *</label>
-                                <input v-model="form.plantel.telefono" type="tel" class="form-input font-bold" :disabled="!visita.es_primera_visita" required>
+                                <input v-model="form.plantel.telefono" @blur="validateUniqueness('telefono')" type="tel" class="form-input font-bold" :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" required>
+                                <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                    <i class="fas fa-times-circle"></i> {{ fieldValidation.telefono.message }}
+                                </p>
                             </div>
                             <div class="form-group">
                                 <label class="label-style">Correo Electrónico *</label>
-                                <!-- CORRECCIÓN: EMAIL SIEMPRE EN MINÚSCULAS -->
                                 <input 
                                     v-model="form.plantel.email" 
+                                    @blur="validateUniqueness('email')"
                                     type="email" 
                                     class="form-input font-bold" 
                                     style="text-transform: lowercase !important;"
                                     @input="form.plantel.email = form.plantel.email.toLowerCase()"
+                                    :class="fieldValidation.email.error ? 'border-red-600 bg-red-50' : ''"
                                     :disabled="!visita.es_primera_visita" 
                                     required
                                 >
+                                <p v-if="fieldValidation.email.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                    <i class="fas fa-times-circle"></i> {{ fieldValidation.email.message }}
+                                </p>
                             </div>
                         </div>
 
                         <div class="form-group mt-6">
-                            <label class="label-style">Director / Coordinador *</label>
+                            <label class="label-style">Nombre del Director / Coordinador *</label>
                             <input v-model="form.plantel.director" type="text" class="form-input font-bold uppercase" :disabled="!visita.es_primera_visita" required>
                         </div>
                     </div>
@@ -133,12 +147,12 @@
                     <div class="space-y-8">
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="section-title text-black">
-                                <i class="fas fa-handshake text-slate-800"></i> Detalles de la Interacción
+                                <i class="fas fa-handshake text-slate-800"></i> Detalles de la Visita
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div class="form-group">
-                                    <label class="label-style">Fecha *</label>
+                                    <label class="label-style">Fecha de la Visita *</label>
                                     <input v-model="form.visita.fecha" type="date" class="form-input font-bold" required>
                                 </div>
                                 <div class="form-group">
@@ -148,29 +162,21 @@
                             </div>
 
                             <div class="form-group mb-6">
-                                <label class="label-style">Cargo / Puesto *</label>
-                                <!-- CORRECCIÓN: EL SELECTOR AHORA MAPEA CORRECTAMENTE LOS VALORES ESTÁNDAR -->
-                                <select v-model="form.visita.cargo" class="form-input font-bold" required :disabled="loading">
-                                    <option value="Director/Coordinador">Director/Coordinador</option>
-                                    <option value="Subdirector">Subdirector</option>
-                                    <option value="Jefe de Departamento">Jefe de Departamento</option>
-                                    <option value="Profesor">Profesor</option>
-                                    <option value="Otro">Otro (Especificar)</option>
-                                </select>
-                            </div>
-
-                            <div v-if="form.visita.cargo === 'Otro'" class="form-group mb-6 animate-fade-in">
-                                <label class="label-style">Especifique el Cargo *</label>
-                                <input v-model="form.visita.cargo_especifico" type="text" class="form-input font-bold border-red-100 uppercase" placeholder="Escriba el puesto real..." required :disabled="loading">
+                                <label class="label-style">Cargo / Puesto de la Persona *</label>
+                                <input v-model="form.visita.cargo" type="text" class="form-input font-bold uppercase" required>
                             </div>
                         </div>
 
-                        <!-- MATERIALES -->
+                        <!-- LIBROS DE INTERÉS Y MUESTRAS (EDITABLES SIEMPRE) -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                            <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
+                            
+                            <!-- INTERÉS (OBLIGATORIO SOLO SI ES PRIMERA VISITA) -->
+                            <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" 
+                                 :class="{'border-red-300 ring-2 ring-red-50': visita?.es_primera_visita && selectedInterestBooks.length === 0}"
+                                 style="overflow: visible !important;">
                                 <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter uppercase">
-                                    <i class="fas fa-eye mr-1 text-blue-500"></i> Libros de Interés 
-                                    <span v-if="visita.es_primera_visita" class="text-red-600 ml-1">* REQUERIDO</span>
+                                    <i class="fas fa-eye mr-1 text-blue-500"></i> Libros de Interés del Plantel 
+                                    <span v-if="visita?.es_primera_visita" class="text-red-600 ml-1">* REQUERIDO</span>
                                 </label>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
@@ -187,53 +193,56 @@
                                             <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                                         </div>
                                         <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
-                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[10px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors">
+                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[10px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors border-b last:border-0 border-slate-50">
                                                 {{ b.titulo }}
                                             </li>
                                         </ul>
                                     </div>
                                 </div>
                                 
-                                <div v-if="selectedInterestBooks.length" class="table-container mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                                <div v-if="selectedInterestBooks.length" class="table-container mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                                     <table class="w-full divide-y divide-gray-200">
                                         <thead class="bg-slate-900 text-white">
                                             <tr class="text-[9px] uppercase tracking-widest font-black">
-                                                <th class="px-4 py-3 text-left">Material</th>
+                                                <th class="px-4 py-3 text-left">Material / Serie</th>
                                                 <th class="px-4 py-3 text-center w-36">Formato</th>
                                                 <th class="px-4 py-3 w-12"></th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-100">
-                                            <tr v-for="(item, idx) in selectedInterestBooks" :key="idx">
+                                            <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-gray-50 transition-colors">
                                                 <td class="table-cell">
                                                     <div class="text-[11px] font-black uppercase">{{ item.titulo }}</div>
-                                                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{{ item.serie_nombre }}</div>
+                                                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-0.5">{{ item.serie_nombre }}</div>
                                                 </td>
                                                 <td class="table-cell text-center">
-                                                    <select v-model="item.tipo" class="select-table">
+                                                    <!-- REGLA: Si es digital, forzar y deshabilitar -->
+                                                    <select v-model="item.tipo" class="select-table" :disabled="item.original_type === 'digital'">
                                                         <option value="fisico">FÍSICO</option>
                                                         <option value="digital">DIGITAL</option>
                                                         <option value="paquete">PAQUETE</option>
                                                     </select>
                                                 </td>
                                                 <td class="table-cell text-center">
-                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600"><i class="fas fa-trash-alt"></i></button>
+                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
-
+                            </div>
+                            <div class="mt-6 form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
                                 <label class="label-mini mb-4 text-red-800 font-black tracking-tighter uppercase"><i class="fas fa-box-open mr-1"></i> Muestras Entregadas </label>
-                                <div class="form-group relative">
+                                
+                                <div class="form-group relative mb-4">
                                     <div class="relative">
-                                        <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100" placeholder="Añadir material promoción..." @input="searchBooks($event, 'delivered')" autocomplete="off">
+                                        <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100" placeholder="Buscar material promoción..." @input="searchBooks($event, 'delivered')" autocomplete="off">
                                         <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
                                     </div>
-                                    <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
-                                        <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[10px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
+                                    <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
+                                        <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[10px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors border-b last:border-0 border-slate-50">
                                             {{ b.titulo }}
                                         </li>
                                     </ul>
@@ -244,15 +253,21 @@
                                         <thead class="bg-red-900 text-white text-[9px] uppercase tracking-widest font-black">
                                             <tr>
                                                 <th class="px-4 py-3 text-left">Muestra</th>
-                                                <th class="px-4 py-3 text-center w-32">Cant.</th>
+                                                <th class="px-4 py-3 text-center w-32">Cantidad</th>
                                                 <th class="px-4 py-3 w-16"></th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-red-50">
-                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx">
-                                                <td class="table-cell"><div class="text-[11px] font-black uppercase">{{ item.titulo }}</div></td>
-                                                <td class="table-cell text-center"><input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center" /></td>
-                                                <td class="table-cell text-right"><button @click="selectedDeliveredBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600"><i class="fas fa-trash-alt"></i></button></td>
+                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors">
+                                                <td class="table-cell">
+                                                    <div class="text-[11px] font-black uppercase">{{ item.titulo }}</div>
+                                                </td>
+                                                <td class="table-cell text-center">
+                                                    <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center" />
+                                                </td>
+                                                <td class="table-cell text-right">
+                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -263,45 +278,71 @@
                         <!-- RESULTADO Y MOTIVO -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="form-group mb-6">
-                                <label class="label-style">Resultado</label>
-                                <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase text-slate-700" required>
-                                    <option value="seguimiento">SEGUIMIENTO</option>
-                                    <option value="compra">COMPRA</option>
-                                    <option value="rechazo">RECHAZADO</option>
+                                <label class="label-style">Resultado de la Visita</label>
+                                <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required>
+                                    <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
+                                    <option value="compra">DECISIÓN DE COMPRA</option>
+                                    <option value="rechazo">RECHAZADO / CERRADO</option>
                                 </select>
                             </div>
 
                             <div class="form-group mb-6">
-                                <label class="label-style">Comentarios *</label>
+                                <label class="label-style">Comentarios Generales *</label>
                                 <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" required minlength="20"></textarea>
                             </div>
 
                             <div class="form-group p-6 bg-red-50 rounded-[2.5rem] border-2 border-red-100 shadow-inner">
-                                <label class="label-style !text-red-800">Motivo del Ajuste Técnico *</label>
-                                <textarea v-model="form.motivo_cambio" class="form-input border-red-200 font-bold uppercase text-xs" rows="3" required minlength="10"></textarea>
+                                <label class="label-style !text-red-800">Motivo del Ajuste (Log de Auditoría) *</label>
+                                <textarea v-model="form.motivo_cambio" class="form-input border-red-200 font-bold uppercase text-xs" rows="3" placeholder="EXPLIQUE POR QUÉ SE EDITA ESTE REGISTRO..." required minlength="10"></textarea>
+                                <p class="text-[8px] text-red-400 mt-2 italic font-bold">Esta justificación es obligatoria para registrar el cambio en la bitácora.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- BOTONES FINALES -->
                 <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8 pb-20">
-                    <button type="button" @click="$router.back()" class="btn-secondary-custom px-10 py-4 uppercase text-xs" :disabled="loading">Cerrar</button>
-                    <button type="submit" class="btn-primary px-20 py-4 shadow-xl active:scale-95" :disabled="loading || !form.motivo_cambio || form.motivo_cambio.length < 10">
-                        <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> Guardar Cambios
+                    <button type="button" @click="$router.back()" class="btn-secondary px-10 py-4 uppercase tracking-widest text-xs" :disabled="loading">Cerrar sin Cambios</button>
+                    <button type="submit" class="btn-primary px-20 py-4 shadow-xl transition-all active:scale-95" :disabled="loading || !form.motivo_cambio || form.motivo_cambio.length < 10 || isFormBlockedByDuplicates">
+                        <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
+                        {{ loading ? 'Sincronizando...' : 'Guardar y Auditar' }}
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- ÉXITO -->
+        <!-- MODALES DE SISTEMA -->
         <Teleport to="body">
             <Transition name="modal-pop">
-                <div v-if="showSuccess" class="modal-overlay-wrapper">
+                <div v-if="showSuccess" class="modal-overlay-wrapper" @click.self="showSuccess = false">
                     <div class="modal-content-success animate-scale-in">
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
-                        <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tighter">¡Actualizado!</h2>
-                        <p class="text-sm text-slate-500 mb-8 font-medium">Los cambios han sido guardados y auditados.</p>
-                        <button @click="$router.push('/visitas')" class="btn-primary w-full py-4 !bg-slate-900 border-none text-white font-black tracking-widest text-xs">Regresar</button>
+                        <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tighter">¡Expediente Actualizado!</h2>
+                        <p class="text-sm text-slate-500 mb-8 font-medium px-4">Los cambios han sido guardados y registrados en la bitácora de auditoría.</p>
+                        <button @click="$router.push('/visitas')" class="btn-primary w-full py-4 !bg-slate-900 border-none text-white font-black tracking-widest text-xs uppercase">Continuar</button>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- MODAL DE INTEGRIDAD (DUPLICADOS) -->
+        <Teleport to="body">
+            <Transition name="modal-pop">
+                <div v-if="showDuplicateModal" class="modal-overlay-wrapper" @click.self="showDuplicateModal = false">
+                    <div class="modal-content-success bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden border border-red-100 animate-scale-in">
+                        <div class="bg-red-600 h-4 w-full"></div>
+                        <div class="p-10 flex flex-col items-center">
+                            <div class="bg-red-50 text-red-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-white ring-2 ring-red-50">
+                                <i class="fas fa-exclamation-triangle text-3xl animate-pulse"></i>
+                            </div>
+                            <div class="bgcolor flex flex-col justify-content-center rounded-3 p-4 shadow-inner border border-danger mb-8">
+                                <h4 class="mb-2 font-black uppercase tracking-tighter text-red-700 text-sm">Integridad de Datos</h4>
+                                <p class="mb-0 font-bold uppercase text-[10px] text-red-600 leading-relaxed text-center">
+                                    {{ activeDuplicateMessage }}
+                                </p>
+                            </div>
+                            <button type="button" @click="showDuplicateModal = false" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest rounded-2xl transition-transform hover:scale-105">Revisar formulario</button>
+                        </div>
                     </div>
                 </div>
             </Transition>
@@ -310,7 +351,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from '../axios';
 
@@ -324,6 +365,7 @@ const gettingLocation = ref(false);
 const searchingInterest = ref(false);
 const searchingDelivered = ref(false);
 const showSuccess = ref(false);
+const showDuplicateModal = ref(false);
 const errorMessage = ref(null);
 
 const visita = ref(null);
@@ -339,24 +381,50 @@ const interestSuggestions = ref([]);
 const deliveredSuggestions = ref([]);
 const selectedSerieIdA = ref('');
 
-// Cargos predefinidos para normalización
-const standardCargos = ['Director/Coordinador', 'Subdirector', 'Jefe de Departamento', 'Profesor'];
+// Validación de unicidad global proactiva
+const fieldValidation = reactive({ 
+    name: { error: false, message: '' },
+    rfc: { error: false, message: '' }, 
+    email: { error: false, message: '' }, 
+    telefono: { error: false, message: '' } 
+});
+
+const isFormBlockedByDuplicates = computed(() => {
+    // Solo validamos duplicidad si estamos editando una Primera Visita (donde los datos del plantel son editables)
+    if (!visita.value?.es_primera_visita) return false;
+    return fieldValidation.name.error || fieldValidation.rfc.error || fieldValidation.email.error || fieldValidation.telefono.error;
+});
+
+const activeDuplicateMessage = computed(() => {
+    const active = Object.values(fieldValidation).find(f => f.error);
+    return active ? active.message : '';
+});
+
+watch(isFormBlockedByDuplicates, (val) => {
+    if (val) showDuplicateModal.value = true;
+});
 
 let bookTimer = null;
 
 const form = reactive({
     plantel: { name: '', rfc: '', niveles: [], direccion: '', estado_id: '', telefono: '', email: '', director: '', latitud: null, longitud: null },
-    visita: { fecha: '', persona_entrevistada: '', cargo: '', cargo_especifico: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '' },
+    visita: { fecha: '', persona_entrevistada: '', cargo: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '' },
     motivo_cambio: ''
 });
 
-const isLocked = computed(() => visita.value && !visita.value.es_primera_visita && visita.value.modificaciones_realizadas >= 1);
+const isLocked = computed(() => {
+    if (!visita.value) return false;
+    return !visita.value.es_primera_visita && visita.value.modificaciones_realizadas >= 1;
+});
 
 const fetchInitialData = async () => {
     loadingInitial.value = true;
     try {
         const [resEst, resNiv, resSer, resVis] = await Promise.all([
-            axios.get('/estados'), axios.get('/search/niveles'), axios.get('/search/series'), axios.get(`/visitas/${id}`)
+            axios.get('/estados'),
+            axios.get('/search/niveles'),
+            axios.get('/search/series'),
+            axios.get(`/visitas/${id}`)
         ]);
 
         estados.value = resEst.data;
@@ -370,43 +438,73 @@ const fetchInitialData = async () => {
         form.plantel.direccion = (visita.value.direccion_plantel || visita.value.cliente?.direccion || '').toUpperCase();
         form.plantel.estado_id = visita.value.estado_id || visita.value.cliente?.estado_id || '';
         form.plantel.telefono = visita.value.telefono_plantel || visita.value.cliente?.telefono || '';
-        
-        // CORRECCIÓN: EMAIL SIEMPRE EN MINÚSCULAS AL CARGAR
         form.plantel.email = (visita.value.email_plantel || visita.value.cliente?.email || '').toLowerCase();
-        
         form.plantel.director = (visita.value.director_plantel || visita.value.cliente?.contacto || '').toUpperCase();
         form.plantel.latitud = visita.value.latitud;
         form.plantel.longitud = visita.value.longitud;
 
         // Hidratar Niveles
-        const nivelesRaw = visita.value.nivel_educativo_plantel || visita.value.cliente?.nivel_educativo || '';
+        const nivelesRaw = visita.value.nivel_educativo_plantel || (visita.value.cliente && visita.value.cliente.nivel_educativo) || '';
         const nombresArr = nivelesRaw.split(',').map(n => n.trim().toLowerCase());
         form.plantel.niveles = nivelesCatalog.value.filter(niv => nombresArr.includes(niv.nombre.toLowerCase())).map(niv => niv.id);
 
         // Hidratar Visita
         form.visita.fecha = visita.value.fecha?.split('T')[0] || '';
         form.visita.persona_entrevistada = (visita.value.persona_entrevistada || '').toUpperCase();
-        
-        // CORRECCIÓN: LÓGICA DE CARGO REFINADA (CASE-INSENSITIVE)
-        const savedCargo = (visita.value.cargo || '').trim();
-        const foundStandard = standardCargos.find(c => c.toLowerCase() === savedCargo.toLowerCase());
-        
-        if (foundStandard) {
-            form.visita.cargo = foundStandard;
-            form.visita.cargo_especifico = '';
-        } else {
-            form.visita.cargo = 'Otro';
-            form.visita.cargo_especifico = savedCargo.toUpperCase();
-        }
-
+        form.visita.cargo = (visita.value.cargo || '').toUpperCase();
         form.visita.comentarios = visita.value.comentarios || '';
         form.visita.resultado_visita = visita.value.resultado_visita || 'seguimiento';
 
+        // Hidratar Materiales
         const materiales = parseMateriales(visita.value.libros_interes);
         selectedInterestBooks.value = materiales.interes || [];
         selectedDeliveredBooks.value = materiales.entregado || [];
 
-    } catch (e) { console.error(e); } finally { loadingInitial.value = false; }
+    } catch (e) {
+        console.error(e);
+    } finally {
+        loadingInitial.value = false;
+    }
+};
+
+/**
+ * VALIDACIÓN GLOBAL DE UNICIDAD
+ */
+const validateUniqueness = async (field) => {
+    if (!visita.value?.es_primera_visita) return;
+
+    let val = '';
+    let queryParam = field; 
+    if (field === 'name') { val = form.plantel.name?.trim(); queryParam = 'nombre'; }
+    else if (field === 'rfc') val = form.plantel.rfc?.trim().toUpperCase();
+    else if (field === 'email') { val = form.plantel.email?.trim().toLowerCase(); queryParam = 'correo'; }
+    else if (field === 'telefono') val = form.plantel.telefono?.trim();
+
+    if (!val || val.length < 5) { 
+        fieldValidation[field].error = false; 
+        fieldValidation[field].message = '';
+        return; 
+    }
+
+    try {
+        const res = await axios.get('/search/receptores/check-rfc', { params: { [queryParam]: val } });
+        
+        if (res.data.status === 'conflict') {
+            // Regla Snapshot: Si el conflicto es con el mismo cliente vinculado a esta visita, no es error
+            if (res.data.id && visita.value.cliente_id && res.data.cliente_id == visita.value.cliente_id) {
+                fieldValidation[field].error = false;
+                fieldValidation[field].message = '';
+            } else {
+                fieldValidation[field].error = true;
+                fieldValidation[field].message = res.data.message;
+            }
+        } else {
+            fieldValidation[field].error = false;
+            fieldValidation[field].message = '';
+        }
+    } catch (e) { 
+        fieldValidation[field].error = false; 
+    }
 };
 
 const parseMateriales = (raw) => {
@@ -418,8 +516,10 @@ const parseMateriales = (raw) => {
 const searchBooks = (event, type) => {
     const val = event.target.value;
     if (val.length < 3) return type === 'interest' ? interestSuggestions.value = [] : deliveredSuggestions.value = [];
+    
     if (type === 'interest') searchingInterest.value = true; else searchingDelivered.value = true;
     if (bookTimer) clearTimeout(bookTimer);
+    
     const serieId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? null : selectedSerieIdA.value) : null; 
     bookTimer = setTimeout(async () => {
         try {
@@ -432,12 +532,23 @@ const searchBooks = (event, type) => {
 
 const addMaterial = (book, type) => {
     const serie = allSeries.value.find(s => s.id == book.serie_id);
-    const sNom = serie ? (serie.nombre || serie.serie) : 'Sin Serie';
+    const serieNombre = serie ? (serie.nombre || serie.serie) : 'Sin Serie';
     if (type === 'interest') {
-        if (!selectedInterestBooks.value.find(b => b.id === book.id)) selectedInterestBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: sNom, tipo: 'fisico' });
+        if (!selectedInterestBooks.value.find(b => b.id === book.id)) {
+            selectedInterestBooks.value.push({ 
+                id: book.id, 
+                titulo: book.titulo, 
+                serie_nombre: serieNombre, 
+                original_type: book.type,
+                // REGLA: Forzamos digital si es digital
+                tipo: book.type === 'digital' ? 'digital' : 'fisico' 
+            });
+        }
         interestInput.titulo = ''; interestSuggestions.value = [];
     } else {
-        if (!selectedDeliveredBooks.value.find(b => b.id === book.id)) selectedDeliveredBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: sNom, cantidad: 1 });
+        if (!selectedDeliveredBooks.value.find(b => b.id === book.id)) {
+            selectedDeliveredBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: serieNombre, cantidad: 1 });
+        }
         deliveredInput.titulo = ''; deliveredSuggestions.value = [];
     }
 };
@@ -447,37 +558,53 @@ const getLocation = () => {
     gettingLocation.value = true;
     navigator.geolocation.getCurrentPosition(
         (p) => { form.plantel.latitud = p.coords.latitude; form.plantel.longitud = p.coords.longitude; gettingLocation.value = false; },
-        () => { gettingLocation.value = false; }, { enableHighAccuracy: true }
+        () => { gettingLocation.value = false; },
+        { enableHighAccuracy: true }
     );
 };
 
 const handleSubmit = async () => {
     errorMessage.value = null;
+
+    if (isFormBlockedByDuplicates.value) return;
+
     if (visita.value.es_primera_visita && selectedInterestBooks.value.length === 0) {
-        errorMessage.value = "SE REQUIERE AL MENOS UN LIBRO DE INTERÉS.";
+        errorMessage.value = "PARA REGISTRAR UNA APERTURA (1RA VISITA) SE REQUIERE AL MENOS UN MATERIAL DE INTERÉS.";
         return;
     }
+
     loading.value = true;
     try {
+        const nivelNombres = nivelesCatalog.value
+            .filter(n => form.plantel.niveles.includes(n.id))
+            .map(n => n.nombre)
+            .join(', ');
+
         const payload = {
             ...form.visita,
-            cargo: form.visita.cargo === 'Otro' ? form.visita.cargo_especifico : form.visita.cargo,
             motivo_cambio: form.motivo_cambio,
             plantel: { 
                 ...form.plantel, 
-                niveles: nivelesCatalog.value.filter(n => form.plantel.niveles.includes(n.id)).map(n => n.nombre).join(', '),
-                email: form.plantel.email.toLowerCase() // Asegurar lowercase al guardar
+                niveles: nivelNombres,
+                email: form.plantel.email.toLowerCase() 
             },
-            libros_interes: { interes: selectedInterestBooks.value, entregado: selectedDeliveredBooks.value }
+            libros_interes: {
+                interes: selectedInterestBooks.value,
+                entregado: selectedDeliveredBooks.value
+            }
         };
+
         await axios.put(`/visitas/${id}`, payload);
         showSuccess.value = true;
     } catch (e) {
-        errorMessage.value = e.response?.data?.message || "Fallo en servidor.";
-    } finally { loading.value = false; }
+        errorMessage.value = e.response?.data?.message || "Fallo técnico en la sincronización.";
+    } finally {
+        loading.value = false;
+    }
 };
 
 const handleSerieChange = (type) => { if (type === 'interest') { interestInput.titulo = ''; interestSuggestions.value = []; } };
+
 onMounted(fetchInitialData);
 </script>
 
@@ -485,7 +612,7 @@ onMounted(fetchInitialData);
 .label-style { @apply text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block; }
 .label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-widest; }
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
-.form-section { background: white; border: 1px solid #f1f5f9; }
+.form-section { background: white; border: 1px solid #f1f5f9; border-radius: 2rem; }
 .section-title { font-weight: 900; color: #a93339; margin-bottom: 25px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; }
 
 .form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.9rem; }
@@ -495,11 +622,14 @@ onMounted(fetchInitialData);
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
+.btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-3 px-8 rounded-2xl text-sm font-black transition-all hover:bg-slate-50 text-black; }
+
 .modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background-color: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
 .modal-content-success { background: white; padding: 50px; border-radius: 50px; text-align: center; width: 90%; max-width: 400px; border: 1px solid #f1f5f9; }
-.success-icon-wrapper { width: 70px; height: 70px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 20px; border: 5px solid white; }
-x
+.success-icon-wrapper { width: 85px; height: 85px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 30px; border: 5px solid white; }
+
 .autocomplete-list { position: absolute; z-index: 1000; width: 100%; background: white; border-radius: 16px; max-height: 250px; overflow-y: auto; list-style: none; padding: 5px; margin-top: 5px; box-shadow: 0 15px 35px -10px rgba(0,0,0,0.1); }
+
 .select-table { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 10px; font-weight: 900; color: #1e293b; padding: 6px 8px; text-transform: uppercase; width: 100%; }
 .input-table { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 10px; font-weight: 900; color: #1e293b; padding: 6px 8px; text-transform: uppercase; width: 100%; }
 
@@ -509,6 +639,9 @@ x
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-3 px-8 rounded-2xl text-sm font-black transition-all hover:bg-slate-50 text-black; }
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em; padding-right: 2.25rem; appearance: none; }
+
+.bgcolor { background: #fef2f2; border: 1px solid #fee2e2; padding: 16px; border-radius: 12px; }
+.text-danger { color: #dc2626; }
+.border-danger { border-color: #dc2626; }
 </style>
