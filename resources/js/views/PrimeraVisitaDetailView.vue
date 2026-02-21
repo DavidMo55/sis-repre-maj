@@ -155,7 +155,10 @@
                                 </div>
 
                                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-                                    
+                                     <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
+                                        {{ h.resultado_visita }}
+                                    </span>
+                                    <br><br>
                                     <!-- LÓGICA: Solo permite modificar si no se ha modificado antes -->
                                     <button 
                                         v-if="(h.modificaciones_realizadas || 0) < 1"
@@ -164,7 +167,7 @@
                                     >
                                         <i class="fas fa-edit mr-1"></i> MODIFICAR
                                     </button>
-
+<br><br>
                                     <!-- BOTÓN VER DETALLE (Controlador del Acordeón) -->
                                     <button 
                                         @click="toggleExpand(h.id)"
@@ -174,9 +177,7 @@
                                         <span class="ml-2">{{ expandedId === h.id ? 'OCULTAR' : 'VER DETALLE' }}</span>
                                     </button>
 
-                                    <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
-                                        {{ h.resultado_visita }}
-                                    </span>
+                                   
                                     
                                     <div @click="toggleExpand(h.id)" class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 cursor-pointer hover:text-red-600 transition-colors">
                                         <i class="fas fa-chevron-down transition-transform duration-500" 

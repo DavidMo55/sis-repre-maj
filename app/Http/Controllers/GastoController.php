@@ -159,7 +159,6 @@ class GastoController extends Controller
 
     /**
      * Detalle técnico del gasto con Auditoría.
-     * CORRECCIÓN: Se filtró por user_id directamente y se añadió try-catch para debugging.
      */
     public function show(Request $request, $id)
     {
@@ -169,7 +168,6 @@ class GastoController extends Controller
 
             $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
             
-            // Buscamos asegurando la propiedad del registro
             $gasto = Gasto::where('id', $id)
                         ->where('user_id', $ownerId)
                         ->with(['comprobantes', 'logs.user'])
@@ -184,31 +182,45 @@ class GastoController extends Controller
             Log::error("Error 500 en GastoController@show ID {$id}: " . $e->getMessage());
             return response()->json([
                 'message' => 'Error técnico al recuperar el detalle.',
-                'error' => config('app.debug') ? $e->getMessage() : 'Verifique las relaciones del modelo.'
+                'error' => config('app.debug') ? $e->getMessage() : 'Ocurrió un error inesperado.'
             ], 500);
         }
     }
 
     /**
-     * Actualización con Regla de Única Modificación.
+     * Actualización con Regla de Única Modificación y Validación Condicional.
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
+        $user = $request->user();
+        $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
+        $gasto = Gasto::where('id', $id)->where('user_id', $ownerId)->firstOrFail();
+
+        // Reglas Base
+        $rules = [
             'fecha'         => 'required|date',
             'estado_nombre' => 'required|string',
             'status'        => 'required|in:BORRADOR,FINALIZADO',
             'monto_total'   => 'required|numeric|min:0',
             'conceptos'     => 'required|array|min:1',
-            'motivo_cambio' => 'required|string|min:10' 
-        ]);
+        ];
+
+        /**
+         * REGLA DE ORO: 
+         * El motivo solo se exige si el usuario intenta FINALIZAR un paquete
+         * que ya tenía el estatus de FINALIZADO anteriormente.
+         * Si se guarda como BORRADOR, no es obligatorio.
+         */
+        if ($request->status === 'FINALIZADO' && $gasto->status === 'FINALIZADO') {
+            $rules['motivo_cambio'] = 'required|string|min:10';
+        } else {
+            $rules['motivo_cambio'] = 'nullable|string';
+        }
+
+        $request->validate($rules);
 
         try {
-            $user = $request->user();
-            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
-
-            $gasto = Gasto::where('id', $id)->where('user_id', $ownerId)->firstOrFail();
-
             if ($gasto->status === 'FINALIZADO' && $gasto->modificaciones_finalizadas >= 1) {
                 return response()->json([
                     'message' => 'Este expediente ya cuenta con un ajuste único posterior a su cierre y se encuentra bloqueado.'
@@ -218,10 +230,12 @@ class GastoController extends Controller
             return DB::transaction(function () use ($gasto, $request) {
                 $oldDetails = $gasto->detalles;
 
-                if ($gasto->status === 'FINALIZADO') {
+                // Solo incrementamos contador si el paquete ya estaba finalizado y se vuelve a finalizar
+                if ($gasto->status === 'FINALIZADO' && $request->status === 'FINALIZADO') {
                     $gasto->modificaciones_finalizadas += 1;
                 }
 
+                // Registro de Log de Auditoría
                 GastoLog::create([
                     'gasto_id' => $gasto->id,
                     'user_id' => Auth::id(),
@@ -229,7 +243,7 @@ class GastoController extends Controller
                         'cabecera' => $gasto->makeHidden(['detalles', 'comprobantes', 'logs'])->toArray(),
                         'detalles' => $oldDetails
                     ],
-                    'motivo_cambio' => strtoupper($request->motivo_cambio)
+                    'motivo_cambio' => $request->motivo_cambio ? strtoupper($request->motivo_cambio) : 'CAMBIO GUARDADO COMO BORRADOR'
                 ]);
 
                 $tieneFactura = collect($request->conceptos)->contains('es_facturado', true);
@@ -269,7 +283,7 @@ class GastoController extends Controller
                     'user_id' => Auth::id(),
                     'snapshot_anterior' => [
                         'tipo_log'     => 'ELIMINACION_TOTAL',
-                        'cabecera'     => $gasto->makeHidden(['detalles', 'comprobantes'])->toArray(),
+                        'cabecera'     => $gasto->makeHidden(['detalles', 'comprobantes', 'logs'])->toArray(),
                         'detalles'     => $gasto->detalles,
                         'comprobantes' => $gasto->comprobantes->toArray() 
                     ],

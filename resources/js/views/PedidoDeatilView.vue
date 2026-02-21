@@ -158,43 +158,67 @@
                             <i class="fas fa-list-ol text-red-700"></i>
                             <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Selección Técnica de Materiales</h2>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm border-collapse bg-white min-w-[800px]">
-                                <thead class="bg-slate-900 text-white uppercase text-[9px] font-black tracking-[0.2em]">
-                                    <tr>
-                                        <th class="px-6 py-5 text-left">Libro / Título</th>
-                                        <th class="px-6 py-5 text-center w-32">Formato</th>
-                                        <th class="px-6 py-5 text-center w-40">Rubro</th>
-                                        <th class="px-6 py-5 text-center w-24">Cant.</th>
-                                        <th class="px-6 py-5 text-right w-32">P. Unitario</th>
-                                        <th class="px-6 py-5 text-right w-32">Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <tr v-for="detalle in pedido.detalles" :key="detalle.id" class="hover:bg-slate-50 transition-colors">
-                                        <td class="px-6 py-5">
-                                            <p class="font-black text-black label-large text-[13px] uppercase leading-tight">
-                                                {{ detalle.libro?.titulo || 'Material no identificado' }}
-                                            </p>
-                                            <p class="text-[9px] font-mono font-black text-red-600 mt-1 uppercase tracking-widest bg-red-50/50 px-2 py-0.5 rounded border border-red-100 inline-block">
-                                                ISBN: {{ detalle.libro?.ISBN || 'N/A' }}
-                                            </p>
-                                        </td>
-                                        <td class="px-6 py-5 text-center"><span class="badge-format-red">{{ detalle.tipo_licencia }}</span></td>
-                                        <td class="px-6 py-5 text-center"><span class="badge-format-red">{{ (detalle.tipo || 'VENTA').toUpperCase() }}</span></td>
-                                        <td class="px-6 py-5 text-center font-black text-red-700 text-lg">{{ detalle.cantidad }}</td>
-                                        <td class="px-6 py-5 text-right font-mono text-[11px] text-red-600 font-black">{{ formatCurrency(detalle.precio_unitario) }}</td>
-                                        <td class="px-6 py-5 text-right font-black text-red-700 text-[14px]">{{ formatCurrency(detalle.costo_total) }}</td>
-                                    </tr>
-                                </tbody>
-                                <tfoot class="bg-slate-900 border-t border-white/10">
-                                    <tr>
-                                        <td colspan="5" class="px-8 py-8 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">Total Neto del Expediente:</td>
-                                        <td class="px-6 py-8 text-right font-black text-3xl text-red-400 leading-none tracking-tighter">{{ formatCurrency(totalOrderCostNum) }}</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                        <div class="table-container mt-4 animate-fade-in">
+    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+        <table class="min-width-full divide-y divide-gray-200">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="table-header">Libro / Título</th>
+                    <th class="table-header text-center w-32">Formato</th>
+                    <th class="table-header text-center w-32">Rubro</th>
+                    <th class="table-header text-center w-24">Cant.</th>
+                    <th class="table-header text-right w-32">P. Unitario</th>
+                    <th class="table-header text-right w-32">Subtotal</th>
+                </tr>
+            </thead>
+
+            <tbody class="bg-white bk divide-y divide-gray-100">
+                <tr v-for="detalle in pedido.detalles" :key="detalle.id" class="hover:bg-gray-50 transition-colors">
+                    <td class="table-cell">
+                        <p class="font-black text-slate-800 text-sm uppercase leading-tight">
+                            {{ detalle.libro?.titulo || 'Material no identificado' }}
+                        </p>
+                        <div class="mt-1.5 flex items-center gap-2">
+                            <span class="text-[9px] font-black text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase tracking-widest">
+                                ISBN: {{ detalle.libro?.ISBN || 'N/A' }}
+                            </span>
                         </div>
+                    </td>
+                    <td class="table-cell text-center">
+                        <span class="status-badge bg-slate-100 text-slate-600 border border-slate-200">
+                            {{ (detalle.tipo_licencia || 'N/A').toUpperCase() }}
+                        </span>
+                    </td>
+                    <td class="table-cell text-center">
+                        <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
+                            {{ (detalle.tipo || 'VENTA').toUpperCase() }}
+                        </span>
+                    </td>
+                    <td class="table-cell text-center font-black text-slate-700 text-lg">
+                        {{ detalle.cantidad }}
+                    </td>
+                    <td class="table-cell text-right font-bold text-slate-500 text-xs">
+                        {{ formatCurrency(detalle.precio_unitario) }}
+                    </td>
+                    <td class="table-cell text-right font-black text-red-800 text-base tracking-tighter">
+                        {{ formatCurrency(detalle.costo_total) }}
+                    </td>
+                </tr>
+            </tbody>
+
+            <tfoot class="bg-slate-50 border-t-2 border-slate-100">
+                <tr>
+                    <td colspan="5" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+                        Total Neto del Expediente:
+                    </td>
+                    <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none tracking-tighter">
+                        {{ formatCurrency(totalOrderCostNum) }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
                     </div>
                 </div>
 

@@ -282,7 +282,7 @@
                 <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.items}">
                     <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 3. Selección de Material</div>
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-red-50/20 p-6 rounded-[2.5rem] border border-red-100">
-                        <div class="md:col-span-2"><label class="label-mini">Rubro</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
+                        <div class="md:col-span-2"><label class="label-mini">Tipo</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
                         <div class="md:col-span-3 relative">
                             <label class="label-mini">Buscar Libro</label>
                             <div class="relative">
@@ -423,9 +423,9 @@ const fieldValidation = reactive({
 });
 
 const orderForm = reactive({
-    prioridad: 'media', clientId: null, clientName: '', receiverType: 'cliente',
+    prioridad: 'media', clientId: null, clientName: '', receiverType: '',
     receiver: { persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' },
-    logistics: { deliveryOption: 'paqueteria', paqueteria_nombre: '', comentarios_logistica: '' },
+    logistics: { deliveryOption: '', paqueteria_nombre: '', comentarios_logistica: '' },
     comments: '', orderItems: [], 
 });
 

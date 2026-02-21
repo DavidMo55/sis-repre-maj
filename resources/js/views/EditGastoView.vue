@@ -250,9 +250,10 @@
                                     </div>
                                 </div>
 
+                                <!-- REGLA: El campo de motivo siempre aparece si el paquete ya está FINALIZADO -->
                                 <div v-if="form.status === 'FINALIZADO'" class="bg-white/5 p-5 rounded-3xl border border-white/5 animate-fade-in">
                                     <label class="label-style !text-red-400 mb-2 uppercase text-[9px]">Motivo del Ajuste (Obligatorio)</label>
-                                    <textarea v-model="form.motivo_cambio" class="form-input !bg-slate-800 !border-slate-700 !text-white text-xs" rows="3" placeholder="EXPLIQUE POR QUÉ..."></textarea>
+                                    <textarea v-model="form.motivo_cambio" class="form-input !bg-slate-800 !border-slate-700 !text-white text-xs" rows="3" placeholder="EXPLIQUE POR QUÉ SE MODIFICA EL PAQUETE..."></textarea>
                                 </div>
 
                                 <!-- ALERTA DE COMPROBANTES FALTANTES -->
@@ -344,9 +345,10 @@ const lineFileInput = ref(null);
 const rowFileInputs = ref(new Map());
 
 const subExpenses = ref([]);
+const originalItemsSnapshot = ref([]); // Snapshot para detectar cambios en datos previos
 const tempSub = reactive({ concepto: '', descripcion_otros: '', monto: null, es_facturado: false, file: null });
 
-const modal = reactive({ visible: false, title: '', message: '', type: 'info', confirm: null });
+const modal = reactive({ visible: false, title: '', message: '', type: 'info', confirm: null, errorList: [] });
 const form = reactive({ fecha: '', estado_nombre: '', status: 'BORRADOR', motivo_cambio: '', modificaciones_finalizadas: 0 });
 
 const totalMonto = computed(() => subExpenses.value.reduce((acc, item) => acc + (parseFloat(item.monto) || 0), 0));
@@ -355,10 +357,31 @@ const isLocked = computed(() => {
     return form.status === 'FINALIZADO' && form.modificaciones_finalizadas >= 1;
 });
 
-// REGLA: Validación global de comprobantes
+/**
+ * REGLA: Detecta si se ha modificado o eliminado un concepto que ya existía.
+ */
+const hasModifiedOriginals = computed(() => {
+    // 1. ¿Se eliminó algún concepto original?
+    const currentOriginals = subExpenses.value.filter(i => originalItemsSnapshot.value.some(o => o.localId === i.localId));
+    if (currentOriginals.length < originalItemsSnapshot.value.length) return true;
+
+    // 2. ¿Se modificó el contenido de un concepto original?
+    for (const original of originalItemsSnapshot.value) {
+        const current = subExpenses.value.find(i => i.localId === original.localId);
+        if (current) {
+            if (current.concepto !== original.concepto || 
+                current.descripcion_otros !== original.descripcion_otros || 
+                current.monto !== original.monto || 
+                current.es_facturado !== original.es_facturado) {
+                return true;
+            }
+        }
+    }
+    return false;
+});
+
 const allFilesPresent = computed(() => {
     if (subExpenses.value.length === 0) return false;
-    // Cada item debe tener o un archivo local (item.file) o estar ya en nube (item.hasCloudFile)
     return subExpenses.value.every(item => item.file !== null || item.hasCloudFile);
 });
 
@@ -402,13 +425,10 @@ const fetchGastoData = async () => {
             form.estado_nombre = data.estado_nombre || '';
         }
 
-        const standardConcepts = [
-            "Peaje", "Peaje", "Alimentación", 
-            "Hospedaje", "Mantenimiento", "Papelería"
-        ];
+        const standardConcepts = ["Gasolina", "Peaje", "Alimentación", "Hospedaje", "Mantenimiento", "Papelería"];
 
         if (data.detalles && Array.isArray(data.detalles)) {
-            subExpenses.value = data.detalles
+            const mapped = data.detalles
                 .filter(d => (d.concepto && d.concepto.trim() !== '') || (d.monto && d.monto > 0))
                 .map((d, index) => {
                     const isStandard = standardConcepts.includes(d.concepto);
@@ -419,13 +439,14 @@ const fetchGastoData = async () => {
                         monto: d.monto || 0,
                         es_facturado: !!d.es_facturado,
                         file: null,
-                        // REGLA: Detectar si este concepto ya tiene comprobante en el servidor
                         hasCloudFile: !!(data.comprobantes && data.comprobantes[index])
                     };
                 });
+            
+            subExpenses.value = mapped;
+            // Creamos una copia profunda para comparar cambios
+            originalItemsSnapshot.value = JSON.parse(JSON.stringify(mapped));
         }
-
-        await nextTick();
     } catch (e) {
         openModal('Error de Carga', 'No se pudo recuperar el expediente del paquete.', 'danger');
     } finally { loadingInitial.value = false; }
@@ -471,7 +492,7 @@ const addSubExpense = () => {
         monto: parseFloat(tempSub.monto),
         es_facturado: tempSub.es_facturado,
         file: tempSub.file,
-        hasCloudFile: false // Al ser nuevo, solo tiene el file local
+        hasCloudFile: false 
     };
     subExpenses.value.push(newItem);
     Object.assign(tempSub, { concepto: '', descripcion_otros: '', monto: null, es_facturado: false, file: null });
@@ -481,10 +502,9 @@ const addSubExpense = () => {
 const confirmDeleteConcept = (localId) => {
     const item = subExpenses.value.find(i => i.localId === localId);
     if (!item) return;
-    const conceptName = item.descripcion_otros || item.concepto;
     openModal(
         '¿Eliminar concepto?', 
-        `Estás por quitar "${conceptName}" de este paquete.`, 
+        `Estás por quitar "${item.descripcion_otros || item.concepto}" de este paquete.`, 
         'danger', 
         () => executeRemoveSubExpense(localId)
     );
@@ -494,57 +514,46 @@ const executeRemoveSubExpense = (localId) => {
     const index = subExpenses.value.findIndex(i => i.localId === localId);
     if (index !== -1) {
         subExpenses.value.splice(index, 1);
-        rowFileInputs.delete(localId);
+        if (rowFileInputs.value.has(localId)) {
+            rowFileInputs.value.delete(localId);
+        }
     }
     closeModal();
 };
 
-const confirmDeletePackage = () => {
-    if (form.status === 'FINALIZADO' && (!form.motivo_cambio || form.motivo_cambio.length < 10)) {
-        return openModal('Falta Justificación', 'Escriba el motivo de la eliminación (mín. 10 car.).', 'danger');
-    }
-    openModal(
-        '¿Eliminar Paquete?', 
-        'Esta acción borrará TODO el registro permanentemente.', 
-        'danger', 
-        executeDeletePackage
-    );
+const openModal = (title, message, type = 'info', confirmCallback = null, errors = []) => {
+    modal.title = title; modal.message = message; modal.type = type; 
+    modal.confirm = confirmCallback; modal.errorList = errors; modal.visible = true;
 };
-
-const executeDeletePackage = async () => {
-    loading.value = true;
-    closeModal();
-    try {
-        await axios.delete(`/gastos/${gastoId}`, { params: { motivo: form.motivo_cambio } });
-        router.push('/gastos');
-    } catch (e) {
-        openModal('Error', 'No se pudo eliminar el paquete.', 'danger');
-    } finally {
-        loading.value = false;
-    }
-};
-
-const openModal = (title, message, type = 'info', confirmCallback = null) => {
-    modal.title = title; modal.message = message; modal.type = type; modal.confirm = confirmCallback; modal.visible = true;
-};
-const closeModal = () => { modal.visible = false; modal.confirm = null; };
+const closeModal = () => { modal.visible = false; modal.confirm = null; modal.errorList = []; };
 const handleModalConfirm = () => { if (modal.confirm) modal.confirm(); else closeModal(); };
 const closeAndRedirect = () => { modal.visible = false; router.push('/gastos'); };
 
 const handleFinalSubmit = async (targetStatus) => {
-    if (!form.fecha || !form.estado_nombre) return openModal('Datos Incompletos', 'Indique fecha y estado del viaje.', 'danger');
-    if (subExpenses.value.length === 0) return openModal('Sin Conceptos', 'Agregue al menos un gasto al paquete.', 'danger');
+    const list = [];
+    if (!form.fecha) list.push('Indique la fecha del viaje.');
+    if (!form.estado_nombre) list.push('Indique el estado / región.');
+    if (subExpenses.value.length === 0) list.push('No hay conceptos en el paquete.');
     
-    // REGLA: Comprobación final antes de enviar
-    if (!allFilesPresent.value) {
-        return openModal('Archivos Faltantes', 'Asegúrese de adjuntar un comprobante para todos los conceptos marcados como "FALTANTE".', 'danger');
+    subExpenses.value.forEach((item, idx) => {
+        if (!item.file && !item.hasCloudFile) {
+            list.push(`Concepto #${idx + 1} requiere comprobante.`);
+        }
+    });
+    
+    if (list.length > 0) return openModal('Datos Incompletos', '', 'danger', null, list);
+
+    /**
+     * REGLA SOLICITADA ACTUALIZADA:
+     * El motivo SIEMPRE es obligatorio si el paquete ya está en estado FINALIZADO,
+     * para asegurar que cualquier reapertura y re-envío quede auditado.
+     */
+    const needsJustification = form.status === 'FINALIZADO';
+
+    if (targetStatus === 'FINALIZADO' && needsJustification && (!form.motivo_cambio || form.motivo_cambio.length < 10)) {
+        return openModal('Justificación Requerida', 'Al ser un paquete previamente FINALIZADO, cualquier ajuste requiere una explicación del motivo (mín. 10 car.).', 'danger');
     }
 
-    if (form.status === 'FINALIZADO' && (!form.motivo_cambio || form.motivo_cambio.length < 10)) {
-        return openModal('Falta Justificación', 'Explique los cambios para auditoría (mín. 10 car.).', 'danger');
-    }
-
-    form.status = targetStatus;
     handleSubmit(targetStatus);
 };
 
@@ -585,7 +594,7 @@ const handleSubmit = async (targetStatus) => {
             });
         }
 
-        openModal('¡Éxito!', 'El paquete ha sido actualizado correctamente.', 'success');
+        openModal('¡Éxito!', 'Los cambios se han guardado correctamente.', 'success');
     } catch (e) {
         openModal('Fallo en Guardado', e.response?.data?.message || "Error al procesar.", 'danger');
     } finally { loading.value = false; }
@@ -599,7 +608,7 @@ const handleSubmit = async (targetStatus) => {
 .form-section { background: white; border: 1px solid #f1f5f9; }
 .section-title { font-weight: 900; color: #a93339; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; }
 
-.form-input { width: 100%; padding: 12px 16px; border-radius: 14px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.85rem; }
+.form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.85rem; }
 .form-input:focus { border-color: #a93339; background: white; outline: none; }
 .form-input:disabled { cursor: not-allowed; }
 
@@ -638,4 +647,6 @@ const handleSubmit = async (targetStatus) => {
 .scrollbar-thin::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
 
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em; padding-right: 2.25rem; appearance: none; }
+
+.bgcolor { background: #fef2f2; border: 1px solid #fee2e2; padding: 16px; }
 </style>
