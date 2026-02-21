@@ -80,7 +80,7 @@ class VisitaController extends Controller
     /**
      * Registro de Primera Visita (Prospectación Inicial).
      */
-    public function storePrimeraVisita(Request $request)
+      public function storePrimeraVisita(Request $request)
     {
         $request->validate([
             'plantel.name'      => 'required|string|max:100',
@@ -99,33 +99,43 @@ class VisitaController extends Controller
         ]);
 
         try {
-            $rfc = strtoupper($request->input('plantel.rfc'));
-            $name = $request->input('plantel.name');
+            $rfc   = strtoupper($request->input('plantel.rfc'));
+            $name  = strtoupper($request->input('plantel.name'));
+            $email = strtolower($request->input('plantel.email'));
+            $phone = $request->input('plantel.telefono');
 
-            $duplicado = Cliente::where('rfc', $rfc)->orWhere('name', $name)->first();
+            // REGLA DE ORO: Validación de Integridad Total
+            $duplicado = Cliente::where('rfc', $rfc)
+                ->orWhere('name', $name)
+                ->orWhere('email', $email)
+                ->orWhere('telefono', $phone)
+                ->first();
 
             if ($duplicado) {
+                $campo = 'dato';
+                if ($duplicado->rfc === $rfc) $campo = 'RFC';
+                elseif ($duplicado->name === $name) $campo = 'NOMBRE';
+                elseif ($duplicado->email === $email) $campo = 'CORREO';
+                elseif ($duplicado->telefono === $phone) $campo = 'TELÉFONO';
+
                 return response()->json([
-                    'message' => "Acción bloqueada: El plantel ya existe bajo el registro de '{$duplicado->name}'."
+                    'message' => "ACCIÓN BLOQUEADA: El {$campo} ya existe bajo el registro de '{$duplicado->name}'."
                 ], 422);
             }
 
-            return DB::transaction(function () use ($request, $rfc, $name) {
+            return DB::transaction(function () use ($request, $rfc, $name, $email, $phone) {
                 $user = $request->user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-                $resultado = $request->input('visita.resultado_visita');
-                $tipoFinal = ($resultado === 'compra') ? 'CLIENTE' : 'PROSPECTO';
-
                 $cliente = Cliente::create([
                     'user_id'         => $ownerId,
-                    'tipo'            => $tipoFinal,
-                    'name'            => strtoupper($name),
-                    'rfc'             => strtoupper($rfc),
-                    'nivel_educativo' => is_array($request->input('plantel.niveles')) ? implode(', ', $request->input('plantel.niveles')) : $request->input('plantel.niveles'),
+                    'tipo'            => ($request->input('visita.resultado_visita') === 'compra') ? 'CLIENTE' : 'PROSPECTO',
+                    'name'            => $name,
+                    'rfc'             => $rfc,
+                    'nivel_educativo' => implode(', ', $request->input('plantel.niveles')),
                     'contacto'        => strtoupper($request->input('plantel.director')),
-                    'telefono'        => $request->input('plantel.telefono'),
-                    'email'           => strtolower($request->input('plantel.email')),
+                    'telefono'        => $phone,
+                    'email'           => $email,
                     'direccion'       => strtoupper($request->input('plantel.direccion')),
                     'estado_id'       => $request->input('plantel.estado_id'),
                     'latitud'         => $request->input('plantel.latitud'),
@@ -151,19 +161,20 @@ class VisitaController extends Controller
                     'cargo'                   => strtoupper($request->input('visita.cargo')),
                     'libros_interes'          => $request->input('visita.libros_interes'),
                     'comentarios'             => strtoupper($request->input('visita.comentarios')),
-                    'resultado_visita'        => $resultado,
+                    'resultado_visita'        => $request->input('visita.resultado_visita'),
                     'proxima_visita_estimada' => $request->input('visita.proxima_visita'),
                     'proxima_accion'          => $request->input('visita.proxima_accion') ?? 'visita',
                     'es_primera_visita'       => true,
                 ]);
 
-                return response()->json(['message' => "Registro de $tipoFinal exitoso.", 'visita_id' => $visita->id], 201);
+                return response()->json(['message' => "Registro exitoso.", 'visita_id' => $visita->id], 201);
             });
         } catch (\Exception $e) {
             Log::error("Fallo en storePrimeraVisita: " . $e->getMessage());
             return response()->json(['message' => 'Error técnico al procesar el alta.'], 500);
         }
     }
+
 
     /**
      * Registro de Visita Subsecuente (Seguimiento).

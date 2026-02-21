@@ -32,7 +32,8 @@ trait FormatsAttributes
                 'nivel_educativo_planten',
                 'libros_interes',
                 'detalles',
-                'email'
+                'email',
+                'email_plantel'
             ];
 
             foreach ($model->getAttributes() as $key => $value) {

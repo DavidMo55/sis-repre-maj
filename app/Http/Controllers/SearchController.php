@@ -122,7 +122,6 @@ class SearchController extends Controller
      */
     public function checkRfcUniqueness(Request $request)
     {
-        // Obtenemos los parámetros de consulta (rfc, nombre, correo o telefono)
         $rfc = $request->query('rfc');
         $correo = $request->query('correo');
         $telefono = $request->query('telefono');
@@ -131,30 +130,33 @@ class SearchController extends Controller
         $user = Auth::user();
         $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-        $query = PedidoReceptor::query();
+        // Cambiamos el modelo a Cliente porque es lo que estamos validando en la Visita
+        $query = Cliente::query();
 
-        // Aplicamos el filtro por el primer parámetro encontrado
         if ($rfc) $query->where('rfc', strtoupper($rfc));
-        elseif ($correo) $query->where('correo', strtolower($correo));
+        elseif ($correo) $query->where('email', strtolower($correo));
         elseif ($telefono) $query->where('telefono', $telefono);
-        elseif ($name) $query->where('nombre', strtoupper($name));
-        else return response()->json([]);
+        elseif ($name) $query->where('name', strtoupper($name));
+        else return response()->json(['status' => 'error', 'message' => 'Sin datos'], 400);
 
-        // Búsqueda GLOBAL (Sin filtro de usuario) para detectar si ya existe en el sistema
-        $existente = $query->orderBy('created_at', 'desc')->first();
+        $existente = $query->first();
 
         if (!$existente) {
-            return response()->json(['message' => 'Disponible'], 404);
+            return response()->json(['status' => 'success', 'available' => true]);
         }
 
-        /**
-         * LÓGICA DE PRIVACIDAD:
-         * Si el registro existe pero el user_id no es el del usuario actual,
-         * marcamos is_private como true para que el frontend bloquee el ingreso manual.
-         */
-        $existente->is_private = ($existente->user_id !== $ownerId);
+        $isPrivate = ($existente->user_id !== $ownerId);
 
-        return response()->json($existente);
+        return response()->json([
+            'status' => 'conflict',
+            'available' => false,
+            'is_private' => $isPrivate,
+            'id' => $existente->id,
+            'nombre' => $existente->name,
+            'message' => $isPrivate 
+                ? 'ESTE DATO PERTENECE A OTRO REPRESENTANTE Y NO PUEDE SER DUPLICADO.' 
+                : 'YA TIENES REGISTRADO ESTE PLANTEL EN TU CARTERA.'
+        ]);
     }
 
     /**

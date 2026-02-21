@@ -27,17 +27,19 @@
                             <div class="relative">
                                 <input 
                                     v-model="form.plantel.name" 
-                                    @blur="checkDuplicate('name')"
+                                    @blur="validateUniqueness('name')"
                                     type="text" 
                                     class="form-input font-bold" 
-                                    :class="{'border-red-500 bg-red-50': checkStates.name.isDuplicate}"
+                                    :class="{'border-red-500 bg-red-50': fieldValidation.name.error}"
                                     placeholder="Nombre oficial de la institución" 
                                     required 
                                     minlength="5" 
                                     :disabled="loading"
                                 >
-                                <i v-if="checkStates.name.checking" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
-                                <i v-if="checkStates.name.verified && !checkStates.name.isDuplicate" class="fas fa-check-circle absolute right-4 top-1/2 -translate-y-1/2 text-green-500"></i>
+                                <i v-if="validatingFields.name" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                <p v-if="fieldValidation.name.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                    <i class="fas fa-times-circle"></i> {{ fieldValidation.name.message }}
+                                </p>
                             </div>
                         </div>
 
@@ -47,18 +49,20 @@
                             <div class="relative">
                                 <input 
                                     v-model="form.plantel.rfc" 
-                                    @blur="checkDuplicate('rfc')"
+                                    @blur="validateUniqueness('rfc')"
                                     type="text" 
                                     class="form-input uppercase font-mono border-red-100 font-black text-red-900" 
-                                    :class="{'border-red-600 bg-red-50 ring-2 ring-red-100': checkStates.rfc.isDuplicate}"
+                                    :class="{'border-red-600 bg-red-50 ring-2 ring-red-100': fieldValidation.rfc.error}"
                                     placeholder="XXXXXXXXXXXXX" 
                                     required 
-                                    minlength="13x" 
+                                    minlength="12" 
                                     maxlength="13" 
                                     :disabled="loading"
                                 >
-                                <i v-if="checkStates.rfc.checking" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
-                                <i v-if="checkStates.rfc.verified && !checkStates.rfc.isDuplicate" class="fas fa-check-circle absolute right-4 top-1/2 -translate-y-1/2 text-green-500"></i>
+                                <i v-if="validatingFields.rfc" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                <p v-if="fieldValidation.rfc.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                    <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message }}
+                                </p>
                             </div>
                         </div>
 
@@ -85,9 +89,7 @@
                                     {{ form.plantel.latitud ? 'Actualizar Coordenadas GPS' : 'Capturar Ubicación Obligatoria' }}
                                 </span>
                             </button>
-                            
                         </div>
-                        <br>
 
                         <!-- NIVELES -->
                         <div class="form-group mb-6">
@@ -123,16 +125,19 @@
                                 <div class="relative">
                                     <input 
                                         v-model="form.plantel.telefono" 
-                                        @blur="checkDuplicate('phone')"
+                                        @blur="validateUniqueness('telefono')"
                                         type="tel" 
                                         class="form-input font-bold" 
-                                        :class="{'border-red-500 bg-red-50': checkStates.phone.isDuplicate}"
+                                        :class="{'border-red-500 bg-red-50': fieldValidation.telefono.error}"
                                         placeholder="Número de contacto" 
                                         required 
                                         minlength="10" 
                                         :disabled="loading"
                                     >
-                                    <i v-if="checkStates.phone.checking" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    <i v-if="validatingFields.telefono" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.telefono.message }}
+                                    </p>
                                 </div>
                             </div>
 
@@ -141,15 +146,18 @@
                                 <div class="relative">
                                     <input 
                                         v-model="form.plantel.email" 
-                                        @blur="checkDuplicate('email')"
+                                        @blur="validateUniqueness('email')"
                                         type="email" 
                                         class="form-input font-bold" 
-                                        :class="{'border-red-500 bg-red-50': checkStates.email.isDuplicate}"
+                                        :class="{'border-red-500 bg-red-50': fieldValidation.email.error}"
                                         placeholder="Correo de contacto" 
                                         required 
                                         :disabled="loading"
                                     >
-                                    <i v-if="checkStates.email.checking" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    <i v-if="validatingFields.email" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    <p v-if="fieldValidation.email.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.email.message }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -267,63 +275,62 @@
                                     </div>
                                 </div>
                             </div>
-                            </div>
-                            <div class="mt-6 form-section ">
-                            <!-- MUESTRAS ENTREGADAS -->
-                            <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-red-800 font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> Muestras de Promoción Entregadas </label>
-                                
-                                <div class="form-group relative mb-4">
-                                    <label class="label-mini">Buscar Libro para Entrega Física</label>
-                                    <div class="relative">
-                                        <input 
-                                            v-model="deliveredInput.titulo" 
-                                            type="text" 
-                                            class="form-input pr-10 font-bold border-red-100 shadow-sm" 
-                                            placeholder="Escribe título o ISBN..." 
-                                            @input="searchBooks($event, 'delivered')"
-                                            autocomplete="off"
-                                        >
-                                        <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
-                                    </div>
-                                    <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
-                                        <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
-                                            <div class="flex justify-between items-center w-full">
-                                                <span class="truncate uppercase">{{ b.titulo }}</span>
-                                            </div>
-                                        </li>
-                                    </ul>
+                        </div>
+
+                        <!-- MUESTRAS ENTREGADAS -->
+                        <div class="mt-6 form-section bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
+                            <label class="label-mini mb-4 text-red-800 font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> Muestras de Promoción Entregadas </label>
+                            
+                            <div class="form-group relative mb-4">
+                                <label class="label-mini">Buscar Libro para Entrega Física</label>
+                                <div class="relative">
+                                    <input 
+                                        v-model="deliveredInput.titulo" 
+                                        type="text" 
+                                        class="form-input pr-10 font-bold border-red-100 shadow-sm" 
+                                        placeholder="Escribe título o ISBN..." 
+                                        @input="searchBooks($event, 'delivered')"
+                                        autocomplete="off"
+                                    >
+                                    <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
                                 </div>
-                                
-                                <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6 overflow-hidden rounded-2xl border border-red-100 bg-white">
-                                    <div class="table-responsive">
-                                        <table class="w-full divide-y divide-gray-200">
-                                            <thead class="bg-red-900">
-                                                <tr>
-                                                    <th class="table-header text-white">Muestra Física</th>
-                                                    <th class="table-header text-center w-32 text-white">Cantidad</th>
-                                                    <th class="px-6 py-3 w-16 text-white"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="bg-white divide-y divide-red-50">
-                                                <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors">
-                                                    <td class="table-cell">
-                                                        <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                                                    </td>
-                                                    <td class="table-cell text-center">
-                                                        <div class="flex justify-center">
-                                                            <div class="quantity-control-wrapper">
-                                                                <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center" />
-                                                            </div>
+                                <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
+                                    <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
+                                        <div class="flex justify-between items-center w-full">
+                                            <span class="truncate uppercase">{{ b.titulo }}</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6 overflow-hidden rounded-2xl border border-red-100 bg-white shadow-sm">
+                                <div class="table-responsive">
+                                    <table class="w-full divide-y divide-gray-200">
+                                        <thead class="bg-red-900">
+                                            <tr>
+                                                <th class="table-header text-white">Muestra Física</th>
+                                                <th class="table-header text-center w-32 text-white">Cantidad</th>
+                                                <th class="px-6 py-3 w-16 text-white"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-red-50">
+                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors">
+                                                <td class="table-cell">
+                                                    <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
+                                                </td>
+                                                <td class="table-cell text-center">
+                                                    <div class="flex justify-center">
+                                                        <div class="quantity-control-wrapper">
+                                                            <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center" />
                                                         </div>
-                                                    </td>
-                                                    <td class="table-cell text-right">
-                                                        <button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-icon-delete"><i class="fas fa-trash-alt"></i> Quitar</button>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                                    </div>
+                                                </td>
+                                                <td class="table-cell text-right">
+                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-icon-delete"><i class="fas fa-trash-alt"></i> Quitar</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -365,7 +372,7 @@
                 </div>
 
                 <!-- BOTONES FINALES -->
-                <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8">
+                <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8 pb-20">
                     <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 rounded-2xl font-bold uppercase text-xs tracking-widest bg-white border-2 border-slate-200 text-black" :disabled="loading">Cancelar</button>
                     <button type="submit" class="btn-primary px-20 py-4 shadow-xl shadow-red-900/10 transition-all active:scale-95" :disabled="loading || anyDuplicate || isProcessingCheck || gettingLocation">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-cloud-upload-alt mr-2'"></i> 
@@ -390,7 +397,7 @@
         </Teleport>
 
         <!-- MENSAJE DE ERROR GENERAL -->
-         <Teleport to="body">
+        <Teleport to="body">
             <Transition name="modal-fade">
                 <div v-if="errorMessage" class="modal-overlay-custom">
                     <div class="modal-content-error modal-content-success animate-scale-in">
@@ -401,13 +408,12 @@
                     </div>
                 </div>
             </Transition>
-
-         </Teleport>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, reactive, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../axios';
 
@@ -420,6 +426,9 @@ const errorMessage = ref(null);
 const isProcessingCheck = ref(false); 
 const attemptedSubmit = ref(false); 
 
+/**
+ * LÓGICA DE ESTADO PARA VALIDACIÓN DE DUPLICADOS
+ */
 const checkStates = reactive({
     name:  { checking: false, isDuplicate: false, verified: false },
     rfc:   { checking: false, isDuplicate: false, verified: false },
@@ -427,7 +436,26 @@ const checkStates = reactive({
     phone: { checking: false, isDuplicate: false, verified: false }
 });
 
-const anyDuplicate = computed(() => checkStates.name.isDuplicate || checkStates.rfc.isDuplicate || checkStates.email.isDuplicate || checkStates.phone.isDuplicate);
+/**
+ * VALIDACIÓN PROACTIVA GLOBAL
+ */
+const fieldValidation = reactive({ 
+    name: { error: false, message: '' },
+    rfc: { error: false, message: '' }, 
+    email: { error: false, message: '' }, 
+    telefono: { error: false, message: '' } 
+});
+
+const validatingFields = reactive({
+    name: false,
+    rfc: false,
+    email: false,
+    telefono: false
+});
+
+const anyDuplicate = computed(() => {
+    return fieldValidation.name.error || fieldValidation.rfc.error || fieldValidation.email.error || fieldValidation.telefono.error;
+});
 
 const searchingInterest = ref(false);
 const searchingDelivered = ref(false);
@@ -459,54 +487,89 @@ const seriesFiltradas = computed(() => {
 
 const savedClientType = computed(() => form.visita.resultado_visita === 'compra' ? 'Cliente' : 'Prospecto');
 
-const checkDuplicate = async (field) => {
+/**
+ * FUNCIÓN CENTRAL DE VALIDACIÓN DE DUPLICADOS (Sincronizada con SearchController global)
+ */
+const validateUniqueness = async (field) => {
     let val = '';
+    let queryParam = field; 
     let minLen = 5;
-    if (field === 'name') { val = form.plantel.name?.trim(); minLen = 5; }
-    else if (field === 'rfc') { val = form.plantel.rfc?.trim().toUpperCase(); minLen = 12; }
-    else if (field === 'email') { val = form.plantel.email?.trim(); minLen = 5; }
-    else if (field === 'phone') { val = form.plantel.telefono?.trim(); minLen = 10; }
 
-    if (!val || val.length < minLen) return;
-    checkStates[field].checking = true;
+    if (field === 'name') { val = form.plantel.name?.trim(); queryParam = 'nombre'; minLen = 5; }
+    else if (field === 'rfc') { val = form.plantel.rfc?.trim().toUpperCase(); queryParam = 'rfc'; minLen = 12; }
+    else if (field === 'email') { val = form.plantel.email?.trim().toLowerCase(); queryParam = 'correo'; minLen = 5; }
+    else if (field === 'telefono') { val = form.plantel.telefono?.trim(); queryParam = 'telefono'; minLen = 10; }
+
+    if (!val || val.length < minLen) {
+        fieldValidation[field].error = false;
+        fieldValidation[field].message = '';
+        return;
+    }
+
+    validatingFields[field] = true;
     isProcessingCheck.value = true;
     errorMessage.value = null;
 
     try {
-        const res = await axios.get('/search/clientes', { params: { query: val, include_prospectos: true } });
-        let exists = false;
-        if (field === 'rfc') exists = res.data.some(c => c.rfc?.toUpperCase() === val);
-        else if (field === 'name') exists = res.data.some(c => c.name?.toLowerCase() === val.toLowerCase());
-        else if (field === 'email') exists = res.data.some(c => c.email?.toLowerCase() === val.toLowerCase());
-        else if (field === 'phone') exists = res.data.some(c => c.telefono?.toLowerCase() === val.toLowerCase());
+        const res = await axios.get('/search/receptores/check-rfc', { params: { [queryParam]: val } });
+        
+        if (res.data.status === 'conflict') {
+            fieldValidation[field].error = true;
+            fieldValidation[field].message = res.data.message;
+        } else {
+            fieldValidation[field].error = false;
+            fieldValidation[field].message = '';
+        }
+    } catch (e) { 
+        fieldValidation[field].error = false; 
+    } finally { 
+        validatingFields[field] = false; 
+        isProcessingCheck.value = false; 
+    }
+};
 
-        checkStates[field].isDuplicate = exists;
-        checkStates[field].verified = !exists;
-        if (exists) errorMessage.value = `El dato ingresado en "${field.toUpperCase()}" ya está registrado en el sistema.`;
-    } catch (e) { console.error(e); } finally { checkStates[field].checking = false; isProcessingCheck.value = false; }
+// Mapeo heredado para compatibilidad con el diseño original (checkStates)
+watch(() => fieldValidation.name.error, (val) => checkStates.name.isDuplicate = val);
+watch(() => fieldValidation.rfc.error, (val) => checkStates.rfc.isDuplicate = val);
+watch(() => fieldValidation.email.error, (val) => checkStates.email.isDuplicate = val);
+watch(() => fieldValidation.telefono.error, (val) => checkStates.phone.isDuplicate = val);
+
+const fetchInitialData = async () => {
+    loadingInitial.value = true;
+    try {
+        const [resEst, resNiv, resSer] = await Promise.all([
+            axios.get('/estados'), axios.get('/search/niveles'), axios.get('/search/series')
+        ]);
+        estados.value = resEst.data;
+        nivelesCatalog.value = resNiv.data;
+        allSeries.value = resSer.data;
+    } catch (e) { console.error(e); } finally { loadingInitial.value = false; }
 };
 
 const getLocation = () => {
     if (!navigator.geolocation) return alert("Navegador no soporta GPS.");
     gettingLocation.value = true;
     navigator.geolocation.getCurrentPosition(
-        (p) => { form.plantel.latitud = p.coords.latitude; form.plantel.longitud = p.coords.longitude; gettingLocation.value = false; errorMessage.value = null; },
-        () => { gettingLocation.value = false; alert("Permiso de GPS denegado."); },
+        (p) => { 
+            form.plantel.latitud = p.coords.latitude; 
+            form.plantel.longitud = p.coords.longitude; 
+            gettingLocation.value = false; 
+            errorMessage.value = null; 
+        },
+        () => { gettingLocation.value = false; errorMessage.value = "GPS DENEGADO."; }, 
         { enableHighAccuracy: true }
     );
 };
 
-const handleSerieChange = (type) => { if (type === 'interest') { interestInput.titulo = ''; interestSuggestions.value = []; } };
-
 const searchBooks = (event, type) => {
     const val = event.target.value;
-    if (val.length < 3) return;
+    if (val.length < 3) return type === 'interest' ? interestSuggestions.value = [] : deliveredSuggestions.value = [];
     if (type === 'interest') searchingInterest.value = true; else searchingDelivered.value = true;
     if (bookTimer) clearTimeout(bookTimer);
-    const serieId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? null : selectedSerieIdA.value) : null; 
+    const sId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? null : selectedSerieIdA.value) : null; 
     bookTimer = setTimeout(async () => {
         try {
-            const res = await axios.get('search/libros', { params: { query: val, serie_id: serieId } });
+            const res = await axios.get('search/libros', { params: { query: val, serie_id: sId } });
             if (type === 'interest') interestSuggestions.value = res.data.filter(b => b.type !== 'promocion');
             else deliveredSuggestions.value = res.data.filter(b => b.type === 'promocion');
         } catch (e) { console.error(e); } finally { searchingInterest.value = false; searchingDelivered.value = false; }
@@ -515,15 +578,15 @@ const searchBooks = (event, type) => {
 
 const addMaterial = (book, type) => {
     const serie = allSeries.value.find(s => s.id == book.serie_id);
-    const serieNombre = serie ? serie.nombre : 'Sin Serie';
+    const sNom = serie ? (serie.nombre || serie.serie) : 'Sin Serie';
     if (type === 'interest') {
         if (!selectedInterestBooks.value.find(b => b.id === book.id)) {
-            selectedInterestBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: serieNombre, original_type: book.type, tipo: 'fisico' });
+            selectedInterestBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: sNom, original_type: book.type, tipo: 'fisico' });
         }
         interestInput.titulo = ''; interestSuggestions.value = [];
     } else {
         if (!selectedDeliveredBooks.value.find(b => b.id === book.id)) {
-            selectedDeliveredBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: serieNombre, cantidad: 1 });
+            selectedDeliveredBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: sNom, cantidad: 1 });
         }
         deliveredInput.titulo = ''; deliveredSuggestions.value = [];
     }
@@ -531,25 +594,25 @@ const addMaterial = (book, type) => {
 
 const handleSubmit = async () => {
     attemptedSubmit.value = true;
-    
-    // REGLAS DE ORO
-    if (!form.plantel.latitud) { 
-        errorMessage.value = "LA UBICACIÓN GPS ES OBLIGATORIA PARA NUEVOS PLANTELES."; 
-        window.scrollTo({ top: 0, behavior: 'smooth' }); 
-        return; 
-    }
-    
-    // REGLA: Material de interés requerido
-    if (selectedInterestBooks.value.length === 0) {
-        errorMessage.value = "DEBE AGREGAR AL MENOS UN MATERIAL DE INTERÉS PARA EL PLANTEL.";
+    errorMessage.value = null;
+
+    if (anyDuplicate.value) {
+        const active = Object.values(fieldValidation).find(f => f.error);
+        errorMessage.value = active ? active.message : "DATOS DUPLICADOS EN EL SISTEMA GLOBAL.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
     }
 
-    if (anyDuplicate.value) { 
-        errorMessage.value = "EXISTEN DATOS DUPLICADOS. REVISE EL RFC O EL NOMBRE."; 
-        window.scrollTo({ top: 0, behavior: 'smooth' }); 
-        return; 
+    if (!form.plantel.latitud) {
+        errorMessage.value = "GPS OBLIGATORIO.";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+
+    if (selectedInterestBooks.value.length === 0) {
+        errorMessage.value = "AGREGUE AL MENOS UN MATERIAL DE INTERÉS.";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
     }
 
     if (form.plantel.niveles.length === 0) { 
@@ -560,35 +623,33 @@ const handleSubmit = async () => {
 
     loading.value = true;
     try {
-        const nivelNombres = nivelesCatalog.value.filter(n => form.plantel.niveles.includes(n.id)).map(n => n.nombre);
-        
-        // El bloque entregado sigue siendo opcional
-        const materiales = {
-            interes: selectedInterestBooks.value.map(b => ({ titulo: b.titulo, tipo: b.tipo, serie_nombre: b.serie_nombre })),
-            entregado: selectedDeliveredBooks.value.map(b => ({ titulo: b.titulo, cantidad: b.cantidad, serie_nombre: b.serie_nombre }))
-        };
-        
+        const nivelNombres = nivelesCatalog.value
+            .filter(n => form.plantel.niveles.includes(n.id))
+            .map(n => n.nombre);
+
         const finalCargo = form.visita.cargo === 'Otro' ? form.visita.cargo_especifico : form.visita.cargo;
-        const payload = { 
-            plantel: { ...form.plantel, niveles: nivelNombres }, 
-            visita: { ...form.visita, cargo: finalCargo, libros_interes: materiales } 
+
+        const payload = {
+            plantel: { ...form.plantel, niveles: nivelNombres, email: form.plantel.email.toLowerCase() },
+            visita: { 
+                ...form.visita, 
+                cargo: finalCargo, 
+                libros_interes: { interes: selectedInterestBooks.value, entregado: selectedDeliveredBooks.value }
+            }
         };
-        await axios.post('visitas/primera', payload);
+
+        await axios.post('/visitas/primera', payload);
         showSuccessModal.value = true;
-    } catch (err) {
-        errorMessage.value = err.response?.data?.message || "Error al guardar el registro.";
+    } catch (e) {
+        errorMessage.value = e.response?.data?.message || "Error al procesar el alta.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally { loading.value = false; }
 };
 
 const goToHistory = () => { showSuccessModal.value = false; router.push('/visitas'); };
+const handleSerieChange = (type) => { if (type === 'interest') { interestInput.titulo = ''; interestSuggestions.value = []; } };
 
-onMounted(async () => {
-    try {
-        const [resEst, resNiv, resSer] = await Promise.all([axios.get('estados'), axios.get('search/niveles'), axios.get('search/series')]);
-        estados.value = resEst.data; nivelesCatalog.value = resNiv.data; allSeries.value = resSer.data;
-    } finally { loadingInitial.value = false; }
-});
+onMounted(fetchInitialData);
 </script>
 
 <style scoped>
@@ -650,4 +711,9 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
     cursor: pointer;
 }
 .btn-secondary-custom { @apply bg-white border-2 border-slate-200 py-3 px-8 rounded-2xl text-sm font-black transition-all hover:bg-slate-50 text-black; }
+
+.bgcolor { background: #fef2f2; border: 1px solid #fee2e2; padding: 16px; border-radius: 12px; }
+.error-icon-wrapper { width: 80px; height: 80px; background: #fee2e2; color: #b91c1c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 25px; border: 4px solid white; }
+.modal-title-error { font-size: 1.75rem; font-weight: 900; color: #b91c1c; margin-bottom: 12px; text-transform: uppercase; }
+.modal-text-error { color: #991b1b; font-size: 0.95rem; line-height: 1.6; font-weight: 700; text-transform: uppercase; }
 </style>
