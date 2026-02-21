@@ -230,60 +230,68 @@
                         </span>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm border-collapse">
-                            <thead class="bg-slate-50 text-slate-400 uppercase text-[9px] font-black tracking-[0.2em] border-b border-slate-100">
-                                <tr>
-                                    <th class="px-8 py-4 text-center w-24">Ajuste</th>
-                                    <th class="px-6 py-4 text-left">Motivo de la Modificación</th>
-                                    <th class="px-6 py-4 text-left w-56">Responsable</th>
-                                    <th class="px-8 py-4 text-right w-48">Fecha de Sincronización</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-50 bg-white">
-                                <tr v-for="(log, index) in pedido.logs" :key="log.id" class="hover:bg-slate-50/50 transition-colors">
-                                    <td class="px-8 py-6 text-center">
-                                        <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
-                                              :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
-                                            #{{ pedido.logs.length - index }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-6">
-                                        <p class="text-[13px] font-bold text-slate-700 italic leading-relaxed uppercase">
-                                            "{{ log.motivo_cambio || 'Sin justificación técnica' }}"
-                                        </p>
-                                    </td>
-                                    <td class="px-6 py-6">
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-6 h-6 bg-slate-900 text-white rounded-full flex items-center justify-center text-[8px] font-black">
-                                                {{ log.user?.name?.charAt(0) || 'S' }}
-                                            </div>
-                                            <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
-                                                {{ log.user?.name || 'Sistema' }}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="px-8 py-6 text-right">
-                                        <div class="flex flex-col items-end">
-                                            <span class="text-[11px] font-black text-slate-800 uppercase">{{ formatDateOnly(log.created_at) }}</span>
-                                            <span class="text-[9px] font-bold text-slate-400 mt-0.5 tracking-tighter">{{ formatTimeOnly(log.created_at) }}</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                
-                                <!-- Estado cuando no hay ediciones -->
-                                <tr v-if="!pedido.logs || pedido.logs.length === 0">
-                                    <td colspan="4" class="px-6 py-16 text-center">
-                                        <div class="flex flex-col items-center opacity-40">
-                                            <i class="fas fa-shield-alt text-4xl text-slate-300 mb-4"></i>
-                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Expediente con integridad original</p>
-                                            <p class="text-[9px] text-slate-400 mt-1 italic">No se han registrado ajustes posteriores al registro inicial.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <div class="table-container mt-4 animate-fade-in">
+    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+        <table class="min-width-full divide-y divide-gray-200">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="table-header text-center w-24">Ajuste</th>
+                    <th class="table-header">Motivo de la Modificación</th>
+                    <th class="table-header w-56">Responsable</th>
+                    <th class="table-header text-right w-48">Sincronización</th>
+                </tr>
+            </thead>
+            
+            <tbody class="bg-white bk divide-y divide-gray-100">
+                <tr v-for="(log, index) in pedido.logs" :key="log.id" class="hover:bg-gray-50 transition-colors">
+                    <td class="table-cell text-center">
+                        <div class="flex justify-center">
+                            <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
+                                  :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
+                                #{{ pedido.logs.length - index }}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="table-cell">
+                        <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
+                            "{{ log.motivo_cambio || 'Sin justificación técnica' }}"
+                        </p>
+                    </td>
+                    <td class="table-cell">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 bg-slate-800 text-white rounded-lg flex items-center justify-center text-[8px] font-black uppercase">
+                                {{ log.user?.name?.charAt(0) || 'S' }}
+                            </div>
+                            <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
+                                {{ log.user?.name || 'Sistema' }}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="table-cell text-right">
+                        <div class="flex flex-col items-end">
+                            <span class="text-[11px] font-black text-slate-800 uppercase leading-none">
+                                {{ formatDateOnly(log.created_at) }}
+                            </span>
+                            <span class="text-[9px] font-bold text-slate-400 mt-1 uppercase italic">
+                                {{ formatTimeOnly(log.created_at) }}
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+                
+                <tr v-if="!pedido.logs || pedido.logs.length === 0">
+                    <td colspan="4" class="px-6 py-16 text-center">
+                        <div class="flex flex-col items-center opacity-40">
+                            <i class="fas fa-shield-alt text-4xl text-slate-300 mb-4"></i>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Expediente con integridad original</p>
+                            <p class="text-[9px] text-slate-400 mt-1 italic">No se han registrado ajustes posteriores al registro inicial.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
                 </div>
 
                 <!-- 6. EXPEDIENTE DIGITAL -->
@@ -448,9 +456,42 @@ onMounted(() => {
     font-size: 0.7rem;
     font-weight: 800;
     text-transform: uppercase;
-    cursor: pointer;
+    cursor:pointer;
 }
 
+.table-header { 
+    padding: 14px 16px; 
+    font-size: 0.7rem; 
+    font-weight: 800; 
+    color: #64748b; 
+    text-transform: uppercase; 
+    text-align: left; 
+}
+
+.table-cell { 
+    padding: 14px 16px; 
+    font-size: 0.85rem; 
+    vertical-align: middle; 
+    border-bottom: 1px solid #f1f5f9; 
+}
+
+.table-shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+}
+
+.animate-fade-in { 
+    animation: fadeIn 0.3s ease-out; 
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(-10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+/* Manejo de texto de motivo */
+.leading-relaxed {
+    line-height: 1.5;
+}
 .value-text { color: #be5e5e; line-height: 1.4; }
 .label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 </style>
