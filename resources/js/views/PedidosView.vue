@@ -271,12 +271,7 @@
                     </div>
                 </div>
 
-                <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
-                    <div class="form-group">
-                        <label class="label-style">Comentarios Generales del Pedido:</label>
-                        <textarea v-model="orderForm.comments" required minlength="10" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES..."></textarea>
-                    </div>
-                </div>
+               
 
                 <!-- 3. SELECCIÓN DE MATERIAL -->
                 <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.items}">
@@ -329,6 +324,13 @@
                                 </tfoot>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                 <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
+                    <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 4. Comentarios Generales del Pedido:</div>
+                    <div class="form-group">
+                        <textarea v-model="orderForm.comments" required minlength="10" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES..."></textarea>
                     </div>
                 </div>
 
