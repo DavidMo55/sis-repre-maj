@@ -346,11 +346,21 @@
                     </div>
                 </div>
 
+                <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
+                    <div class="section-title text-black">
+                        <i class="fas fa-history text-red-700"></i> 4. Comentarios Generales del Pedido (Opcional):
+                    </div>
+                    <div class="form-group">
+                        
+                        <textarea v-model="orderForm.comments" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES PARA ALMACÉN..."></textarea>
+                    </div>
+                </div>
+
 
                 <!-- 3. MOTIVO DEL CAMBIO -->
                 <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                     <div class="section-title text-black">
-                        <i class="fas fa-history text-red-700"></i> 4. Motivo de la Modificación
+                        <i class="fas fa-history text-red-700"></i> 5. Motivo de la Modificación
                     </div>
                     <div class="form-group">
                         <label class="label-style">Explique el motivo del ajuste para la bitácora *</label>
@@ -358,12 +368,7 @@
                     </div>
                 </div>
 
-                <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
-                    <div class="form-group">
-                        <label class="label-style">Comentarios Generales del Pedido (Opcional):</label>
-                        <textarea v-model="orderForm.comments" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES PARA ALMACÉN..."></textarea>
-                    </div>
-                </div>
+                
                 <div class="mt-12 flex justify-end">
                     <button type="submit" class="btn-primary px-20 py-6 text-lg font-black tracking-widest shadow-2xl transition-all active:scale-95" :disabled="loading || isFormBlockedByDuplicates">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save mr-3'"></i> GUARDAR CAMBIOS
