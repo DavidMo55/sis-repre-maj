@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/estados', [SearchController::class, 'getEstados']);
     Route::get('/search/receptores/rfc', [SearchController::class, 'searchReceptorByRFC']);
     Route::get('/search/receptores', [SearchController::class, 'searchReceptores']);
+    Route::get('/search/receptores/check-rfc', [SearchController::class, 'checkRfcUniqueness']);
 
     // Visitas y Prospectos
     Route::get('/visitas', [VisitaController::class, 'index']);

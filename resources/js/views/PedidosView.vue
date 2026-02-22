@@ -152,20 +152,18 @@
                                     
                                     <div class="flex flex-wrap gap-x-8 gap-y-2">
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span class="text-black font-black">{{ activeReceiverDisplay.rfc }}</span></p>
-                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-envelope mr-2 text-red-300"></i> {{ activeReceiverDisplay.correo || activeReceiverDisplay.email }}</p>
-                                    </div>
-
-                                    <div class="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Régimen Fiscal</label>
-                                        <p class="text-xs font-bold text-slate-800 uppercase flex items-center">
-                                            <i class="fas fa-file-invoice text-red-700 mr-2"></i>
-                                            {{ activeReceiverDisplay.regimen_fiscal || activeReceiverDisplay.receiver_regimen_fiscal || 'SIN RÉGIMEN' }}
-                                        </p>
+                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-file-invoice mr-2 text-red-300"></i> Régimen: <span class="text-black font-black">{{ activeReceiverDisplay.regimen_fiscal || activeReceiverDisplay.receiver_regimen_fiscal || 'SIN RÉGIMEN' }}</span></p>
                                     </div>
                                     
-                                   <p class="text-xs text-red-500 mt-4 italic font-medium leading-relaxed uppercase">
-                                        <i class="fas fa-map-marker-alt mr-2 text-red-400"></i> 
-                                        {{ activeReceiverDisplay.direccion }}
+                                    <div class="flex flex-wrap gap-x-8 gap-y-2 mt-2">
+                                        <p class="text-xs font-bold text-red-600" style="text-transform: none !important;">
+                                            <i class="fas fa-envelope mr-2 text-red-300"></i> Correo: <span class="text-black font-black">{{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}</span>
+                                        </p>
+                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-phone mr-2 text-red-300"></i> Tel: <span class="text-black font-black">{{ activeReceiverDisplay.telefono || activeReceiverDisplay.phone }}</span></p>
+                                    </div>
+
+                                    <p class="text-xs font-bold text-red-600 uppercase mt-4">
+                                        <i class="fas fa-map-marker-alt mr-2 text-red-300"></i> Dirección: <span class="text-black font-black"> {{ activeReceiverDisplay.direccion }}</span>
                                     </p>
                                 </div>
                                 <i class="fas fa-user-check absolute -right-6 -bottom-6 text-[10rem] text-red-50/50"></i>
@@ -177,31 +175,38 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div class="form-group relative">
                                     <label class="label-style">RFC *</label>
-                                    <input 
-                                        v-model="orderForm.receiver.rfc" 
-                                        @blur="validateUniqueness('rfc')" 
-                                        type="text" 
-                                        class="form-input font-mono uppercase font-black" 
-                                        :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50 text-red-700' : 'text-slate-700'"
-                                        placeholder="XXXXXXXXXXXXX" required minlength="12" maxlength="13"
-                                    >
-                                    <!-- MENSAJE DE ERROR DINÁMICO DESDE EL SERVIDOR -->
+                                    <div class="relative">
+                                        <input 
+                                            v-model="orderForm.receiver.rfc" 
+                                            @blur="validateUniqueness('rfc')"
+                                            @change="validateUniqueness('rfc')"
+                                            type="text" 
+                                            class="form-input font-mono uppercase font-black" 
+                                            :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : 'text-slate-700'"
+                                            placeholder="XXXXXXXXXXXXX" required minlength="12" maxlength="13"
+                                        >
+                                        <i v-if="validatingFields.rfc" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    </div>
                                     <p v-if="fieldValidation.rfc.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
-                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message || 'Dato no disponible' }}
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message }}
                                     </p>
                                 </div>
                                 <div class="form-group relative">
                                     <label class="label-style">Destinatario *</label>
-                                    <input 
-                                        v-model="orderForm.receiver.persona_recibe" 
-                                        @blur="validateUniqueness('persona_recibe')" 
-                                        type="text" 
-                                        class="form-input font-bold uppercase"
-                                        :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700' : ''"
-                                        placeholder="NOMBRE COMPLETO" required minlength="5"
-                                    >
+                                    <div class="relative">
+                                        <input 
+                                            v-model="orderForm.receiver.persona_recibe" 
+                                            @blur="validateUniqueness('persona_recibe')" 
+                                            @change="validateUniqueness('persona_recibe')"
+                                            type="text" 
+                                            class="form-input font-bold uppercase"
+                                            :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : ''"
+                                            placeholder="NOMBRE COMPLETO" required minlength="5"
+                                        >
+                                        <i v-if="validatingFields.persona_recibe" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    </div>
                                     <p v-if="fieldValidation.persona_recibe.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
-                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.persona_recibe.message || 'Nombre duplicado' }}
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.persona_recibe.message }}
                                     </p>
                                 </div>
                                 <div class="form-group">
@@ -216,32 +221,40 @@
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="form-group">
+                                <div class="form-group relative">
                                     <label class="label-style">Correo Electrónico *</label>
-                                    <input 
-                                        v-model="orderForm.receiver.correo" 
-                                        @blur="validateUniqueness('correo')" 
-                                        type="email" 
-                                        class="form-input text-red-700 font-bold" 
-                                        :class="fieldValidation.correo.error ? 'border-red-600 bg-red-50' : ''"
-                                        placeholder="correo@ejemplo.com" required
-                                    >
+                                    <div class="relative">
+                                        <input 
+                                            v-model="orderForm.receiver.correo" 
+                                            @blur="validateUniqueness('correo')" 
+                                            @change="validateUniqueness('correo')"
+                                            type="email" 
+                                            class="form-input text-red-700 font-bold" 
+                                            :class="fieldValidation.correo.error ? 'border-red-600 bg-red-50 ring-2 ring-red-400 ring-offset-1' : ''"
+                                            placeholder="correo@ejemplo.com" required
+                                        >
+                                        <i v-if="validatingFields.correo" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    </div>
                                     <p v-if="fieldValidation.correo.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
-                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.correo.message || 'Correo ya registrado' }}
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.correo.message }}
                                     </p>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group relative">
                                     <label class="label-style">Teléfono *</label>
-                                    <input 
-                                        v-model="orderForm.receiver.telefono" 
-                                        @blur="validateUniqueness('telefono')" 
-                                        type="tel" 
-                                        class="form-input text-red-700 font-bold uppercase" 
-                                        :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50' : ''"
-                                        placeholder="10 DÍGITOS" required minlength="10" maxlength="10"
-                                    >
+                                    <div class="relative">
+                                        <input 
+                                            v-model="orderForm.receiver.telefono" 
+                                            @blur="validateUniqueness('telefono')" 
+                                            @change="validateUniqueness('telefono')"
+                                            type="tel" 
+                                            class="form-input text-red-700 font-bold uppercase" 
+                                            :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50 ring-2 ring-red-400 ring-offset-1' : ''"
+                                            placeholder="10 DÍGITOS" required minlength="10" maxlength="10"
+                                        >
+                                        <i v-if="validatingFields.telefono" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    </div>
                                     <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
-                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.telefono.message || 'Teléfono ya registrado' }}
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.telefono.message }}
                                     </p>
                                 </div>
                             </div>
@@ -271,8 +284,6 @@
                     </div>
                 </div>
 
-               
-
                 <!-- 3. SELECCIÓN DE MATERIAL -->
                 <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.items}">
                     <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 3. Selección de Material</div>
@@ -288,7 +299,7 @@
                                 <li v-for="book in currentOrderItem.bookSuggestions" :key="book.id" @click="selectBook(book)" class="p-3 border-b last:border-0 hover:bg-red-50 transition-colors cursor-pointer text-xs font-black uppercase text-black">{{ book.titulo }}</li>
                             </ul>
                         </div>
-                        <div class="md:col-span-3"><label class="label-mini">Formato / Licencia</label><select class="form-input font-bold text-red-700 uppercase text-xs" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
+                        <div class="md:col-span-3"><label class="label-mini">Formato</label><select class="form-input font-bold text-red-700 uppercase text-xs" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
                         <div class="md:col-span-1"><label class="label-mini">Cant.</label><input type="number" min="1" class="form-input font-bold text-red-700" v-model.number="currentOrderItem.quantity"></div>
                         <div class="md:col-span-2"><label class="label-mini">P. Unitario ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700 disabled:text-slate-400 disabled:bg-slate-100" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
                         <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95"><i class="fas fa-cart-plus mr-1"></i>Añadir</button></div>
@@ -301,7 +312,7 @@
                                 <thead class="bg-black text-white text-[9px] font-black uppercase tracking-widest">
                                     <tr><th class="px-6 py-5 text-left">Título</th><th class="px-6 py-5 text-center">Tipo</th><th class="px-6 py-5 text-center">Cant.</th><th class="px-6 py-5 text-right">Total</th><th class="px-6 py-5"></th></tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-red-50">
+                                <tbody class="divide-y divide-red-50">
                                     <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-red-50/50 transition-colors group">
                                         <td class="table-cell">
                                             <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
@@ -366,9 +377,9 @@
                                     <i class="fas fa-exclamation-triangle text-3xl animate-pulse"></i>
                                 </div>
                                 <div class="text-danger bgcolor flex flex-col justify-content-center rounded-3 p-4 shadow-inner border border-danger mb-8">
-                                    <h4 class="mb-2 font-black uppercase tracking-tighter text-red-700 text-sm">Atención: Registros duplicados</h4>
+                                    <h4 class="mb-2 font-black uppercase tracking-tighter text-red-700 text-sm text-center">Atención: Integridad de Datos</h4>
                                     <p class="mb-0 font-bold uppercase text-[10px] text-red-600 leading-relaxed text-center">
-                                        {{ systemModal.errorList[0] || 'Este dato ya existe globalmente en el sistema.' }}
+                                        {{ systemModal.errorList[0] || 'Uno o más datos ingresados pertenecen a otro representante.' }}
                                     </p>
                                 </div>
                             </div>
@@ -441,15 +452,14 @@ const isFormBlockedByDuplicates = computed(() => {
 });
 
 /**
- * REGLA SOLICITADA: Al detectar duplicado global, abrir modal automáticamente.
+ * REGLA: Al detectar duplicado global, abrir modal automáticamente.
  */
 watch(isFormBlockedByDuplicates, (val) => {
     if (val) {
-        // Buscamos el primer mensaje de error disponible para el modal
         const activeError = fieldValidation.rfc.message || fieldValidation.correo.message || fieldValidation.telefono.message || fieldValidation.persona_recibe.message;
         systemModal.type = 'error';
         systemModal.title = 'Integridad de Datos';
-        systemModal.errorList = [activeError || 'Los datos pertenecen a otro representante.'];
+        systemModal.errorList = [activeError || 'Este dato ya pertenece a otro representante.'];
         systemModal.visible = true;
     }
 });
@@ -501,44 +511,47 @@ const selectExistingReceiver = (rec) => {
     searchReceiverQuery.value = rec.nombre;
 };
 
-/**
- * VALIDACIÓN GLOBAL DE UNICIDAD:
- * Comprueba si los datos existen en toda la base de datos e informa al usuario.
- */
 const validateUniqueness = async (field) => {
     let val = '';
-    let queryParam = field; 
+    let queryParam = field;
+
     if (field === 'persona_recibe') { val = orderForm.receiver.persona_recibe?.trim(); queryParam = 'nombre'; }
     else if (field === 'rfc') val = orderForm.receiver.rfc?.trim().toUpperCase();
     else if (field === 'correo') val = orderForm.receiver.correo?.trim().toLowerCase();
     else if (field === 'telefono') val = orderForm.receiver.telefono?.trim();
 
-    // Requisito de longitud mínima para disparar la red
-    if (!val || val.length < 5) { 
-        if(fieldValidation[field]) {
+    if (!val || val.length < 3) {
+        if (fieldValidation[field]) {
             fieldValidation[field].error = false;
             fieldValidation[field].message = '';
         }
-        return; 
+        return;
     }
+
+    // Mensajes en español por campo
+    const mensajesDuplicado = {
+        rfc: 'Este RFC ya está registrado por otro representante.',
+        correo: 'Este correo electrónico ya pertenece a otro receptor.',
+        telefono: 'Este número de teléfono ya está registrado.',
+        persona_recibe: 'Este nombre ya existe en el sistema de otro representante.',
+    };
 
     validatingFields[field] = true;
     try {
-        // Consultamos el endpoint unificado de unicidad
         const res = await axios.get('/search/receptores/check-rfc', { params: { [queryParam]: val } });
-        
-        // Si el servidor devuelve status 'conflict', hay un duplicado
+
         if (res.data.status === 'conflict') {
             fieldValidation[field].error = true;
-            fieldValidation[field].message = res.data.message;
+            // Usa mensaje en español propio, o el del backend si ya viene en español
+            fieldValidation[field].message = mensajesDuplicado[field] || res.data.message;
         } else {
             fieldValidation[field].error = false;
             fieldValidation[field].message = '';
         }
-    } catch (e) { 
-        fieldValidation[field].error = false; 
-    } finally { 
-        validatingFields[field] = false; 
+    } catch (e) {
+        fieldValidation[field].error = false;
+    } finally {
+        validatingFields[field] = false;
     }
 };
 
@@ -620,10 +633,10 @@ const submitOrder = async () => {
     if (isFormBlockedByDuplicates.value) return;
 
     const list = [];
-    if (!orderForm.clientId) list.push("SELECCIONE CLIENTE.");
-    if (orderForm.receiverType === 'existente' && !selectedExistingReceiver.value) list.push("SELECCIONE UN RECEPTOR DE LA LISTA DE BÚSQUEDA.");
-    if (orderForm.orderItems.length === 0) list.push("LA CANASTA ESTÁ VACÍA.");
-
+    if (!orderForm.clientId) list.push("Debe seleccionar un cliente o plantel.");
+    if (!orderForm.receiverType) list.push("Debe indicar el origen de datos de envío.");
+    if (orderForm.receiverType === 'existente' && !selectedExistingReceiver.value) list.push("Seleccione un receptor de su agenda personal.");
+    if (orderForm.orderItems.length === 0) list.push("Agregue al menos un material a la orden.");
     if (list.length > 0) {
         systemModal.visible = true; systemModal.type = 'error'; systemModal.title = 'DATOS INCOMPLETOS'; systemModal.errorList = list;
         return;
@@ -666,11 +679,22 @@ const submitOrder = async () => {
         generatedOrderId.value = res.data.order_id;
         systemModal.type = 'success'; systemModal.visible = true;
     } catch (e) {
-        systemModal.type = 'error'; systemModal.title = 'ERROR AL PROCESAR';
-        if (e.response?.status === 422 && e.response.data.errors) systemModal.errorList = Object.values(e.response.data.errors).flat();
-        else systemModal.errorList = [e.response?.data?.message || "ERROR INESPERADO EN EL SERVIDOR."];
-        systemModal.visible = true;
-    } finally { loading.value = false; }
+     systemModal.type = 'error';
+systemModal.title = 'Error al procesar el pedido';
+if (e.response?.status === 422 && e.response.data.errors) {
+    // Traducción de errores comunes de Laravel
+    const traducciones = {
+        'The rfc field is required.': 'El RFC es obligatorio.',
+        'The correo field is required.': 'El correo electrónico es obligatorio.',
+        'The telefono field is required.': 'El teléfono es obligatorio.',
+        'The cp field is required.': 'El código postal es obligatorio.',
+        'The items field is required.': 'Debe agregar al menos un artículo.',
+        'The comments field is required.': 'Los comentarios del pedido son obligatorios.',
+    };
+    systemModal.errorList = Object.values(e.response.data.errors).flat().map(msg => traducciones[msg] || msg);
+} else {
+    systemModal.errorList = [e.response?.data?.message || 'Ocurrió un error inesperado. Intente nuevamente.'];
+} }finally { loading.value = false; }
 };
 
 const closeAndRedirect = () => { systemModal.visible = false; router.push('/pedidos'); };
@@ -727,7 +751,7 @@ input.uppercase { text-transform: uppercase; }
 .badge-material-sale { @apply bg-black text-white px-3 py-1 rounded-full text-[9px] font-black; }
 .badge-material-promo { @apply bg-red-600 text-white px-3 py-1 rounded-full text-[9px] font-black; }
 
-.bgcolor { background: #e7f684; border-radius: 12px; padding: 16px; }
+.bgcolor { background: #fef2f2; border: 1px solid #fee2e2; padding: 16px; border-radius: 12px; }
 .text-danger { color: #dc2626; }
 .border-danger { border-color: #dc2626; }
 </style>

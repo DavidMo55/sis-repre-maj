@@ -120,42 +120,51 @@ class SearchController extends Controller
      * REGLA: Busca en toda la base de datos para prevenir duplicados globales y 
      * marca el registro como privado si pertenece a otro representante.
      */
-    public function checkRfcUniqueness(Request $request)
+  public function checkRfcUniqueness(Request $request)
     {
         $rfc = $request->query('rfc');
-        $correo = $request->query('correo');
-        $telefono = $request->query('telefono');
-        $name = $request->query('nombre');
+        $correo = $request->query('correo') ?? $request->query('email');
+        $telefono = $request->query('telefono') ?? $request->query('phone');
+        $name = $request->query('nombre') ?? $request->query('name');
         
         $user = Auth::user();
         $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-        // Cambiamos el modelo a Cliente porque es lo que estamos validando en la Visita
-        $query = Cliente::query();
+        // 1. Intentar encontrar conflicto en la tabla maestra de Clientes/Prospectos
+        $conflicto = null;
+        $fuente = 'clientes';
 
-        if ($rfc) $query->where('rfc', strtoupper($rfc));
-        elseif ($correo) $query->where('email', strtolower($correo));
-        elseif ($telefono) $query->where('telefono', $telefono);
-        elseif ($name) $query->where('name', strtoupper($name));
-        else return response()->json(['status' => 'error', 'message' => 'Sin datos'], 400);
+        if ($rfc) $conflicto = Cliente::where('rfc', strtoupper($rfc))->first();
+        elseif ($correo) $conflicto = Cliente::where('email', strtolower($correo))->first();
+        elseif ($telefono) $conflicto = Cliente::where('telefono', $telefono)->first();
+        elseif ($name) $conflicto = Cliente::where('name', strtoupper($name))->first();
 
-        $existente = $query->first();
+        // 2. Si no hay conflicto en clientes, buscar en la agenda de Receptores
+        if (!$conflicto) {
+            $fuente = 'receptores';
+            if ($rfc) $conflicto = PedidoReceptor::where('rfc', strtoupper($rfc))->first();
+            elseif ($correo) $conflicto = PedidoReceptor::where('correo', strtolower($correo))->first();
+            elseif ($telefono) $conflicto = PedidoReceptor::where('telefono', $telefono)->first();
+            elseif ($name) $conflicto = PedidoReceptor::where('nombre', strtoupper($name))->first();
+        }
 
-        if (!$existente) {
+        if (!$conflicto) {
             return response()->json(['status' => 'success', 'available' => true]);
         }
 
-        $isPrivate = ($existente->user_id !== $ownerId);
+        // Determinar si el registro le pertenece al usuario actual
+        $isPrivate = ($conflicto->user_id !== $ownerId);
+        $nombreConflicto = $conflicto->name ?? $conflicto->nombre;
 
         return response()->json([
             'status' => 'conflict',
             'available' => false,
             'is_private' => $isPrivate,
-            'id' => $existente->id,
-            'nombre' => $existente->name,
+            'id' => $conflicto->id,
+            'nombre' => $nombreConflicto,
             'message' => $isPrivate 
-                ? 'ESTE DATO PERTENECE A OTRO REPRESENTANTE Y NO PUEDE SER DUPLICADO.' 
-                : 'YA TIENES REGISTRADO ESTE PLANTEL EN TU CARTERA.'
+                ? 'ESTE DATO PERTENECE A OTRO REPRESENTANTE Y NO ES ACCESIBLE PARA TI.' 
+                : 'YA TIENES REGISTRADO ESTE DATO COMO "' . strtoupper($nombreConflicto) . '".'
         ]);
     }
 
