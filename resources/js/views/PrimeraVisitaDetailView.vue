@@ -159,10 +159,7 @@
 
 
                                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-                                     <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
-                                        {{ h.resultado_visita }}
-                                    </span>
-                                    <br><br>
+                                     
                                     <!-- LÓGICA: Solo permite modificar si no se ha modificado antes -->
                                     <button 
                                         v-if="(h.modificaciones_realizadas || 0) < 1"
@@ -175,7 +172,7 @@
                                     <!-- BOTÓN VER DETALLE (Controlador del Acordeón) -->
                                     <button 
                                         @click="toggleExpand(h.id)"
-                                        class="btn-secondary !border-red-600 !text-red-700 hover:bg-red-50 hover:scale-105 transition-all"
+                                        class="btn-primary !border-red-600 !text-red-700 hover:bg-red-50 hover:scale-105 transition-all"
                                     >
                                         <i class="fas" :class="expandedId === h.id ? 'fa-eye-slash' : 'fa-plus-circle'"></i>
                                         <span class="ml-2">{{ expandedId === h.id ? 'OCULTAR' : 'VER DETALLE' }}</span>
@@ -219,14 +216,7 @@
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <h5 class="text-black font-black uppercase text-[11px] label-large tracking-widest mb-4 flex items-center gap-2">
-                                                <i class="fas fa-comment-dots text-red-700 label-large"></i> Observaciones
-                                            </h5>
-                                            <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner">
-                                                "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
-                                            </div>
-                                        </div>
+                                        
                                     </div>
 
                                     <div class="space-y-8">
@@ -235,68 +225,86 @@
                                         </h5>
                                         
                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in">
-    <div class="table-container">
-        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-            <table class="min-width-full divide-y divide-gray-200">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="table-header">Material de Interés</th>
-                        <th class="table-header text-right">Formato</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white bk divide-y divide-gray-100">
-                    <tr v-for="(item, i) in parseMateriales(h.libros_interes).interes" :key="i" class="hover:bg-gray-50 transition-colors">
-                        <td class="table-cell">
-                            <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
-                                {{ item.titulo }}
-                            </div>
-                        </td>
-                        <td class="table-cell text-right">
-                            <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
-                                {{ (item.tipo || 'Físico').toUpperCase() }}
-                            </span>
-                        </td>
-                    </tr>
-                    <tr v-if="!parseMateriales(h.libros_interes).interes.length">
-                        <td colspan="2" class="px-5 py-10 text-center text-[10px] text-slate-300 font-black uppercase tracking-widest italic">
-                            Sin intereses registrados
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-<br>
-    <div class="table-container">
-        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white border-red-100">
-            <table class="min-width-full divide-y divide-gray-200">
-                <thead class="bg-red-50">
-                    <tr>
-                        <th class="table-header !text-red-800">Muestra Entregada</th>
-                        <th class="table-header text-right !text-red-800">Cantidad</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white bk divide-y divide-red-50">
-                    <tr v-for="(item, i) in parseMateriales(h.libros_interes).entregado" :key="i" class="hover:bg-red-50/30 transition-colors">
-                        <td class="table-cell">
-                            <div class="text-sm font-bold text-red-900 uppercase leading-tight">
-                                {{ item.titulo }}
-                            </div>
-                        </td>
-                        <td class="table-cell text-right">
-                            <span class="text-sm font-black text-red-600 bg-red-100 px-3 py-1 rounded-lg border border-red-200">
-                                {{ item.cantidad }}
-                            </span>
-                        </td>
-                    </tr>
-                    <tr v-if="!parseMateriales(h.libros_interes).entregado.length">
-                        <td colspan="2" class="px-5 py-10 text-center text-[10px] text-red-200 font-black uppercase tracking-widest italic">
-                            No se entregaron muestras físicas
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                                            <div class="table-container">
+                                                <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                                                    <table class="min-width-full divide-y divide-gray-200">
+                                                        <thead class="bg-gray-100">
+                                                            <tr>
+                                                                <th class="table-header">Material de Interés</th>
+                                                                <th class="table-header text-right">Formato</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="bg-white bk divide-y divide-gray-100">
+                                                            <tr v-for="(item, i) in parseMateriales(h.libros_interes).interes" :key="i" class="hover:bg-gray-50 transition-colors">
+                                                                <td class="table-cell">
+                                                                    <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                                                        {{ item.titulo }}
+                                                                    </div>
+                                                                </td>
+                                                                <td class="table-cell text-right">
+                                                                    <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
+                                                                        {{ (item.tipo || 'Físico').toUpperCase() }}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                            <tr v-if="!parseMateriales(h.libros_interes).interes.length">
+                                                                <td colspan="2" class="px-5 py-10 text-center text-[10px] text-slate-300 font-black uppercase tracking-widest italic">
+                                                                    Sin intereses registrados
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                
+                                            </div>
+                                        <br>
+                                            <div class="table-container">
+                                                <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white border-red-100">
+                                                    <table class="min-width-full divide-y divide-gray-200">
+                                                        <thead class="bg-red-50">
+                                                            <tr>
+                                                                <th class="table-header !text-red-800">Muestra Entregada</th>
+                                                                <th class="table-header text-right !text-red-800">Cantidad</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="bg-white bk divide-y divide-red-50">
+                                                            <tr v-for="(item, i) in parseMateriales(h.libros_interes).entregado" :key="i" class="hover:bg-red-50/30 transition-colors">
+                                                                <td class="table-cell">
+                                                                    <div class="text-sm font-bold text-red-900 uppercase leading-tight">
+                                                                        {{ item.titulo }}
+                                                                    </div>
+                                                                </td>
+                                                                <td class="table-cell text-right">
+                                                                    <span class="text-sm font-black text-red-600 bg-red-100 px-3 py-1 rounded-lg border border-red-200">
+                                                                        {{ item.cantidad }}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                            <tr v-if="!parseMateriales(h.libros_interes).entregado.length">
+                                                                <td colspan="2" class="px-5 py-10 text-center text-[10px] text-red-200 font-black uppercase tracking-widest italic">
+                                                                    No se entregaron muestras físicas
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                        <div>
+
+                                             <p class="label-large"><i class="fas fa-comment-dots text-red-700 label-large"></i>RESOLUCIÓN / RESULTADO</p>
+                                            <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
+                                        {{ h.resultado_visita }}
+                                    </span>
+
+                                            <h5 class="text-black font-black uppercase text-[11px] label-large tracking-widest mb-4 flex items-center gap-2">
+                                                <i class="fas fa-comment-dots text-red-700 label-large"></i> Observaciones
+                                            </h5>
+                                            <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner">
+                                                "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
+                                            </div>
+                                            <br>
+                                           
+                                        </div>
     </div>
 </div></div>
                                 </div>
@@ -576,6 +584,10 @@ onMounted(fetchVisitaDetail);
 
 /* Botón Editar y Desplegar dentro de Historial */
 .btn-edit-inline { @apply bg-white border-2 border-slate-200 text-slate-500 py-1.5 px-4 rounded-xl text-[10px] font-black uppercase hover:bg-red-50 hover:text-red-700 hover:border-red-200; cursor: pointer; }
+
+.btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d8afbb 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
+
 
 .btn-secondary {
     padding: 8px 15px;
