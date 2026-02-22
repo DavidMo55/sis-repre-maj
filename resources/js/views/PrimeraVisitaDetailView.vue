@@ -56,12 +56,12 @@
                             
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="data-row">
-                                    <label class="label-large">RFC del Plantel (Identificador Único)</label>
+                                    <label class="label-large">RFC del Plantel</label>
                                     <p class="value-text font-mono uppercase tracking-widest">{{ visita.rfc_plantel || visita.cliente?.rfc || 'No registrado' }}</p>
                                 </div>
 
                                  <div class="data-row">
-                                <label class="label-large">Ubicación Geográfica (GPS)</label>
+                                <label class="label-large">Ubicación Geográfica</label>
                                 <div v-if="visita.latitud" class="flex items-center gap-3 bg-red-50/30 p-4 rounded-2xl border border-red-100 mt-2">
                                     <div class="w-12 h-12 bg-red-700 text-white rounded-xl flex items-center justify-center shadow-lg">
                                         <i class="fas fa-map-marker-alt"></i>
@@ -75,7 +75,7 @@
                             </div>
 
                                 <div class="data-row">
-                                    <label class="label-large">Niveles Educativos del Plantel</label>
+                                    <label class="label-large">Niveles Educativos</label>
                                     <div class="flex flex-wrap gap-1.5 mt-1">
                                         <span v-for="n in formatLevels(visita.nivel_educativo_plantel || visita.cliente?.nivel_educativo)" :key="n" class="value-text   badge-red-outline">
                                           -  {{ n }}
@@ -91,7 +91,7 @@
                                     <p class="value-text uppercase">{{ visita.estado?.estado || 'No especificado' }}</p>
                                 </div>
                                 <div class="data-row">
-                                    <label class="label-large">Dirección Completa (Para Envío)</label>
+                                    <label class="label-large">Dirección Completa</label>
                                     <p class="value-text uppercase">{{ visita.direccion_plantel|| 'No especificado' }}</p>
                                 </div>
                                
@@ -102,7 +102,7 @@
                         <!-- Columna Contacto -->
                         <div class="space-y-6">
                             <div class="data-row">
-                                <label class="label-large">Celular / Teléfono</label>
+                                <label class="label-large">Teléfono</label>
                                 <p class="value-text tracking-tighter"><i class="fas fa-phone-alt mr-2 opacity-30"></i>{{ visita.telefono_plantel || visita.cliente?.telefono || 'N/A' }}</p>
                             </div>
                           <div class="data-row">
@@ -148,12 +148,18 @@
                                         <h4 class="text-xl font-black text-black uppercase tracking-tight truncate max-w-[200px] md:max-w-none">
                                             {{ formatDate(h.fecha) }}
                                         </h4>
-                                        <p class="text-[11px] label-large font-bold text-red-900 mt-0.5 uppercase tracking-tighter italic">
-                                            Atendido por: 
-                                        </p>
-                                        <p class=" text-[11px]  font-bold text-red-900 mt-0.5 uppercase tracking-tighter italic">
-                                                {{ h.persona_entrevistada }}
-                                        </p>
+                                         <p class="label-large"><i class="fas fa-comment-dots text-red-700 label-large"></i>Estatus</p>
+                                            <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
+                                        {{ h.resultado_visita }}
+                                    </span>
+                                         <div>
+                                                        <label class="label-large">Persona Entrevistada</label>
+                                                        <p class="value-text">{{ h.persona_entrevistada }}</p>
+                                                    </div>
+                                                    <div>
+                                                        <label class="label-large">Cargo/Puesto</label>
+                                                        <p class="value-text">{{ h.cargo }}</p>
+                                                    </div>
                                     </div>
                                 </div>
 
@@ -191,31 +197,6 @@
                             <div v-if="expandedId === h.id" class="p-8 md:p-12 bg-slate-50/40 border-t border-slate-100 animate-fade-in">
                                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                                     <div class="space-y-8">
-                                        <div>
-                                            <h5 class="text-black font-black uppercase text-[11px] tracking-widest mb-4 flex items-center gap-2">
-                                                <i class="fas fa-id-badge text-red-700"></i> Resumen de la Entrevista
-                                            </h5>
-                                            <div class="bg-white p-6 rounded-3xl border border-slate-100 space-y-4 shadow-sm">
-                                                <div class="grid grid-cols-2 gap-6">
-                                                    <div>
-                                                        <label class="label-large">Persona Entrevista y Cargo</label>
-                                                        <p class="value-text">{{ h.persona_entrevistada }}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label class="label-large">Puesto</label>
-                                                        <p class="value-text">{{ h.cargo }}</p>
-                                                    </div>
-                                                </div>
-                                                <div v-if="h.proxima_visita_estimada" class="pt-3 border-t border-slate-50">
-                                                    <label class="label-large">Próxima Visita</label>
-                                                    <p class="text-xs font-black text-black uppercase">
-                                                        <i class="far fa-calendar-alt mr-1.5 text-red-600"></i>
-                                                        {{ formatDate(h.proxima_visita_estimada) }} — <span class="text-red-700 italic">{{ h.proxima_accion }}</span>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-
                                         
                                     </div>
 
@@ -331,10 +312,12 @@
                             <label class="label-large !text-red-700">Fecha Agendada</label>
                             <p class="text-4xl font-black text-black tracking-tighter mt-2">{{ formatDate(proximoCompromisoFinal.fecha) }}</p>
                             <div class="flex items-center justify-center gap-2 mt-4 bg-red-700 text-white p-3 rounded-2xl">
-                                <i class="fas fa-bullseye text-sm"></i>
+                                <p class="label-large "><i class="fas fa-bullseye text-sm"></i>Objetivo</p>
                                 <span class="text-[11px] font-black uppercase tracking-widest">{{ proximoCompromisoFinal.accion }}</span>
                             </div>
+                            <br>
                         </div>
+                        
                         <p v-else class="text-slate-400 italic text-sm">Sin fecha programada de retorno</p>
 
                         <button v-if="visita.resultado_visita === 'seguimiento' && visita.cliente?.tipo !== 'CLIENTE'" 
