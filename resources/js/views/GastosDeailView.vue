@@ -44,40 +44,42 @@
             </div>
 
             <!-- Contenido del Gasto -->
-            <div v-else-if="gasto" class="space-y-8 animate-fade-in pb-20">
-                
-                <!-- 1. RESUMEN EJECUTIVO (TOP BAR) -->
+            <div v-else-if="gasto" class="space-y-8 animate-fade-in pb-20 ">
+                <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-6 rounded-[2.5rem] border border-slate-100">
+                     <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">1. Resumen Ejecutivo</h2>
+                   
+                    <!-- 1. RESUMEN EJECUTIVO (TOP BAR) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div class="summary-stat shadow-premium border-t-4 border-t-slate-800">
-                        <span class="label-xs">Fecha del Viaje</span>
-                        <p class="stat-value">{{ formatDate(gasto.fecha) }}</p>
+                        <span class="label-lb">Fecha del Viaje</span>
+                        <p class="value-text ">{{ formatDate(gasto.fecha) }}</p>
                     </div>
                     <div class="summary-stat shadow-premium border-t-4 border-t-red-700">
-                        <span class="label-xs">Estado / Región</span>
-                        <p class="stat-value uppercase truncate" :title="gasto.estado_nombre">{{ gasto.estado_nombre || 'No definido' }}</p>
+                        <span class="label-lb">Estado / Región</span>
+                        <p class="value-text uppercase truncate" :title="gasto.estado_nombre">{{ gasto.estado_nombre || 'No definido' }}</p>
                     </div>
                     <div class="summary-stat shadow-premium bg-slate-900 border-none">
-                        <span class="label-xs text-slate-400">Inversión Total</span>
-                        <p class="stat-value text-red-400 font-black">{{ formatCurrency(gasto.monto) }}</p>
+                        <span class="label-lb text-slate-400">Inversión Total</span>
+                        <p class="value-text text-red-400 font-black">{{ formatCurrency(gasto.monto) }}</p>
                     </div>
                     <div class="summary-stat shadow-premium border-t-4" 
                          :class="gasto.status === 'FINALIZADO' ? 'border-t-green-600' : 'border-t-amber-500'">
-                        <span class="label-xs">Estatus Técnico</span>
-                        <p class="stat-value flex items-center gap-2" 
+                        <span class="label-lb">Estatus Técnico</span>
+                        <p class="value-text flex items-center gap-2" 
                            :class="gasto.status === 'FINALIZADO' ? 'text-green-700' : 'text-amber-600'">
                             <i class="fas" :class="gasto.status === 'FINALIZADO' ? 'fa-check-circle' : 'fa-pen-nib'"></i>
                             {{ gasto.status }}
                         </p>
                     </div>
                 </div>
-
+                </div>
                 <!-- 2. TABLA: DESGLOSE DE CONCEPTOS -->
                 <div class="info-card shadow-premium !p-0 overflow-hidden border border-slate-200 rounded-[2.5rem] bg-white">
                     <div class="p-6 md:p-8 border-b border-slate-50 flex items-center gap-3">
                         <div class="w-10 h-10 bg-red-50 text-red-600 rounded-xl flex items-center justify-center shadow-sm">
                             <i class="fas fa-receipt text-lg"></i>
                         </div>
-                        <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">Desglose de Conceptos</h2>
+                        <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">2. Desglose de Conceptos</h2>
                     </div>
 
                     <div class="overflow-x-auto p-4 md:p-8">
@@ -155,7 +157,7 @@
                         <i class="fas fa-quote-right text-6xl text-amber-200 rotate-12"></i>
                     </div>
                     <h3 class="text-[10px] font-black text-amber-600 uppercase mb-5 tracking-[0.2em] flex items-center gap-2 relative z-10">
-                        <i class="fas fa-comment-dots"></i> Notas del Representante
+                        <i class="fas fa-comment-dots"></i> 3. Notas del Representante
                     </h3>
                     <div class="relative z-10 bg-amber-50/50 p-6 rounded-3xl border border-dashed border-amber-200">
                         <p class="text-slate-800 text-base font-bold italic leading-relaxed whitespace-pre-wrap">
@@ -171,7 +173,7 @@
                             <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg">
                                 <i class="fas fa-history"></i>
                             </div>
-                            <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">Bitácora de Ajustes Técnicos</h2>
+                            <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">3. Bitácora de Ajustes Técnicos</h2>
                         </div>
                     </div>
 
@@ -345,6 +347,7 @@ onMounted(fetchGastoDetail);
     letter-spacing: 0.15em;
 }
 .label-large { display: block; font-size: 1rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
+.label-lb { display: block; font-size: 0.70rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 
 
 .table-responsive { width: 100%; overflow-x: auto; background: white; }
@@ -377,6 +380,6 @@ onMounted(fetchGastoDetail);
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
+.value-text { color: #be5e5e; line-height: 1.4; }
 .section-title { font-weight: 900; color: #1e293b; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; }
 </style>
