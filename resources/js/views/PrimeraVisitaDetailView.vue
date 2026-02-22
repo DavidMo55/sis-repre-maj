@@ -142,17 +142,21 @@
                                 
                                 <div class="flex items-center gap-6 w-full md:w-auto">
                                     <div class="min-w-0">
-                                        <p class="text-[8px] font-black uppercase tracking-[0.2em] mb-1" :class="h.es_primera_visita ? 'text-blue-600' : 'text-purple-600'">
+                                        <p class="text-[8px] label-large font-black uppercase tracking-[0.2em] mb-1" :class="h.es_primera_visita ? 'text-blue-600' : 'text-purple-600'">
                                             {{ h.es_primera_visita ? 'Apertura de Prospecto' : 'Interacción de Seguimiento' }}
                                         </p>
                                         <h4 class="text-xl font-black text-black uppercase tracking-tight truncate max-w-[200px] md:max-w-none">
                                             {{ formatDate(h.fecha) }}
                                         </h4>
-                                        <p class="text-[11px] font-bold text-red-600 mt-0.5 uppercase tracking-tighter italic">
-                                            Atendido por: {{ h.persona_entrevistada }}
+                                        <p class="text-[11px] label-large font-bold text-red-900 mt-0.5 uppercase tracking-tighter italic">
+                                            Atendido por: 
+                                        </p>
+                                        <p class=" text-[11px]  font-bold text-red-900 mt-0.5 uppercase tracking-tighter italic">
+                                                {{ h.persona_entrevistada }}
                                         </p>
                                     </div>
                                 </div>
+
 
                                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
                                      <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
@@ -216,8 +220,8 @@
                                         </div>
 
                                         <div>
-                                            <h5 class="text-black font-black uppercase text-[11px] tracking-widest mb-4 flex items-center gap-2">
-                                                <i class="fas fa-comment-dots text-red-700"></i> Observaciones
+                                            <h5 class="text-black font-black uppercase text-[11px] label-large tracking-widest mb-4 flex items-center gap-2">
+                                                <i class="fas fa-comment-dots text-red-700 label-large"></i> Observaciones
                                             </h5>
                                             <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner">
                                                 "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
@@ -226,7 +230,7 @@
                                     </div>
 
                                     <div class="space-y-8">
-                                        <h5 class="text-black font-black uppercase text-[11px] tracking-[0.2em] mb-4 flex items-center gap-2">
+                                        <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-4 flex items-center gap-2">
                                             <i class="fas fa-book-open text-red-700"></i> Materiales y Muestras
                                         </h5>
                                         
@@ -306,81 +310,7 @@
                     </div>
                 </div>
 
-                <!-- 3. BITÁCORA DE AJUSTES TÉCNICOS (Auditoría) -->
-                <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden mt-16">
-                    <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg">
-                                <i class="fas fa-user-shield"></i>
-                            </div>
-                            <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Bitácora de Ajustes Técnicos</h2>
-                        </div>
-                        <span v-if="allLogs.length" class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
-                            {{ allLogs.length }} MODIFICACIONES
-                        </span>
-                    </div>
 
-                    <div class="table-container mt-4 animate-fade-in">
-    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-        <table class="min-width-full divide-y divide-gray-200">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="table-header w-64">Intervención Editada</th>
-                    <th class="table-header">Motivo de la Modificación</th>
-                    <th class="table-header w-56">Responsable</th>
-                    <th class="table-header text-right w-48">Sincronización</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white bk divide-y divide-gray-100">
-                <tr v-for="(log, index) in allLogs" :key="log.id" class="hover:bg-gray-50 transition-colors">
-                    <td class="table-cell">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] font-black text-red-800 uppercase tracking-tighter">
-                                {{ log.visit_type === 'primera' ? 'Primera Visita' : 'Seguimiento' }}
-                            </span>
-                            <span class="text-[10px] font-bold text-gray-400 uppercase mt-1 italic">
-                                {{ formatDateShort(log.visit_date) }}
-                            </span>
-                        </div>
-                    </td>
-                    <td class="table-cell">
-                        <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
-                            "{{ log.motivo_cambio || 'SIN JUSTIFICACIÓN TÉCNICA' }}"
-                        </p>
-                    </td>
-                    <td class="table-cell">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[11px] font-black text-gray-800 uppercase tracking-tight">
-                                {{ log.user?.name || 'Representante' }}
-                            </span>
-                        </div>
-                    </td>
-                    <td class="table-cell text-right">
-                        <div class="flex flex-col items-end">
-                            <span class="text-[11px] font-black text-gray-800 uppercase">
-                                {{ formatDateOnly(log.created_at) }}
-                            </span>
-                            <span class="text-[9px] font-bold text-gray-400 mt-0.5 tracking-tighter uppercase">
-                                {{ formatTimeOnly(log.created_at) }}
-                            </span>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr v-if="allLogs.length === 0">
-                    <td colspan="4" class="px-6 py-20 text-center">
-                        <div class="flex flex-col items-center opacity-40">
-                            <i class="fas fa-shield-alt text-4xl text-slate-300 mb-4"></i>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Expediente con integridad original</p>
-                            <p class="text-[9px] text-slate-400 mt-1 italic">No se han registrado ajustes posteriores al registro inicial.</p>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-                </div>
 
                 <!-- 4. PRÓXIMO COMPROMISO -->
                 <div class="info-card border-none bg-slate-100 p-10 rounded-[3rem] border border-slate-200 shadow-sm mt-8 text-center">
@@ -405,6 +335,79 @@
                             <i class="fas fa-plus-circle mr-2 "></i> Registrar Nuevo Seguimiento
                         </button>
                     </div>
+                </div>
+
+                                <!-- 3. BITÁCORA DE AJUSTES TÉCNICOS (Auditoría) -->
+                <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden mt-16">
+                    <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
+                        
+                        <div class="section-title text-black !border-black/5">
+                            <i class="fas fa-handshake text-black"></i> 4. Bitácora de Ajustes Técnicos
+                        </div>
+                    </div>
+
+                    <div class="table-container mt-4 animate-fade-in">
+    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+        <table class="min-width-full divide-y divide-gray-200">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th class="table-header w-64">Intervención Editada</th>
+                    <th class="table-header">Motivo de la Modificación</th>
+                    <th class="table-header w-56">Responsable</th>
+                    <th class="table-header text-right w-48">Sincronización</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white bk divide-y divide-gray-100">
+                <tr v-for="(log, index) in allLogs" :key="log.id" class="hover:bg-gray-50 transition-colors">
+                    <td class="table-cell">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-black text-red-800 uppercase tracking-tighter">
+                                {{ log.visit_type === 'primera' ? 'Primera Visita' : 'Seguimiento' }}
+                            </span>
+                            <br>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase mt-1 italic">
+                                {{ formatDateShort(log.visit_date) }}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="table-cell">
+                        <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
+                            "{{ log.motivo_cambio || 'SIN JUSTIFICACIÓN TÉCNICA' }}"
+                        </p>
+                    </td>
+                    <td class="table-cell">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-black text-gray-800 uppercase tracking-tight">
+                                {{ log.user?.name || 'Representante' }}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="table-cell text-right">
+                        <div class="flex flex-col items-end">
+                            <span class="text-[11px] font-black text-gray-800 uppercase">
+                                {{ formatDateOnly(log.created_at) }}
+                            </span>
+                            <br>
+                            <span class="text-[9px] font-bold text-gray-400 mt-0.5 tracking-tighter uppercase">
+                                {{ formatTimeOnly(log.created_at) }}
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr v-if="allLogs.length === 0">
+                    <td colspan="4" class="px-6 py-20 text-center">
+                        <div class="flex flex-col items-center opacity-40">
+                            <i class="fas fa-shield-alt text-4xl text-slate-300 mb-4"></i>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Expediente con integridad original</p>
+                            <p class="text-[9px] text-slate-400 mt-1 italic">No se han registrado ajustes posteriores al registro inicial.</p>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
                 </div>
             </div>
         </div>
@@ -556,7 +559,7 @@ onMounted(fetchVisitaDetail);
 .section-title { font-weight: 900; color: #000000; margin-bottom: 30px; border-bottom: 2px solid #f8fafc; padding-bottom: 15px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; }
 
 .label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
-.value-text { color: #be5e5e; line-height: 1.4; font-weight: 800; }
+.value-text { color: #be5e5e; line-height: 1.4;  }
 
 .status-badge { padding: 6px 16px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; border: 1px solid transparent; }
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.08); }

@@ -95,11 +95,12 @@
                             </div>
 
                             <div class="pt-3 border-t border-slate-50 min-w-0">
-                                <label class="label-mini label-large text-slate-400">Correo y Contacto</label>
+                                <label class="label-mini label-large text-slate-400">Correo</label>
                                 <p class="text-xs font-bold text-slate-800 value-text truncate lowercase" style="text-transform: none !important;">
                                     <i class="fas fa-envelope mr-1 text-red-300"></i>
                                     {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.correo || pedido.receiver_correo || '---') : (pedido.cliente?.email || '---') }}
                                 </p>
+                                <label class="label-mini label-large text-slate-400">Telefono</label>
                                 <p class="text-xs font-bold text-slate-800 value-text mt-1 uppercase">
                                     <i class="fas fa-phone mr-1 text-red-300"></i>
                                     {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.telefono || pedido.receiver_telefono || 'N/A') : (pedido.cliente?.telefono || 'N/A') }}
@@ -151,12 +152,30 @@
                     </div>
                 </div>
 
+                    <!-- 4. COMENTARIOS GENERALES -->
+                <div v-if="pedido.comments" class="info-card comments-section bg-white p-8 md:p-10 rounded-[3rem] border-2 border-amber-200 shadow-premium relative overflow-hidden animate-fade-in mx-2">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-amber-50 rounded-full flex items-center justify-center opacity-40">
+                        <i class="fas fa-quote-right text-6xl text-amber-200 rotate-12"></i>
+                    </div>
+                    
+                    <div class="relative z-10">
+                        <span class="inline-flex label-mini label-large items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
+                            <i class="fas fa-comment-dots label-mini label-large"></i> Notas del Representante
+                        </span>
+                        <div class="bg-amber-50/50 p-6 rounded-[2rem] border border-dashed border-amber-200">
+                            <p class="text-slate-800 text-base md:text-lg font-bold italic leading-relaxed whitespace-pre-wrap">
+                                "{{ pedido.comments }}"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 3. DESGLOSE DE MATERIALES -->
                 <div class="mt-8">
                     <div class="info-card !p-0 shadow-premium border border-slate-200 rounded-[2.5rem] bg-white overflow-hidden border-slate-100">
-                        <div class="p-8 border-b border-slate-50 flex items-center gap-3">
-                            <i class="fas fa-list-ol text-red-700"></i>
-                            <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Selección Técnica de Materiales</h2>
+                        
+                         <div class="section-title !mb-6">
+                            <i class="fas fa-box-open text-red-700"></i> 4. Selección Técnica de Materiales
                         </div>
                         <div class="table-container mt-4 animate-fade-in">
     <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
@@ -222,32 +241,35 @@
                     </div>
                 </div>
 
-                <!-- 4. COMENTARIOS GENERALES -->
-                <div v-if="pedido.comments" class="info-card comments-section bg-white p-8 md:p-10 rounded-[3rem] border-2 border-amber-200 shadow-premium relative overflow-hidden animate-fade-in mx-2">
-                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-amber-50 rounded-full flex items-center justify-center opacity-40">
-                        <i class="fas fa-quote-right text-6xl text-amber-200 rotate-12"></i>
+                  <!-- 6. EXPEDIENTE DIGITAL -->
+                <div class="info-card shadow-premium border-l-8 border-l-slate-800 bg-white p-6 rounded-3xl overflow-hidden border border-slate-100">
+                    <div class="section-title !border-b-0 mb-6">
+                        <i class="fas fa-folder-open text-slate-800 "></i> 5. Expediente Digital y Documentos
                     </div>
-                    
-                    <div class="relative z-10">
-                        <span class="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                            <i class="fas fa-comment-dots"></i> Notas del Representante
-                        </span>
-                        <div class="bg-amber-50/50 p-6 rounded-[2rem] border border-dashed border-amber-200">
-                            <p class="text-slate-800 text-base md:text-lg font-bold italic leading-relaxed whitespace-pre-wrap">
-                                "{{ pedido.comments }}"
-                            </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="flex items-center justify-between p-5 rounded-2xl border-2 transition-all" 
+                             :class="pedido.factura_path ? 'border-red-50 bg-red-50/20' : 'border-slate-50 bg-slate-50/30 opacity-60'">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm shrink-0">
+                                    <i class="fas fa-file-invoice text-xl" :class="pedido.factura_path ? 'text-red-600' : 'text-slate-300'"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest label-large">Factura PDF</p>
+                                    <p class="text-xs font-bold value-text text-slate-700 truncate uppercase">{{ pedido.factura_path ? 'DESCARGA LISTA' : 'PENDIENTE' }}</p>
+                                </div>
+                            </div>
+                            <a v-if="pedido.factura_path" :href="pedido.factura_url" target="_blank" class="btn-icon-action bg-red-600 shrink-0 shadow-lg shadow-red-100 hover:scale-110 transition-transform border-none cursor-pointer"><i class="fas fa-download"></i></a>
                         </div>
                     </div>
                 </div>
+            
 
                 <!-- 5. HISTORIAL DE AJUSTES (REDISEÑADO A TABLA ESTÉTICA) -->
                 <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden">
                     <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg">
-                                <i class="fas fa-history"></i>
-                            </div>
-                            <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Bitácora de Ajustes Académicos</h2>
+                        
+                         <div class="section-title !mb-6">
+                            <i class="fas fa-box-open text-red-700"></i> 6. Bitácora de Ajustes Académicos
                         </div>
                         <span v-if="pedido.logs?.length" class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
                             {{ pedido.logs.length }} MODIFICACIONES
@@ -318,27 +340,7 @@
 </div>
                 </div>
 
-                <!-- 6. EXPEDIENTE DIGITAL -->
-                <div class="info-card shadow-premium border-l-8 border-l-slate-800 bg-white p-6 rounded-3xl overflow-hidden border border-slate-100">
-                    <div class="section-title !border-b-0 mb-6">
-                        <i class="fas fa-folder-open text-slate-800 "></i> 6. Expediente Digital y Documentos
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="flex items-center justify-between p-5 rounded-2xl border-2 transition-all" 
-                             :class="pedido.factura_path ? 'border-red-50 bg-red-50/20' : 'border-slate-50 bg-slate-50/30 opacity-60'">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm shrink-0">
-                                    <i class="fas fa-file-invoice text-xl" :class="pedido.factura_path ? 'text-red-600' : 'text-slate-300'"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest label-large">Factura PDF</p>
-                                    <p class="text-xs font-bold value-text text-slate-700 truncate uppercase">{{ pedido.factura_path ? 'DESCARGA LISTA' : 'PENDIENTE' }}</p>
-                                </div>
-                            </div>
-                            <a v-if="pedido.factura_path" :href="pedido.factura_url" target="_blank" class="btn-icon-action bg-red-600 shrink-0 shadow-lg shadow-red-100 hover:scale-110 transition-transform border-none cursor-pointer"><i class="fas fa-download"></i></a>
-                        </div>
-                    </div>
-                </div>
+              
 
             </div>
         </div>

@@ -293,27 +293,11 @@
                     </div>
                 </div>
 
-                <!-- 3. MOTIVO DEL CAMBIO -->
-                <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                    <div class="section-title text-black">
-                        <i class="fas fa-history text-red-700"></i> 3. Motivo de la Modificación
-                    </div>
-                    <div class="form-group">
-                        <label class="label-style">Explique el motivo del ajuste para la bitácora *</label>
-                        <textarea v-model="orderForm.motivo_cambio" class="form-input font-medium" rows="3" placeholder="Mínimo 10 caracteres..." required minlength="10"></textarea>
-                    </div>
-                </div>
-
-                <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
-                    <div class="form-group">
-                        <label class="label-style">Comentarios Generales del Pedido (Opcional):</label>
-                        <textarea v-model="orderForm.comments" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES PARA ALMACÉN..."></textarea>
-                    </div>
-                </div>
+                
 
                 <!-- 4. GESTIÓN DE MATERIALES -->
                 <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.items}">
-                    <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 4. Selección de Material</div>
+                    <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 3. Selección de Material</div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-red-50/20 p-6 rounded-[2.5rem] border border-red-100">
                         <div class="md:col-span-2"><label class="label-mini">Tipo</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
@@ -362,6 +346,24 @@
                     </div>
                 </div>
 
+
+                <!-- 3. MOTIVO DEL CAMBIO -->
+                <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                    <div class="section-title text-black">
+                        <i class="fas fa-history text-red-700"></i> 4. Motivo de la Modificación
+                    </div>
+                    <div class="form-group">
+                        <label class="label-style">Explique el motivo del ajuste para la bitácora *</label>
+                        <textarea v-model="orderForm.motivo_cambio" class="form-input font-medium" rows="3" placeholder="Mínimo 10 caracteres..." required minlength="10"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
+                    <div class="form-group">
+                        <label class="label-style">Comentarios Generales del Pedido (Opcional):</label>
+                        <textarea v-model="orderForm.comments" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES PARA ALMACÉN..."></textarea>
+                    </div>
+                </div>
                 <div class="mt-12 flex justify-end">
                     <button type="submit" class="btn-primary px-20 py-6 text-lg font-black tracking-widest shadow-2xl transition-all active:scale-95" :disabled="loading || isFormBlockedByDuplicates">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save mr-3'"></i> GUARDAR CAMBIOS

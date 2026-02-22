@@ -77,7 +77,7 @@
                         <div class="w-10 h-10 bg-red-50 text-red-600 rounded-xl flex items-center justify-center shadow-sm">
                             <i class="fas fa-receipt text-lg"></i>
                         </div>
-                        <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Desglose de Conceptos</h2>
+                        <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">Desglose de Conceptos</h2>
                     </div>
 
                     <div class="overflow-x-auto p-4 md:p-8">
@@ -171,11 +171,8 @@
                             <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg">
                                 <i class="fas fa-history"></i>
                             </div>
-                            <h2 class="text-xl font-black text-slate-800 uppercase tracking-tight">Bitácora de Ajustes Técnicos</h2>
+                            <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">Bitácora de Ajustes Técnicos</h2>
                         </div>
-                        <span v-if="gasto.logs?.length" class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
-                            {{ gasto.logs.length }} MODIFICACIONES
-                        </span>
                     </div>
 
                     <div class="table-container mt-4 animate-fade-in">
@@ -347,6 +344,8 @@ onMounted(fetchGastoDetail);
     display: block;
     letter-spacing: 0.15em;
 }
+.label-large { display: block; font-size: 1rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
+
 
 .table-responsive { width: 100%; overflow-x: auto; background: white; }
 .table-cell { padding: 20px 24px; vertical-align: middle; }
