@@ -45,7 +45,7 @@
 
                         <!-- RFC -->
                         <div class="form-group mb-6 relative">
-                            <label class="label-style">RFC del Plantel (Identificador Único) *</label>
+                            <label class="label-style">RFC del Plantel*</label>
                             <div class="relative">
                                 <input 
                                     v-model="form.plantel.rfc" 
@@ -75,7 +75,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <label class="text-[10px] font-black uppercase tracking-[0.2em]" 
                                        :class="attemptedSubmit && !form.plantel.latitud ? 'text-red-700' : 'text-blue-800'">
-                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica (GPS) *
+                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica*
                                 </label>
                                 <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase shadow-sm">✓ Coordenadas Capturadas</span>
                                 <span v-else-if="attemptedSubmit" class="text-[9px] bg-red-600 text-white px-3 py-1 rounded-full font-black uppercase animate-bounce">Requerido</span>
@@ -93,7 +93,7 @@
 
                         <!-- NIVELES -->
                         <div class="form-group mb-6">
-                            <label class="label-style">Niveles Educativos del Plantel *</label>
+                            <label class="label-style">Niveles Educativos*</label>
                             <div v-if="loadingInitial" class="py-2 animate-pulse text-[10px] text-slate-400 font-black uppercase tracking-widest italic">Sincronizando catálogo...</div>
                             <div v-else class="grid grid-cols-2 gap-3">
                                 <label v-for="nivel in nivelesCatalog" :key="nivel.id" 
@@ -107,7 +107,7 @@
                         </div>
 
                         <div class="form-group mb-6">
-                            <label class="label-style">Estado / Región *</label>
+                            <label class="label-style">Estado*</label>
                             <select v-model="form.plantel.estado_id" class="form-input font-bold" required :disabled="loading">
                                 <option value="">Seleccionar Estado...</option>
                                 <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
@@ -121,7 +121,7 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="form-group relative">
-                                <label class="label-style">Celular / Teléfono *</label>
+                                <label class="label-style">Teléfono *</label>
                                 <div class="relative">
                                     <input 
                                         v-model="form.plantel.telefono" 
@@ -132,6 +132,7 @@
                                         placeholder="Número de contacto" 
                                         required 
                                         minlength="10" 
+                                        maxlength="10"
                                         :disabled="loading"
                                     >
                                     <i v-if="validatingFields.telefono" class="fas fa-spinner fa-spin absolute right-4 top-1/2 -translate-y-1/2 text-red-600"></i>
@@ -177,7 +178,7 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div class="form-group">
-                                    <label class="label-style">Fecha de la Visita *</label>
+                                    <label class="label-style">Fecha de la Entrevista *</label>
                                     <input v-model="form.visita.fecha" type="date" class="form-input font-bold" required :disabled="loading">
                                 </div>
                                 <div class="form-group">
@@ -187,7 +188,7 @@
                             </div>
 
                             <div class="form-group mb-6">
-                                <label class="label-style">Cargo / Puesto de la Persona *</label>
+                                <label class="label-style">Cargo / Puesto *</label>
                                 <select v-model="form.visita.cargo" class="form-input font-bold" required :disabled="loading">
                                     <option value="Director/Coordinador">Director/Coordinador</option>
                                     <option value="Subdirector">Subdirector</option>

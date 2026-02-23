@@ -60,8 +60,8 @@
                         </div>
 
                         <div class="form-group mb-6 relative">
-                            <label class="label-style">RFC del Plantel (Identificador Único) *</label>
-                            <input v-model="form.plantel.rfc" @blur="validateUniqueness('rfc')" type="text" class="form-input uppercase font-mono border-red-100 font-black text-red-900" :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" required maxlength="13">
+                            <label class="label-style">RFC del Plantel *</label>
+                            <input v-model="form.plantel.rfc" @blur="validateUniqueness('rfc')" type="text" class="form-input uppercase font-mono border-red-100 font-black text-red-900" :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" required minlength="13" maxlength="13">
                             <p v-if="fieldValidation.rfc.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
                                 <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message }}
                             </p>
@@ -72,7 +72,7 @@
                              :class="visita.es_primera_visita ? 'border-blue-100 bg-blue-50/20' : 'border-slate-100 bg-slate-50/50 opacity-60'">
                             <div class="flex items-center justify-between mb-4">
                                 <label class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-800">
-                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica (GPS)
+                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica *
                                 </label>
                                 <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase">✓ Registrada</span>
                             </div>
@@ -87,7 +87,7 @@
 
                         <!-- NIVELES -->
                         <div class="form-group mb-6">
-                            <label class="label-style">Niveles Educativos del Plantel *</label>
+                            <label class="label-style">Niveles Educativos *</label>
                             <div class="grid grid-cols-2 gap-3">
                                 <label v-for="nivel in nivelesCatalog" :key="nivel.id" 
                                     class="flex items-center gap-3 p-3 border-2 rounded-2xl transition-all shadow-sm" 
@@ -112,8 +112,8 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="form-group">
-                                <label class="label-style">Celular / Teléfono *</label>
-                                <input v-model="form.plantel.telefono" @blur="validateUniqueness('telefono')" type="tel" class="form-input font-bold" :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" required>
+                                <label class="label-style">Teléfono *</label>
+                                <input v-model="form.plantel.telefono" @blur="validateUniqueness('telefono')" type="tel" class="form-input font-bold" :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50' : ''" :disabled="!visita.es_primera_visita" minlength="10" maxlength="10" required>
                                 <p v-if="fieldValidation.telefono.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
                                     <i class="fas fa-times-circle"></i> {{ fieldValidation.telefono.message }}
                                 </p>
