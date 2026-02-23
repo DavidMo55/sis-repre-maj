@@ -20,23 +20,23 @@ class SearchController extends Controller
     public function searchClientes(Request $request)
     {   
         $query = $request->input('query');
-        // Permite incluir prospectos mediante un parámetro (útil para Visitas)
         $includeProspectos = $request->boolean('include_prospectos');
 
-        if (empty($query) || strlen($query) < 3) {
-            return response()->json([]);
-        }
+        if (empty($query) || strlen($query) < 3) return response()->json([]);
 
         try {
+            $user = Auth::user();
+            // Identificamos al dueño de la cuenta (soporte para delegados)
+            $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
+
             $builder = Cliente::select(
                     'id', 'name', 'tipo', 'direccion', 'contacto', 'telefono', 'email',
-                    'rfc', 'regimen_fiscal', 'cp', 'municipio', 'colonia', 'calle_num', 'estado_id',
-                    'latitud', 'longitud', 'nivel_educativo'
+                    'rfc', 'regimen_fiscal', 'cp', 'municipio', 'colonia', 'calle_num', 'estado_id'
                 )
+                ->where('user_id', $ownerId) // <--- REGLA DE ORO: Filtro de propiedad
                 ->where('name', 'like', "%{$query}%")
                 ->where('status', 'activo');
 
-            // Si no se especifica incluir prospectos, filtramos por tipos de venta
             if (!$includeProspectos) {
                 $builder->whereIn('tipo', ['CLIENTE', 'DISTRIBUIDOR']);
             }

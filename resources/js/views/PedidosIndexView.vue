@@ -86,7 +86,6 @@
                             <tr>
                                 <th class="table-header w-32"># Pedido</th>
                                 <th class="table-header">Cliente</th>
-                                <th class="table-header text-center">Tipo</th>
                                 <th class="table-header text-center">Prioridad</th>
                                 <th class="table-header">Fecha</th>
                                 <th class="table-header text-center">Ítems</th>
@@ -107,11 +106,7 @@
                                         {{ pedido.cliente?.tipo || 'N/A' }}
                                     </div>
                                 </td>
-                                <td class="table-cell text-center">
-                                    <span class="type-badge" :class="pedido.tipo_pedido === 'promocion' ? 'badge-purple' : 'badge-blue'">
-                                        {{ (pedido.tipo_pedido || 'normal').toUpperCase() }}
-                                    </span>
-                                </td>
+                               
                                 <td class="table-cell text-center">
                                     <span class="priority-badge bld " :class="getPriorityBadgeClass(pedido.prioridad)">
                                         {{ (pedido.prioridad || 'media').toUpperCase() }}

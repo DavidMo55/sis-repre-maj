@@ -48,17 +48,17 @@
                     <!-- Bloque: Cliente Maestro -->
                     <div class="info-card shadow-premium border-t-4 border-t-red-700 bg-white p-6 rounded-3xl border border-slate-100">
                         <div class="section-title !mb-6">
-                            <i class="fas fa-user-tag text-red-700"></i> 1. Cuenta Principal
+                            <i class="fas fa-user-tag text-red-700"></i> 1. Información del Cliente
                         </div>
                         <div class="space-y-4">
                             <div class="pb-3 border-b border-slate-50">
-                                <label class="label-mini label-large text-slate-400">Institución Vinculada</label>
+                                <label class="label-mini label-large text-slate-400">Plantel / Distribuidor</label>
                                 <p class="text-sm font-black text-slate-800 value-text uppercase leading-tight">
                                     {{ pedido.cliente?.name || 'No disponible' }}
                                 </p>
                             </div>
                             <div class="pt-2">
-                                <label class="label-mini label-large text-slate-400">Prioridad Asignada</label>
+                                <label class="label-mini label-large text-slate-400">Prioridad de Atención</label>
                                 <span :class="getPriorityClass(pedido.prioridad)" class="status-badge !px-3 !py-1 text-[10px]">
                                     {{ (pedido.prioridad || 'media').toUpperCase() }}
                                 </span>
@@ -69,11 +69,11 @@
                     <!-- Bloque: Logística y Destino -->
                     <div class="info-card shadow-premium border-t-4 border-t-slate-800 bg-white p-6 rounded-3xl border border-slate-100">
                         <div class="section-title !mb-6">
-                            <i class="fas fa-truck text-slate-800"></i> 2. Logística de Entrega
+                            <i class="fas fa-truck text-slate-800"></i> 2 . Recepción y Logística de Envío
                         </div>
                         <div class="space-y-4">
                             <div>
-                                <label class="label-mini text-red-800 label-large font-bold uppercase">Nombre del Receptor:</label>
+                                <label class="label-mini text-red-800 label-large font-bold uppercase">NOMBRE DEL DESTINATARIO</label>
                                 <p class="text-base font-black value-text text-slate-900 uppercase break-words leading-tight">
                                     {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.nombre || pedido.receiver_nombre || 'S/D') : (pedido.cliente?.contacto || 'TITULAR DE CUENTA') }}
                                 </p>
@@ -108,7 +108,7 @@
                             </div>
 
                             <div>
-                                <label class="label-mini label-large text-slate-400 uppercase">Ubicación de Destino</label>
+                                <label class="label-mini label-large text-slate-400 uppercase">DIRECCIÓN COMPLETA</label>
                                 <div class="text-[10px] text-slate-600 leading-relaxed font-medium italic bg-slate-50 p-3 rounded-xl border border-slate-100 break-words uppercase">
                                     <i class="fas value-text fa-map-marker-alt text-red-500 mr-1"></i> 
                                     {{ formatFullAddress(pedido) }}
@@ -120,11 +120,11 @@
                     <!-- Bloque: Resumen de Envío -->
                     <div class="info-card shadow-premium border-t-4 border-t-red-700 bg-white p-6 rounded-3xl border border-slate-100">
                         <div class="section-title !mb-6">
-                            <i class="fas fa-box-open text-red-700"></i> 3. Estatus de Envío
+                            <i class="fas fa-box-open text-red-700"></i> 3. Selección de Material
                         </div>
                         <div class="space-y-6">
                             <div>
-                                <label class="label-mini label-large">Estado de la Orden</label>
+                                <label class="label-mini label-large">Estado del pedido</label>
                                 <span :class="getStatusClass(pedido.status)" class="status-badge w-full text-center value-text py-2.5 shadow-sm rounded-xl">
                                     {{ pedido.status }}
                                 </span>
@@ -160,7 +160,7 @@
                     
                     <div class="relative z-10">
                         <span class="inline-flex label-mini label-large items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                            <i class="fas fa-comment-dots label-mini label-large"></i> Notas del Representante
+                            <i class="fas fa-comment-dots label-mini label-large"></i> Comentarios generales del pedido
                         </span>
                         <div class="bg-amber-50/50 p-6 rounded-[2rem] border border-dashed border-amber-200">
                             <p class="text-slate-800 text-base md:text-lg font-bold italic leading-relaxed whitespace-pre-wrap">
@@ -175,17 +175,17 @@
                     <div class="info-card !p-0 shadow-premium border border-slate-200 rounded-[2.5rem] bg-white overflow-hidden border-slate-100">
                         
                          <div class="section-title !mb-6">
-                            <i class="fas fa-box-open text-red-700"></i> 4. Selección Técnica de Materiales
+                            <i class="fas fa-box-open text-red-700"></i> 4. Selección de Materiales
                         </div>
                         <div class="table-container mt-4 animate-fade-in">
     <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
         <table class="min-width-full divide-y divide-gray-200">
             <thead class="bg-gray-100">
                 <tr>
-                    <th class="table-header">Libro / Título</th>
+                    <th class="table-header">Libro</th>
+                    <th class="table-header text-center w-32">Tipo</th>
                     <th class="table-header text-center w-32">Formato</th>
-                    <th class="table-header text-center w-32">Rubro</th>
-                    <th class="table-header text-center w-24">Cant.</th>
+                    <th class="table-header text-center w-24">Cantidad</th>
                     <th class="table-header text-right w-32">P. Unitario</th>
                     <th class="table-header text-right w-32">Subtotal</th>
                 </tr>
@@ -269,7 +269,7 @@
                     <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
                         
                          <div class="section-title !mb-6">
-                            <i class="fas fa-box-open text-red-700"></i> 6. Bitácora de Ajustes Académicos
+                            <i class="fas fa-box-open text-red-700"></i> 6. MODIFICACIONES
                         </div>
                         <span v-if="pedido.logs?.length" class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
                             {{ pedido.logs.length }} MODIFICACIONES
