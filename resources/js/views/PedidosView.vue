@@ -7,7 +7,7 @@
                     <h1 class="text-xl md:text-2xl font-black text-black uppercase tracking-tighter">Ingreso de Pedidos</h1>
                     <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest mt-1">Gestión logística avanzada vinculada a la ficha del cliente.</p>
                 </div>
-                <button @click="router.push('/pedidos')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto uppercase">
+                <button @click="router.push('/pedidos')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto uppercase font-black">
                     <i class="fas fa-arrow-left mr-2"></i> Volver al Historial
                 </button>
             </div>
@@ -181,7 +181,7 @@
                                             @blur="validateUniqueness('rfc')"
                                             @change="validateUniqueness('rfc')"
                                             type="text" 
-                                            class="form-input font-mono uppercase font-black" 
+                                            class="form-input font-mono uppercase font-black lbb" 
                                             :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : 'text-slate-700'"
                                             placeholder="XXXXXXXXXXXXX" required minlength="12" maxlength="13"
                                         >
@@ -199,7 +199,7 @@
                                             @blur="validateUniqueness('persona_recibe')" 
                                             @change="validateUniqueness('persona_recibe')"
                                             type="text" 
-                                            class="form-input font-bold uppercase"
+                                            class="form-input font-bold uppercase lbb"
                                             :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : ''"
                                             placeholder="NOMBRE COMPLETO" required minlength="5"
                                         >
@@ -211,7 +211,8 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal *</label>
-                                    <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs text-red-700 uppercase">
+                                    <!-- APLICADO: required para nuevos registros -->
+                                    <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs text-red-700 lbb uppercase">
                                         <option value="">SELECCIONAR...</option>
                                         <option value="601">601 - GENERAL MORALES</option>
                                         <option value="612">612 - PF ACT. EMPRESARIAL</option>
@@ -229,7 +230,7 @@
                                             @blur="validateUniqueness('correo')" 
                                             @change="validateUniqueness('correo')"
                                             type="email" 
-                                            class="form-input text-red-700 font-bold" 
+                                            class="form-input text-red-700 font-bold lbb" 
                                             :class="fieldValidation.correo.error ? 'border-red-600 bg-red-50 ring-2 ring-red-400 ring-offset-1' : ''"
                                             placeholder="correo@ejemplo.com" required
                                         >
@@ -247,7 +248,7 @@
                                             @blur="validateUniqueness('telefono')" 
                                             @change="validateUniqueness('telefono')"
                                             type="tel" 
-                                            class="form-input text-red-700 font-bold uppercase" 
+                                            class="form-input text-red-700 font-bold uppercase lbb" 
                                             :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50 ring-2 ring-red-400 ring-offset-1' : ''"
                                             placeholder="10 DÍGITOS" required minlength="10" maxlength="10"
                                         >
@@ -263,21 +264,21 @@
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                                     <div class="form-group relative">
                                         <label class="label-mini">C.P. *</label>
-                                        <input v-model="orderForm.receiver.cp" required type="text" class="form-input font-mono font-black uppercase" maxlength="5" @input="handleCPInput" placeholder="00000">
+                                        <input v-model="orderForm.receiver.cp" required type="text" class="form-input font-mono font-black uppercase lbb" maxlength="5" @input="handleCPInput" placeholder="00000">
                                         <i v-if="searchingCP" class="fas fa-spinner fa-spin absolute right-3 top-10 text-red-600"></i>
                                     </div>
-                                    <div class="form-group col-span-1"><label class="label-mini">Estado</label><input v-model="orderForm.receiver.estado" type="text" placeholder="ESTADO" class="form-input bg-white font-bold text-red-800 uppercase" readonly></div>
-                                    <div class="form-group col-span-2"><label class="label-mini">Municipio</label><input v-model="orderForm.receiver.municipio" type="text" placeholder="MUNICIPIO" class="form-input bg-white font-bold text-red-800 uppercase" readonly></div>
+                                    <div class="form-group col-span-1"><label class="label-mini">Estado</label><input v-model="orderForm.receiver.estado" type="text" placeholder="ESTADO" class="form-input bg-white font-bold text-red-800 uppercase lbb" readonly></div>
+                                    <div class="form-group col-span-2"><label class="label-mini">Municipio</label><input v-model="orderForm.receiver.municipio" type="text" placeholder="MUNICIPIO" class="form-input bg-white font-bold text-red-800 uppercase lbb" readonly></div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="form-group">
                                         <label class="label-mini">Colonia *</label>
-                                        <select v-model="orderForm.receiver.colonia" required class="form-input font-bold text-red-700 uppercase" :disabled="!colonias.length">
+                                        <select v-model="orderForm.receiver.colonia" required class="form-input font-bold text-red-700 uppercase lbb" :disabled="!colonias.length">
                                             <option value="" disabled>{{ colonias.length ? 'SELECCIONE...' : 'INGRESE CP' }}</option>
                                             <option v-for="(col, idx) in colonias" :key="idx" :value="col">{{ col }}</option>
                                         </select>
                                     </div>
-                                    <div class="form-group"><label class="label-mini">Calle y Número *</label><input required minlength="10" v-model="orderForm.receiver.calle_num" type="text" class="form-input font-bold text-red-700 uppercase" placeholder="AV. JUÁREZ 123"></div>
+                                    <div class="form-group"><label class="label-mini">Calle y Número *</label><input required minlength="5" v-model="orderForm.receiver.calle_num" type="text" class="form-input font-bold text-red-700 uppercase lbb" placeholder="AV. JUÁREZ 123"></div>
                                 </div>
                             </div>
                         </div>
@@ -288,21 +289,21 @@
                 <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.items}">
                     <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 3. Selección de Material</div>
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-red-50/20 p-6 rounded-[2.5rem] border border-red-100">
-                        <div class="md:col-span-2"><label class="label-mini">Tipo</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
+                        <div class="md:col-span-2"><label class="label-mini">Tipo</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700 lbb"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
                         <div class="md:col-span-3 relative">
                             <label class="label-mini">Buscar Libro</label>
                             <div class="relative">
-                                <input type="text" class="form-input pr-10 font-bold text-black uppercase" v-model="currentOrderItem.bookName" placeholder="TÍTULO..." @input="searchBooks" autocomplete="off">
+                                <input type="text" class="form-input pr-10 font-bold text-black uppercase lbb" v-model="currentOrderItem.bookName" placeholder="TÍTULO..." @input="searchBooks" autocomplete="off">
                                 <i v-if="searchingLibros" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
                             </div>
                             <ul v-if="currentOrderItem.bookSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
                                 <li v-for="book in currentOrderItem.bookSuggestions" :key="book.id" @click="selectBook(book)" class="p-3 border-b last:border-0 hover:bg-red-50 transition-colors cursor-pointer text-xs font-black uppercase text-black">{{ book.titulo }}</li>
                             </ul>
                         </div>
-                        <div class="md:col-span-3"><label class="label-mini">Formato</label><select class="form-input font-bold text-red-700 uppercase text-xs" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
-                        <div class="md:col-span-1"><label class="label-mini">Cant.</label><input type="number" min="1" class="form-input font-bold text-red-700" v-model.number="currentOrderItem.quantity"></div>
-                        <div class="md:col-span-2"><label class="label-mini">P. Unitario ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700 disabled:text-slate-400 disabled:bg-slate-100" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
-                        <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95"><i class="fas fa-cart-plus mr-1"></i>Añadir</button></div>
+                        <div class="md:col-span-3"><label class="label-mini">Formato</label><select class="form-input font-bold text-red-700 uppercase text-xs lbb" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
+                        <div class="md:col-span-1"><label class="label-mini">Cant.</label><input type="number" min="1" class="form-input font-bold text-red-700 lbb" v-model.number="currentOrderItem.quantity"></div>
+                        <div class="md:col-span-2"><label class="label-mini">P. Unitario ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700 disabled:text-slate-400 disabled:bg-slate-100 lbb" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
+                        <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95 lbb"><i class="fas fa-cart-plus mr-1"></i>Añadir</button></div>
                     </div>
 
                     <!-- TABLA DE CARRITO -->
@@ -321,9 +322,9 @@
                                         <td class="table-cell text-center"><span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">{{ item.tipo_material.toUpperCase() }}</span></td>
                                         <td class="table-cell text-center font-black text-red-800 text-lg">{{ item.quantity }}</td>
                                         <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
-                                        <td class="table-cell text-center"><button type="button" @click="orderForm.orderItems.splice(index, 1)" class="btn-delete-item"><i class="fas fa-trash-alt mr-1"></i> BORRAR</button></td>
+                                        <td class="table-cell text-center"><button type="button" @click="orderForm.orderItems.splice(index, 1)" class="btn-delete-item lbb"><i class="fas fa-trash-alt mr-1"></i> BORRAR</button></td>
                                     </tr>
-                                    <tr v-if="!orderForm.orderItems.length"><td colspan="5" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin ítems en la orden</td></tr>
+                                    <tr v-if="!orderForm.orderItems.length"><td colspan="5" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales en la orden</td></tr>
                                 </tbody>
                                 <tfoot v-if="orderForm.orderItems.length" class="bg-red-50/30 border-t-2 border-red-100">
                                     <tr>
@@ -341,12 +342,12 @@
                  <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
                     <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 4. Comentarios Generales del Pedido:</div>
                     <div class="form-group">
-                        <textarea v-model="orderForm.comments" required minlength="10" class="form-input text-red-600 font-medium uppercase" rows="3" placeholder="NOTAS ADICIONALES..."></textarea>
+                        <textarea v-model="orderForm.comments" required minlength="10" class="form-input text-red-600 font-medium uppercase lbb" rows="3" placeholder="NOTAS ADICIONALES PARA ALMACÉN..."></textarea>
                     </div>
                 </div>
 
                 <div class="mt-12 flex justify-end">
-                    <button type="submit" class="btn-primary px-20 py-6 text-lg font-black tracking-widest shadow-2xl transition-all active:scale-95 disabled:opacity-50 disabled:grayscale" :disabled="loading || isFormBlockedByDuplicates">
+                    <button type="submit" class="btn-primary px-20 py-6 text-lg font-black tracking-widest shadow-2xl transition-all active:scale-95 disabled:opacity-50 disabled:grayscale lbb" :disabled="loading || isFormBlockedByDuplicates">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-paper-plane mr-3'"></i> GENERAR PEDIDO
                     </button>
                 </div>
@@ -360,44 +361,36 @@
                     
                     <!-- VISTA DE ÉXITO -->
                     <div v-if="systemModal.type === 'success'" class="modal-content-success animate-scale-in">
-                        <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
-                        <h2 class="text-2xl font-black text-black mb-3 uppercase tracking-tighter">¡Pedido Registrado!</h2>
-                        <p class="text-xs font-mono font-black text-white bg-red-700 py-2.5 px-6 rounded-xl inline-block mb-8 uppercase tracking-widest">FOLIO: {{ generatedOrderId }}</p>
-                        <button type="button" @click="closeAndRedirect" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest">Regresar al Historial</button>
+                        <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check lbb"></i></div>
+                        <h2 class="text-2xl font-black text-black mb-3 uppercase tracking-tighter lbb">¡Pedido Registrado!</h2>
+                        <p class="text-xs font-mono font-black text-white bg-red-700 py-2.5 px-6 rounded-xl inline-block mb-8 uppercase tracking-widest lbb">FOLIO: {{ generatedOrderId }}</p>
+                        <button type="button" @click="closeAndRedirect" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest lbb">Regresar al Historial</button>
                     </div>
 
-                    <!-- VISTA DE ALERTA DE DUPLICADOS O ERRORES -->
+                    <!-- VISTA DE ALERTA DE DUPLICADOS O ERRORES DE VALIDACIÓN (SERVER) -->
                     <div v-else class="modal-content-success bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden border border-red-100 animate-scale-in">
                         <div class="bg-red-600 h-4 w-full"></div>
                         <div class="p-10 flex flex-col items-center">
                             
-                            <!-- DISEÑO PERSONALIZADO PARA DUPLICADOS (REGLA SOLICITADA) -->
-                            <div v-if="isFormBlockedByDuplicates" class="w-full">
-                                <div class="bg-red-50 text-red-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-white ring-2 ring-red-50">
-                                    <i class="fas fa-exclamation-triangle text-3xl animate-pulse"></i>
-                                </div>
-                                <div class="text-danger bgcolor flex flex-col justify-content-center rounded-3 p-4 shadow-inner border border-danger mb-8">
-                                    <h4 class="mb-2 font-black uppercase tracking-tighter text-red-700 text-sm text-center">Atención: Integridad de Datos</h4>
-                                    <p class="mb-0 font-bold uppercase text-[10px] text-red-600 leading-relaxed text-center">
-                                        {{ systemModal.errorList[0] || 'Uno o más datos ingresados pertenecen a otro representante.' }}
+                            <div class="bg-red-50 text-red-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-white ring-2 ring-red-50 lbb">
+                                <i class="fas fa-exclamation-triangle text-3xl animate-pulse"></i>
+                            </div>
+
+                            <h2 class="text-2xl font-black text-black mb-2 uppercase tracking-tighter lbb text-center">Error al Procesar</h2>
+                            
+                            <!-- LISTADO DE ERRORES DETALLADO (SOLICITADO) -->
+                            <div class="w-full space-y-3 bg-red-50/30 p-6 rounded-[2rem] border border-red-100/50 mb-8 mt-4 lbb">
+                                <div v-if="systemModal.errorList.length">
+                                    <p v-for="(err, i) in systemModal.errorList" :key="i" class="text-[11px] font-black text-red-700 uppercase leading-tight text-center mb-2 last:mb-0">
+                                        <i class="fas fa-caret-right text-red-400 mr-1"></i> {{ err }}
                                     </p>
                                 </div>
+                                <p v-else class="text-[11px] font-black text-red-700 uppercase leading-tight text-center lbb">
+                                    {{ systemModal.title || 'Error interno del servidor.' }}
+                                </p>
                             </div>
 
-                            <!-- DISEÑO ESTÁNDAR PARA OTROS ERRORES -->
-                            <div v-else class="w-full flex flex-col items-center">
-                                <div class="w-20 h-20 bg-red-50 text-red-600 rounded-full flex items-center justify-center mb-6 shadow-inner border-4 border-white">
-                                    <i class="fas fa-ban text-3xl"></i>
-                                </div>
-                                <h2 class="text-2xl font-black text-black mb-2 uppercase tracking-tighter">{{ systemModal.title }}</h2>
-                                <div class="w-full space-y-3 bg-red-50/30 p-6 rounded-[2rem] border border-red-100/50 mb-8 mt-4">
-                                    <div v-for="(err, i) in systemModal.errorList" :key="i" class="text-[11px] font-black text-slate-700 uppercase leading-tight text-center">
-                                        <i class="fas fa-exclamation-circle text-red-500 mr-1"></i> {{ err }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button type="button" @click="systemModal.visible = false" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest rounded-2xl transition-transform hover:scale-105">Revisar formulario</button>
+                            <button type="button" @click="systemModal.visible = false" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest rounded-2xl transition-transform hover:scale-105 lbb">Revisar formulario</button>
                         </div>
                     </div>
                 </div>
@@ -436,23 +429,23 @@ const fieldValidation = reactive({
 });
 
 const orderForm = reactive({
-    prioridad: 'media', clientId: null, clientName: '', receiverType: '',
+    prioridad: 'media', clientId: null, clientName: '', receiverType: 'cliente',
     receiver: { persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' },
-    logistics: { deliveryOption: '', paqueteria_nombre: '', comentarios_logistica: '' },
+    logistics: { deliveryOption: 'paqueteria', paqueteria_nombre: '', comentarios_logistica: '' },
     comments: '', orderItems: [], 
 });
 
 const systemModal = reactive({ visible: false, type: 'success', title: '', errorList: [] });
 const currentOrderItem = reactive({ bookId: null, bookName: '', tipo_material: 'venta', category: '', sub_type: '', quantity: 1, price: 0, bookSuggestions: [] });
 
-// Lógica de duplicados: Solo aplica para el modo "Nuevo"
+// Bloqueo por duplicados proactivo
 const isFormBlockedByDuplicates = computed(() => {
     if (orderForm.receiverType !== 'nuevo') return false;
     return fieldValidation.rfc.error || fieldValidation.correo.error || fieldValidation.telefono.error || fieldValidation.persona_recibe.error;
 });
 
 /**
- * REGLA: Al detectar duplicado global, abrir modal automáticamente.
+ * REGLA: Al detectar duplicado global mientras se escribe, abrir modal automáticamente.
  */
 watch(isFormBlockedByDuplicates, (val) => {
     if (val) {
@@ -463,13 +456,6 @@ watch(isFormBlockedByDuplicates, (val) => {
         systemModal.visible = true;
     }
 });
-
-const clearDuplicateErrors = () => {
-    Object.keys(fieldValidation).forEach(k => {
-        fieldValidation[k].error = false;
-        fieldValidation[k].message = '';
-    });
-};
 
 const activeReceiverDisplay = computed(() => {
     if (orderForm.receiverType === 'cliente') return selectedCliente.value;
@@ -483,9 +469,9 @@ const selectedClienteEstadoNombre = computed(() => {
     return match ? match.estado.toUpperCase() : 'NO DEFINIDO';
 });
 
-// Limpieza al cambiar de modo
+// Limpieza al cambiar de modo de receptor
 watch(() => orderForm.receiverType, (newVal) => {
-    clearDuplicateErrors();
+    Object.keys(fieldValidation).forEach(k => { fieldValidation[k].error = false; fieldValidation[k].message = ''; });
     if (newVal === 'nuevo') {
         orderForm.receiver = { persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' };
         selectedExistingReceiver.value = null;
@@ -511,48 +497,33 @@ const selectExistingReceiver = (rec) => {
     searchReceiverQuery.value = rec.nombre;
 };
 
+/**
+ * VALIDACIÓN GLOBAL DE UNICIDAD PROACTIVA
+ */
 const validateUniqueness = async (field) => {
     let val = '';
-    let queryParam = field;
-
+    let queryParam = field; 
     if (field === 'persona_recibe') { val = orderForm.receiver.persona_recibe?.trim(); queryParam = 'nombre'; }
     else if (field === 'rfc') val = orderForm.receiver.rfc?.trim().toUpperCase();
     else if (field === 'correo') val = orderForm.receiver.correo?.trim().toLowerCase();
     else if (field === 'telefono') val = orderForm.receiver.telefono?.trim();
 
-    if (!val || val.length < 3) {
-        if (fieldValidation[field]) {
-            fieldValidation[field].error = false;
-            fieldValidation[field].message = '';
-        }
-        return;
+    if (!val || val.length < 3) { 
+        if(fieldValidation[field]) { fieldValidation[field].error = false; fieldValidation[field].message = ''; }
+        return; 
     }
-
-    // Mensajes en español por campo
-    const mensajesDuplicado = {
-        rfc: 'Este RFC ya está registrado por otro representante.',
-        correo: 'Este correo electrónico ya pertenece a otro receptor.',
-        telefono: 'Este número de teléfono ya está registrado.',
-        persona_recibe: 'Este nombre ya existe en el sistema de otro representante.',
-    };
 
     validatingFields[field] = true;
     try {
         const res = await axios.get('/search/receptores/check-rfc', { params: { [queryParam]: val } });
-
         if (res.data.status === 'conflict') {
             fieldValidation[field].error = true;
-            // Usa mensaje en español propio, o el del backend si ya viene en español
-            fieldValidation[field].message = mensajesDuplicado[field] || res.data.message;
+            fieldValidation[field].message = res.data.message;
         } else {
             fieldValidation[field].error = false;
             fieldValidation[field].message = '';
         }
-    } catch (e) {
-        fieldValidation[field].error = false;
-    } finally {
-        validatingFields[field] = false;
-    }
+    } catch (e) { fieldValidation[field].error = false; } finally { validatingFields[field] = false; }
 };
 
 const availableSubTypes = computed(() => {
@@ -590,9 +561,6 @@ const searchClients = () => {
 const selectClient = (c) => {
     if (!c) return;
     orderForm.clientId = c.id; orderForm.clientName = c.name; selectedCliente.value = c; clientSuggestions.value = [];
-    if (orderForm.receiverType === 'cliente') {
-        orderForm.receiver.regimen_fiscal = c.regimen_fiscal ? c.regimen_fiscal.split(' ')[0] : '';
-    }
 };
 
 const searchBooks = async () => {
@@ -634,9 +602,14 @@ const submitOrder = async () => {
 
     const list = [];
     if (!orderForm.clientId) list.push("Debe seleccionar un cliente o plantel.");
-    if (!orderForm.receiverType) list.push("Debe indicar el origen de datos de envío.");
-    if (orderForm.receiverType === 'existente' && !selectedExistingReceiver.value) list.push("Seleccione un receptor de su agenda personal.");
+    
+    // REGLA: El Régimen Fiscal es obligatorio SOLO cuando se ingresan datos nuevos
+    if (orderForm.receiverType === 'nuevo' && !orderForm.receiver.regimen_fiscal) {
+        list.push("El Régimen Fiscal es obligatorio para nuevos receptores.");
+    }
+    
     if (orderForm.orderItems.length === 0) list.push("Agregue al menos un material a la orden.");
+
     if (list.length > 0) {
         systemModal.visible = true; systemModal.type = 'error'; systemModal.title = 'DATOS INCOMPLETOS'; systemModal.errorList = list;
         return;
@@ -650,6 +623,7 @@ const submitOrder = async () => {
             finalData.receiver = {
                 persona_recibe: selectedCliente.value.contacto || selectedCliente.value.name,
                 rfc: selectedCliente.value.rfc || '',
+                // Aquí el régimen es opcional desde el frontend, Laravel lo validará según corresponda
                 regimen_fiscal: selectedCliente.value.regimen_fiscal ? selectedCliente.value.regimen_fiscal.split(' ')[0] : '', 
                 telefono: selectedCliente.value.telefono || '',
                 correo: selectedCliente.value.email || '',
@@ -679,22 +653,32 @@ const submitOrder = async () => {
         generatedOrderId.value = res.data.order_id;
         systemModal.type = 'success'; systemModal.visible = true;
     } catch (e) {
-     systemModal.type = 'error';
-systemModal.title = 'Error al procesar el pedido';
-if (e.response?.status === 422 && e.response.data.errors) {
-    // Traducción de errores comunes de Laravel
-    const traducciones = {
-        'The rfc field is required.': 'El RFC es obligatorio.',
-        'The correo field is required.': 'El correo electrónico es obligatorio.',
-        'The telefono field is required.': 'El teléfono es obligatorio.',
-        'The cp field is required.': 'El código postal es obligatorio.',
-        'The items field is required.': 'Debe agregar al menos un artículo.',
-        'The comments field is required.': 'Los comentarios del pedido son obligatorios.',
-    };
-    systemModal.errorList = Object.values(e.response.data.errors).flat().map(msg => traducciones[msg] || msg);
-} else {
-    systemModal.errorList = [e.response?.data?.message || 'Ocurrió un error inesperado. Intente nuevamente.'];
-} }finally { loading.value = false; }
+        systemModal.type = 'error';
+        systemModal.title = 'Error de Servidor';
+        
+        if (e.response?.status === 422 && e.response.data.errors) {
+            // Diccionario de traducciones para errores de Laravel
+            // FIX: Se mapea específicamente 'receiver.regimen_fiscal'
+            const translations = {
+                'The rfc field is required.': 'El RFC es obligatorio.',
+                'The correo field is required.': 'El correo electrónico es obligatorio.',
+                'The telefono field is required.': 'El teléfono es obligatorio.',
+                'The cp field is required.': 'El código postal es obligatorio.',
+                'The calle num field is required.': 'La calle y número son obligatorios.',
+                'The persona recibe field is required.': 'El destinatario es obligatorio.',
+                'The items field is required.': 'Agregue al menos un material.',
+                'The receiver.regimen_fiscal field is required.': 'El Régimen Fiscal es obligatorio para nuevos receptores.',
+                'The receiver.regimen_fiscal field must be a string.': 'El Régimen Fiscal debe ser seleccionado de la lista.',
+                'The receiver.regimen fiscal field must be a string.': 'El Régimen Fiscal es obligatorio para nuevos receptores.'
+            };
+
+            // Aplanar y traducir
+            systemModal.errorList = Object.values(e.response.data.errors).flat().map(msg => translations[msg] || msg);
+        } else {
+            systemModal.errorList = [e.response?.data?.message || 'Ocurrió un fallo inesperado al guardar el pedido.'];
+        }
+        systemModal.visible = true;
+    } finally { loading.value = false; }
 };
 
 const closeAndRedirect = () => { systemModal.visible = false; router.push('/pedidos'); };
@@ -707,51 +691,24 @@ onMounted(async () => { try { const res = await axios.get('/estados'); estados.v
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
 .form-section { background: white; padding: 30px; border-radius: 40px; border: 1px solid #fee2e2; margin-bottom: 30px; }
 .section-title { font-weight: 900; color: #000; margin-bottom: 25px; border-bottom: 2px solid #fee2e2; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.85rem; }
-.form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #fee2e2; font-weight: 700; color: #334155; background: #fff; transition: 0.2s; font-size: 0.9rem; position: relative; z-index: 1; }
-.form-input:focus { border-color: #000; outline: none; z-index: 2; }
-
-.autocomplete-list { 
-    position: absolute; 
-    z-index: 10000; 
-    width: 100%; 
-    background: white !important; 
-    border: 2px solid #fee2e2; 
-    border-radius: 16px; 
-    max-height: 300px; 
-    overflow-y: auto; 
-    padding: 8px; 
-    box-shadow: 0 20px 40px rgba(0,0,0,0.15); 
-    top: 100%; 
-    left: 0; 
-    margin-top: 6px; 
-}
-
+.form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #fee2e2; font-weight: 700; color: #334155; background: #fff; transition: 0.2s; font-size: 0.9rem; }
+.form-input:focus { border-color: #000; outline: none; }
+.autocomplete-list { position: absolute; z-index: 10000; width: 100%; background: white !important; border: 2px solid #fee2e2; border-radius: 16px; max-height: 300px; overflow-y: auto; padding: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); top: 100%; left: 0; margin-top: 6px; }
 .shipping-card { @apply border-2 border-red-50 p-5 rounded-3xl flex flex-col items-center gap-3 cursor-pointer transition-all bg-white text-red-300; }
-.shipping-card i { @apply text-3xl; }
 .shipping-card span { @apply text-[10px] font-black uppercase tracking-widest text-center; }
 .shipping-card.active { @apply border-black text-black shadow-xl scale-[1.02]; }
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; transition: 0.2s; text-transform: uppercase; font-size: 0.8rem; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
-.modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); }
+.modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
 .modal-content-success { background: white; padding: 50px; border-radius: 50px; text-align: center; width: 90%; max-width: 450px; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #fee2e2; }
 .success-icon-wrapper { width: 85px; height: 85px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 25px; border: 4px solid white; }
-
+.table-cell { padding: 20px 24px; vertical-align: middle; color: #dc2626; font-weight: 700; }
+.btn-delete-item { background: none; border: none; color: #fca5a5; font-size: 11px; font-weight: 900; cursor: pointer; }
+.bgcolor { background: #fef2f2; border: 1px solid #fee2e2; padding: 16px; border-radius: 12px; }
 .animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
 @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-.table-cell { padding: 20px 24px; vertical-align: middle; color: #dc2626; font-weight: 700; }
-.btn-delete-item { background: none; border: none; color: #fca5a5; font-size: 11px; font-weight: 900; cursor: pointer; }
-
-input.uppercase { text-transform: uppercase; }
-
-.badge-material-sale { @apply bg-black text-white px-3 py-1 rounded-full text-[9px] font-black; }
-.badge-material-promo { @apply bg-red-600 text-white px-3 py-1 rounded-full text-[9px] font-black; }
-
-.bgcolor { background: #fef2f2; border: 1px solid #fee2e2; padding: 16px; border-radius: 12px; }
-.text-danger { color: #dc2626; }
-.border-danger { border-color: #dc2626; }
+/* Focus lower border black */
+.lbb:focus { border-color: #000 !important; border-width: 2px; }
 </style>

@@ -43,7 +43,6 @@ class PedidoController extends Controller
 
     /**
      * Valida la unicidad global de un receptor en tiempo real.
-     * REGLA: Permite al frontend alertar duplicados mientras el usuario escribe.
      */
     public function checkReceiverIntegrity(Request $request)
     {
@@ -57,7 +56,6 @@ class PedidoController extends Controller
 
         $query = PedidoReceptor::query();
 
-        // Aplicamos el filtro basado en el parámetro recibido
         if ($rfc) {
             $query->where('rfc', strtoupper(trim($rfc)));
         } elseif ($correo) {
@@ -70,14 +68,12 @@ class PedidoController extends Controller
             return response()->json(['message' => 'Faltan criterios de búsqueda'], 400);
         }
 
-        // Buscamos de forma global para detectar colisiones con otros representantes
         $existente = $query->first();
 
         if (!$existente) {
             return response()->json(['status' => 'success', 'available' => true]);
         }
 
-        // Lógica de Privacidad
         $isPrivate = ($existente->user_id !== $ownerId);
 
         return response()->json([
@@ -92,7 +88,7 @@ class PedidoController extends Controller
     }
 
     /**
-     * Listado de pedidos con soporte para delegados y representantes.
+     * Listado de pedidos.
      */
     public function index(Request $request)
     {
@@ -113,7 +109,7 @@ class PedidoController extends Controller
     }
 
     /**
-     * Detalle técnico de un pedido con Auditoría y Receptor.
+     * Detalle técnico de un pedido.
      */
     public function show(Request $request, $id)
     {
@@ -136,7 +132,7 @@ class PedidoController extends Controller
     }
 
     /**
-     * Registro de pedido con Doble Escritura y Validación de Unicidad Cuádruple.
+     * Registro de pedido con Doble Escritura y Validación.
      */
     public function store(Request $request)
     {
@@ -146,10 +142,10 @@ class PedidoController extends Controller
             'receiverType' => 'required|in:cliente,nuevo,existente',
             'receptor_id'  => 'nullable|required_if:receiverType,existente|exists:pedido_receptores,id',
             
-            // Datos del Receptor
+            // Datos del Receptor - REGLA ACTUALIZADA: nullable|string para evitar error 422 en tipos no requeridos
             'receiver.persona_recibe' => 'required_if:receiverType,nuevo|string|max:255',
             'receiver.rfc' => 'required_if:receiverType,nuevo|string|min:12|max:13',
-            'receiver.regimen_fiscal' => 'required_if:receiverType,nuevo|string', 
+            'receiver.regimen_fiscal' => 'nullable|string|required_if:receiverType,nuevo', 
             'receiver.telefono' => 'required_if:receiverType,nuevo|string',
             'receiver.correo' => 'required_if:receiverType,nuevo|email',
             'receiver.cp' => 'required_if:receiverType,nuevo|string|size:5',
@@ -178,7 +174,6 @@ class PedidoController extends Controller
                 $user = $request->user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
                 
-                // --- VALIDACIÓN DE INTEGRIDAD GLOBAL (BLOQUEO DURO AL GUARDAR) ---
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $r = $validatedData['receiver'];
                     $rfcNorm      = strtoupper(trim($r['rfc']));
@@ -206,14 +201,14 @@ class PedidoController extends Controller
                     }
                 }
 
-                // 1. Cálculos de Totales
+                // Cálculos de Totales
                 $totalQuantity = collect($validatedData['items'])->sum('quantity');
                 $totalAmount = collect($validatedData['items'])->sum(function($item) {
                     return $item['quantity'] * ($item['price'] ?? 0);
                 });
 
-                // 2. Lógica de Receptor y Dirección
-                $regimenFull = $validatedData['receiver']['regimen_fiscal'] ?? '601 - GENERAL DE LEY PERSONAS MORALES';
+                // Lógica de Receptor y Dirección
+                $regimenFull = $validatedData['receiver']['regimen_fiscal'] ?? null;
                 $receptorId = $validatedData['receptor_id'] ?? null;
                 $direccionFormateada = '';
 
@@ -242,7 +237,7 @@ class PedidoController extends Controller
 
                 $dbReceiverType = ($validatedData['receiverType'] === 'existente') ? 'nuevo' : $validatedData['receiverType'];
 
-                // 3. Escritura en DB Local (Tabla pedidos)
+                // Escritura en DB Local
                 $pedido = Pedido::create([
                     'user_id'                 => $ownerId,
                     'cliente_id'              => $validatedData['clientId'],
@@ -250,7 +245,7 @@ class PedidoController extends Controller
                     'tipo_pedido'             => $request->tipo_pedido ?? 'normal',
                     'receptor_id'             => $receptorId,
                     'receiver_type'           => $dbReceiverType,
-                    'receiver_regimen_fiscal' => strtoupper($regimenFull),
+                    'receiver_regimen_fiscal' => $regimenFull ? strtoupper($regimenFull) : null,
                     'delivery_option'         => $validatedData['logistics']['deliveryOption'] === 'entrega' ? 'none' : $validatedData['logistics']['deliveryOption'],
                     'paqueteria_nombre'       => strtoupper($request->input('logistics.paqueteria_nombre') ?? ''),
                     'commentary_delivery_option' => strtoupper($request->input('logistics.comentarios_logistica') ?? ''),
@@ -265,7 +260,7 @@ class PedidoController extends Controller
                 
                 $pedido->update(['numero_referencia' => 'PED-' . Carbon::now()->format('ymd') . '-' . str_pad($pedido->id, 4, '0', STR_PAD_LEFT)]);
 
-                // 4. Escritura en DB Externa (mysql_inventario)
+                // Sincronización con Inventario Externo
                 try {
                     $dbInventario = DB::connection('mysql_inventario');
                     $idInventario = $dbInventario->table('pedidos')->insertGetId([
@@ -285,7 +280,7 @@ class PedidoController extends Controller
                     throw new \Exception("Fallo en sincronización de inventario.");
                 }
 
-                // 5. Registro de ítems
+                // Registro de ítems
                 foreach ($validatedData['items'] as $item) {
                     $tipoPeticion = ($item['tipo_material'] === 'promocion') 
                         ? (str_contains(strtolower($item['sub_type']), 'demo') ? 'demo' : 'profesor') 
@@ -323,7 +318,7 @@ class PedidoController extends Controller
     }
 
     /**
-     * Actualización de pedido con Sincronización y Validación de Integridad Global.
+     * Actualización de pedido.
      */
     public function update(Request $request, $id)
     {
@@ -346,7 +341,6 @@ class PedidoController extends Controller
                 $user = Auth::user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-                // --- VALIDACIÓN DE INTEGRIDAD GLOBAL EN UPDATE ---
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $r = $request->input('receiver');
                     $rfcNorm      = strtoupper(trim($r['rfc']));
@@ -368,7 +362,7 @@ class PedidoController extends Controller
                     }
                 }
 
-                // 1. Log de Auditoría
+                // Log de Auditoría
                 PedidoLog::create([
                     'pedido_id' => $pedido->id,
                     'user_id' => $user->id,
@@ -379,11 +373,9 @@ class PedidoController extends Controller
                     'motivo_cambio' => strtoupper($request->motivo_cambio)
                 ]);
 
-                // 2. Cálculos de Totales
                 $totalQuantity = collect($validatedData['items'])->sum('quantity');
                 $totalAmount = collect($validatedData['items'])->sum(function($i){ return $i['quantity'] * ($i['price'] ?? 0); });
 
-                // 3. Gestión de Receptor
                 $receptorId = $request->receptor_id;
                 $direccionFormateada = $pedido->delivery_address;
 
@@ -405,12 +397,11 @@ class PedidoController extends Controller
                     $receptorId = $receptor->id;
                 }
 
-                // 4. Actualización Local
                 $pedido->update([
                     'cliente_id'              => $validatedData['clientId'],
                     'prioridad'               => $validatedData['prioridad'],
                     'receptor_id'             => $receptorId,
-                    'receiver_regimen_fiscal' => strtoupper($request->input('receiver.regimen_fiscal') ?? $pedido->receiver_regimen_fiscal),
+                    'receiver_regimen_fiscal' => $request->input('receiver.regimen_fiscal') ? strtoupper($request->input('receiver.regimen_fiscal')) : $pedido->receiver_regimen_fiscal,
                     'delivery_address'        => strtoupper($direccionFormateada),
                     'delivery_option'         => $request->input('logistics.deliveryOption') === 'entrega' ? 'none' : $request->input('logistics.deliveryOption'),
                     'paqueteria_nombre'       => strtoupper($request->input('logistics.paqueteria_nombre') ?? ''),
@@ -419,7 +410,7 @@ class PedidoController extends Controller
                     'actualizado_por'         => strtoupper($user->name),
                 ]);
 
-                // 5. Sincronización Inventario
+                // Sincronización Inventario
                 try {
                     $dbInv = DB::connection('mysql_inventario');
                     $pedidoExterno = $dbInv->table('pedidos')
@@ -457,7 +448,6 @@ class PedidoController extends Controller
                     }
                 } catch (\Exception $eInv) { Log::warning("Fallo Sync Inventario: " . $eInv->getMessage()); }
 
-                // 6. Refrescar detalles locales
                 $pedido->detalles()->delete();
                 foreach ($request->items as $item) {
                     PedidoDetalle::create([
@@ -479,7 +469,7 @@ class PedidoController extends Controller
     }
 
     /**
-     * Subida de factura por personal de oficina.
+     * Subida de factura.
      */
     public function uploadFactura(Request $request, $id)
     {
