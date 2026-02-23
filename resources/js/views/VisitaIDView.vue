@@ -5,14 +5,14 @@
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div class="header-info min-w-0">
                     <h1 v-if="loadingPrecarga" class="text-2xl font-black text-slate-300 animate-pulse uppercase">Sincronizando expediente...</h1>
-                    <h1 v-else-if="selectedCliente" class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight leading-tight">
+                    <h1 v-else-if="selectedCliente" class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight leading-tight uppercase">
                         Seguimiento: {{ selectedCliente.name }}
                     </h1>
-                    <h1 v-else class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight text-red-800">Seguimiento de Prospectos</h1>
+                    <h1 v-else class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight text-red-800 uppercase">Seguimiento de Prospectos</h1>
                     <p class="text-xs md:text-sm text-slate-500 font-medium mt-1 uppercase tracking-tighter italic">Actualiza el expediente y registra los nuevos acuerdos de la visita subsecuente.</p>
                 </div>
                 <button @click="router.push('/visitas')" class="btn-secondary flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm shrink-0 w-full sm:w-auto bg-white border-2 border-slate-200 text-black uppercase" :disabled="loading">
-                    <i class="fas fa-arrow-left"></i> Volver al Historial
+                    <i class="fas fa-arrow-left mr-2"></i> Volver al Historial
                 </button>
             </div>
 
@@ -34,15 +34,17 @@
                     <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                         <div class="section-title text-black">
                             <i class="fas fa-school text-red-700"></i> 1. Identidad del Plantel
+                            <span v-if="selectedCliente" class="ml-auto text-[8px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-black uppercase tracking-widest">Expediente Protegido</span>
                         </div>
                         
+                        <!-- BUSCADOR (Solo si no viene de una precarga) -->
                         <div v-if="!route.params.id" class="form-group relative mb-6">
-                            <label class="label-style">Buscar Plantel en Seguimiento *</label>
+                            <label class="label-style">Seleccionar Plantel para Seguimiento *</label>
                             <div class="relative">
-                                <input v-model="searchQuery" type="text" class="form-input pl-10 font-bold" placeholder="Escribe nombre del plantel..." @input="searchProspectos" autocomplete="off">
+                                <input v-model="searchQuery" type="text" class="form-input pl-10 font-bold lbb uppercase" placeholder="BUSCAR POR NOMBRE..." @input="searchProspectos" autocomplete="off">
                                 <i class="fas fa-university absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                             </div>
-                            <ul v-if="clientesSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
+                            <ul v-if="clientesSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
                                 <li v-for="v in clientesSuggestions" :key="v.id" @click="selectProspecto(v)" class="hover:bg-red-50 transition-colors border-b last:border-0 border-slate-50">
                                     <div class="flex justify-between items-start">
                                         <div class="text-xs font-black text-slate-800 uppercase line-clamp-1">{{ v.name }}</div>
@@ -52,15 +54,80 @@
                             </ul>
                         </div>
 
-                        <div class="form-group mb-6">
-                            <label class="label-style">Nombre del Plantel</label>
-                            <input v-model="form.plantel.name" type="text" class="form-input font-bold bg-slate-50" readonly disabled>
+                        <!-- CAMPOS INFORMATIVOS (BLOQUEADOS) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="form-group md:col-span-2">
+                                <label class="label-style">Nombre del Plantel</label>
+                                <input v-model="form.plantel.name" type="text" class="form-input font-black bg-slate-50 border-slate-100 uppercase" disabled>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="label-style">RFC del Plantel</label>
+                                <input v-model="form.plantel.rfc" type="text" class="form-input font-mono font-black bg-slate-50 border-slate-100 uppercase" disabled>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="label-style">Estado / Región</label>
+                                <select v-model="form.plantel.estado_id" class="form-input font-bold bg-slate-50 border-slate-100 uppercase" disabled>
+                                    <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
+                                </select>
+                            </div>
                         </div>
 
+                       <!-- GPS REQUERIDO -->
+                        <div class="p-6 rounded-[2rem] border transition-all duration-300 mb-6 shadow-sm"
+                             :class="{
+                                 'border-red-600 bg-red-50 ring-4 ring-red-100': attemptedSubmit && !form.plantel.latitud,
+                                 'border-blue-100 bg-blue-50/20': !attemptedSubmit || form.plantel.latitud
+                             }">
+                            <div class="flex items-center justify-between mb-4">
+                                <label class="text-[10px] font-black uppercase tracking-[0.2em]" 
+                                       :class="attemptedSubmit && !form.plantel.latitud ? 'text-red-700' : 'text-blue-800'">
+                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica*
+                                </label>
+                                <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase shadow-sm">✓ Coordenadas Capturadas</span>
+                                <span v-else-if="attemptedSubmit" class="text-[9px] bg-red-600 text-white px-3 py-1 rounded-full font-black uppercase animate-bounce">Requerido</span>
+                            </div>
+                            <br>
                         
+                        </div>
+
+
+                        <!-- NIVELES: SÓLO LECTURA -->
+                        <div class="form-group mb-6">
+                            <label class="label-style">Niveles Educativos Registrados</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label v-for="nivel in nivelesCatalog" :key="nivel.id" 
+                                    class="flex items-center gap-3 p-3 border-2 rounded-2xl transition-all shadow-sm"
+                                    :class="form.plantel.niveles.includes(nivel.id) ? 'border-red-600 bg-red-50/30' : 'border-slate-50 bg-slate-50/30 opacity-60'"
+                                >
+                                    <input type="checkbox" :value="nivel.id" v-model="form.plantel.niveles" class="w-4 h-4 accent-red-600" disabled>
+                                    <span class="text-[10px] font-black uppercase text-slate-700 leading-none">{{ nivel.nombre }}</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="form-group mb-6">
                             <label class="label-style">Dirección Registrada</label>
-                            <textarea v-model="form.plantel.direccion" class="form-input font-medium bg-slate-50" rows="2" readonly disabled></textarea>
+                            <textarea v-model="form.plantel.direccion" class="form-input font-medium bg-slate-50 border-slate-100 uppercase lbb" rows="2" disabled></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="form-group">
+                                <label class="label-style">Teléfono</label>
+                                <input v-model="form.plantel.telefono" type="text" class="form-input font-bold bg-slate-50 border-slate-100" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="label-style">Correo Electrónico</label>
+                                <input v-model="form.plantel.email" type="text" class="form-input font-bold bg-slate-50 border-slate-100" style="text-transform: lowercase !important;" disabled>
+                            </div>
+                        </div>
+
+                        <!-- CAMPO EDITABLE: DIRECTOR / COORDINADOR -->
+                        <div class="form-group mt-6 p-6 bg-red-50/30 rounded-[2rem] border-2 border-red-100">
+                            <label class="label-style !text-red-700">Director / Coordinador General *</label>
+                            <input v-model="form.plantel.director" type="text" class="form-input font-black uppercase lbb" placeholder="NOMBRE DEL TITULAR" required minlength="3" :disabled="loading">
+                            <p class="text-[8px] text-red-400 mt-2 italic font-bold tracking-widest uppercase">* ESTE CAMPO ES EL ÚNICO MODIFICABLE DE LA IDENTIDAD.</p>
                         </div>
                     </div>
 
@@ -74,17 +141,17 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div class="form-group">
                                     <label class="label-style">Fecha de la Visita *</label>
-                                    <input v-model="form.visita.fecha" type="date" class="form-input font-bold" required :disabled="loading">
+                                    <input v-model="form.visita.fecha" type="date" class="form-input font-bold lbb" required :disabled="loading">
                                 </div>
                                 <div class="form-group">
                                     <label class="label-style">Persona Entrevistada *</label>
-                                    <input v-model="form.visita.persona_entrevistada" type="text" class="form-input font-bold" placeholder="¿Quién atendió?" required minlength="3" :disabled="loading">
+                                    <input v-model="form.visita.persona_entrevistada" type="text" class="form-input font-bold uppercase lbb" placeholder="¿QUIÉN ATENDIÓ?" required minlength="3" :disabled="loading">
                                 </div>
                             </div>
 
                             <div class="form-group mb-6">
                                 <label class="label-style">Cargo / Puesto de la Persona *</label>
-                                <select v-model="form.visita.cargo" class="form-input font-bold" required :disabled="loading">
+                                <select v-model="form.visita.cargo" class="form-input font-bold uppercase lbb" required :disabled="loading">
                                     <option value="Director/Coordinador">Director/Coordinador</option>
                                     <option value="Subdirector">Subdirector</option>
                                     <option value="Jefe de Departamento">Jefe de Departamento</option>
@@ -95,32 +162,32 @@
 
                             <div v-if="form.visita.cargo === 'Otro'" class="form-group mb-6 animate-fade-in">
                                 <label class="label-style">Especifique el Cargo *</label>
-                                <input v-model="form.visita.cargo_especifico" type="text" class="form-input font-bold border-red-100" placeholder="Escriba el puesto real..." required :disabled="loading">
+                                <input v-model="form.visita.cargo_especifico" type="text" class="form-input font-bold uppercase lbb border-red-100" placeholder="ESCRIBA EL PUESTO REAL..." required :disabled="loading">
                             </div>
                         </div>
 
                         <!-- APARTADO A: LIBROS DE INTERÉS (OPCIONAL) -->
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                            <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
+                            <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative lbb" style="overflow: visible !important;">
                                 <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter uppercase">
                                     <i class="fas fa-eye mr-1 text-blue-500"></i> Libros de Interés (Opcional)
                                 </label>
                                 
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 lbb">
                                     <div class="form-group">
-                                        <select v-model="selectedSerieIdA" class="form-input font-bold text-xs" @change="handleSerieChange('interest')">
+                                        <select v-model="selectedSerieIdA" class="form-input font-bold text-xs lbb" @change="handleSerieChange('interest')">
                                             <option value="">Filtrar por Serie...</option>
                                             <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
                                             <option value="otro">VER TODAS</option>
                                         </select>
                                     </div>
-                                    <div class="form-group relative">
-                                        <div class="relative">
-                                            <input v-model="interestInput.titulo" type="text" class="form-input pr-10 font-bold" placeholder="Buscar material..." @input="searchBooks($event, 'interest')" autocomplete="off">
-                                            <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <div class="form-group relative lbb">
+                                        <div class="relative lbb">
+                                            <input v-model="interestInput.titulo" type="text" class="form-input pr-10 font-bold lbb uppercase" placeholder="BUSCAR MATERIAL..." @input="searchBooks($event, 'interest')" autocomplete="off">
+                                            <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400 lbb"></i>
                                         </div>
                                         <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
-                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors flex justify-between items-center">
+                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors flex justify-between items-center lbb">
                                                 <span>{{ b.titulo }}</span>
                                                 <span class="text-[7px] bg-slate-100 px-1.5 rounded">{{ b.type }}</span>
                                             </li>
@@ -129,78 +196,78 @@
                                 </div>
                                 
                                 <div v-if="selectedInterestBooks.length" class="table-container mt-6">
-                                    <div class="table-responsive border rounded-xl overflow-hidden shadow-sm bg-white">
-                                        <table class="w-full divide-y divide-gray-200">
-                                            <thead class="bg-slate-900 text-white">
-                                                <tr class="text-[9px] uppercase tracking-widest font-black">
-                                                    <th class="px-4 py-3 text-left">Material / Serie</th>
-                                                    <th class="px-4 py-3 text-center w-36">Formato</th>
-                                                    <th class="px-4 py-3 w-12"></th>
+                                    <div class="table-responsive border rounded-xl overflow-hidden shadow-sm bg-white lbb">
+                                        <table class="w-full divide-y divide-gray-200 lbb">
+                                            <thead class="bg-slate-900 text-white lbb">
+                                                <tr class="text-[9px] uppercase tracking-widest font-black lbb">
+                                                    <th class="px-4 py-3 text-left lbb">Material / Serie</th>
+                                                    <th class="px-4 py-3 text-center w-36 lbb">Formato</th>
+                                                    <th class="px-4 py-3 w-12 lbb"></th>
                                                 </tr>
                                             </thead>
-                                            <tbody class="divide-y divide-gray-100">
-                                                <tr v-for="(item, idx) in selectedInterestBooks" :key="idx">
-                                                    <td class="table-cell">
-                                                        <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                                                        <div class="text-[9px] font-black text-slate-400 uppercase mt-1">{{ item.serie_nombre }}</div>
+                                            <tbody class="divide-y divide-gray-100 lbb">
+                                                <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="lbb">
+                                                    <td class="table-cell lbb">
+                                                        <div class="text-xs font-black text-slate-800 uppercase leading-tight lbb">{{ item.titulo }}</div>
+                                                        <div class="text-[9px] font-black text-slate-400 uppercase mt-1 lbb">{{ item.serie_nombre }}</div>
                                                     </td>
-                                                    <td class="table-cell text-center">
-                                                        <select v-model="item.tipo" class="select-table">
+                                                    <td class="table-cell text-center lbb">
+                                                        <select v-model="item.tipo" class="select-table lbb" :disabled="item.original_type === 'digital'">
                                                             <option value="fisico">FÍSICO</option>
                                                             <option value="digital">DIGITAL</option>
                                                             <option value="paquete">PAQUETE</option>
                                                         </select>
                                                     </td>
-                                                    <td class="table-cell text-center">
-                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-icon-delete-simple"><i class="fas fa-trash-alt"></i></button>
+                                                    <td class="table-cell text-center lbb">
+                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-icon-delete-simple lbb"><i class="fas fa-trash-alt"></i></button>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                 </div>
-                                <div v-else class="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl">
-                                    <p class="text-[10px] font-bold text-slate-300 uppercase italic">Sin materiales de interés agregados</p>
+                                <div v-else class="text-center py-8 border-2 border-dashed border-slate-200 rounded-3xl lbb">
+                                    <p class="text-[10px] font-bold text-slate-300 uppercase italic lbb">Sin materiales de interés agregados</p>
                                 </div>
                             </div>
                         </div>
 
                         <!-- APARTADO B: PROMOCIÓN (OPCIONAL) -->
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                            <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
+                            <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative lbb" style="overflow: visible !important;">
                                 <label class="label-mini mb-4 text-red-800 font-black tracking-tighter uppercase"><i class="fas fa-box-open mr-1"></i> Muestras Entregadas (Opcional)</label>
                                 
-                                <div class="form-group relative mb-4">
-                                    <label class="label-mini uppercase">Buscar Muestra Física</label>
-                                    <div class="relative">
-                                        <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100 shadow-sm" placeholder="Buscar material de promoción..." @input="searchBooks($event, 'delivered')" autocomplete="off">
-                                        <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
+                                <div class="form-group relative mb-4 lbb">
+                                    <label class="label-mini uppercase lbb">Buscar Muestra Física</label>
+                                    <div class="relative lbb">
+                                        <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100 shadow-sm lbb uppercase" placeholder="BUSCAR MATERIAL PROMOCIÓN..." @input="searchBooks($event, 'delivered')" autocomplete="off">
+                                        <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400 lbb"></i>
                                     </div>
                                     <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
-                                        <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
+                                        <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors lbb">
                                             <span>{{ b.titulo }}</span>
                                         </li>
                                     </ul>
                                 </div>
                                 
-                                <div v-if="selectedDeliveredBooks.length" class="table-container mt-6">
-                                    <div class="table-responsive border rounded-xl overflow-hidden shadow-sm bg-white">
-                                        <table class="w-full divide-y divide-gray-200">
-                                            <thead class="bg-red-900 text-white">
-                                                <tr class="text-[9px] uppercase tracking-widest font-black">
-                                                    <th class="px-4 py-3 text-left">Muestra Física</th>
-                                                    <th class="px-4 py-3 text-center w-32">Cantidad</th>
-                                                    <th class="px-4 py-3 w-16"></th>
+                                <div v-if="selectedDeliveredBooks.length" class="table-container mt-6 lbb">
+                                    <div class="table-responsive border rounded-xl overflow-hidden shadow-sm bg-white lbb">
+                                        <table class="w-full divide-y divide-gray-200 lbb">
+                                            <thead class="bg-red-900 text-white lbb">
+                                                <tr class="text-[9px] uppercase tracking-widest font-black lbb">
+                                                    <th class="px-4 py-3 text-left lbb">Muestra Física</th>
+                                                    <th class="px-4 py-3 text-center w-32 lbb">Cantidad</th>
+                                                    <th class="px-4 py-3 w-16 lbb"></th>
                                                 </tr>
                                             </thead>
-                                            <tbody class="divide-y divide-red-50">
-                                                <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx">
-                                                    <td class="table-cell">
-                                                        <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                                                        <div class="text-[8px] font-black text-red-400 uppercase mt-1">{{ item.serie_nombre }}</div>
+                                            <tbody class="divide-y divide-red-50 lbb">
+                                                <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="lbb">
+                                                    <td class="table-cell lbb">
+                                                        <div class="text-xs font-black text-slate-800 uppercase leading-tight lbb">{{ item.titulo }}</div>
+                                                        <div class="text-[8px] font-black text-red-400 uppercase mt-1 lbb">{{ item.serie_nombre }}</div>
                                                     </td>
-                                                    <td class="table-cell text-center"><input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center" /></td>
-                                                    <td class="table-cell text-right"><button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-icon-delete"><i class="fas fa-trash-alt"></i></button></td>
+                                                    <td class="table-cell text-center lbb"><input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center lbb" /></td>
+                                                    <td class="table-cell text-right lbb"><button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-icon-delete lbb"><i class="fas fa-trash-alt"></i></button></td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -213,27 +280,27 @@
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="form-group mb-6">
                                 <label class="label-style">Resolución Actual del Prospecto</label>
-                                <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required :disabled="loading">
+                                <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700 lbb" required :disabled="loading">
                                     <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
                                     <option value="compra">DECISIÓN DE COMPRA (Convertir a Cliente)</option>
                                     <option value="rechazo">NO INTERESADO</option>
                                 </select>
                             </div>
 
-                            <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in">
-                                <label class="text-orange-800 font-black uppercase text-[9px] mb-3 block tracking-widest">Próxima Acción Agendada *</label>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold" required :disabled="loading">
-                                    <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold" :disabled="loading">
+                            <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in lbb">
+                                <label class="text-orange-800 font-black uppercase text-[9px] mb-3 block tracking-widest lbb">Próxima Acción Agendada *</label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lbb">
+                                    <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold lbb" required :disabled="loading">
+                                    <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold lbb" :disabled="loading">
                                         <option value="visita">Visita de Seguimiento</option>
                                         <option value="presentacion">Presentación Académica</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group lbb">
                                 <label class="label-style">Comentarios y Acuerdos de la Sesión *</label>
-                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Mínimo 20 caracteres..." required minlength="20" :disabled="loading"></textarea>
+                                <textarea v-model="form.visita.comentarios" class="form-input font-medium uppercase text-xs lbb" rows="4" placeholder="MÍNIMO 20 CARACTERES..." required minlength="20" :disabled="loading"></textarea>
                             </div>
                         </div>
                     </div>
@@ -241,9 +308,9 @@
 
                 <!-- BOTONES DE ACCIÓN -->
                 <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8 pb-20">
-                    <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 uppercase font-bold text-xs tracking-widest bg-white border-2 border-slate-200 text-black rounded-2xl shadow-sm" :disabled="loading">Cancelar</button>
-                    <button type="submit" class="btn-primary px-20 py-4 shadow-xl shadow-red-900/10 transition-all active:scale-95" :disabled="loading || !selectedCliente || gettingLocation">
-                        <i class="fas" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
+                    <button type="button" @click="$router.push('/visitas')" class="btn-secondary px-10 py-4 uppercase font-bold text-xs tracking-widest bg-white border-2 border-slate-200 text-black rounded-2xl shadow-sm lbb" :disabled="loading">Cancelar</button>
+                    <button type="submit" class="btn-primary px-20 py-4 shadow-xl shadow-red-900/10 transition-all active:scale-95 lbb" :disabled="loading || !selectedCliente || gettingLocation">
+                        <i class="fas lbb" :class="loading ? 'fa-spinner fa-spin mr-2' : 'fa-save mr-2'"></i> 
                         {{ loading ? 'Sincronizando...' : 'Postear Seguimiento' }}
                     </button>
                 </div>
@@ -255,10 +322,10 @@
             <Transition name="modal-pop">
                 <div v-if="showSuccessModal" class="modal-overlay-custom">
                     <div class="modal-content-success animate-scale-in">
-                        <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
-                        <h2 class="modal-title-success">¡Seguimiento Exitoso!</h2>
-                        <p class="modal-text-success">La bitácora se guardó correctamente. El plantel ahora figura como <strong>{{ savedClientType }}</strong> activo.</p>
-                        <button @click="goToHistory" class="btn-primary w-full mt-8 bg-slate-900 border-none text-white uppercase font-black py-4 tracking-widest text-xs">Regresar al Listado</button>
+                        <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check lbb"></i></div>
+                        <h2 class="modal-title-success uppercase lbb">¡Seguimiento Exitoso!</h2>
+                        <p class="modal-text-success lbb">La bitácora se guardó correctamente. El plantel ahora figura como <strong>{{ savedClientType }}</strong> activo.</p>
+                        <button @click="goToHistory" class="btn-primary w-full mt-8 bg-slate-900 border-none text-white uppercase font-black py-4 tracking-widest text-xs lbb">Regresar al Listado</button>
                     </div>
                 </div>
             </Transition>
@@ -383,7 +450,7 @@ const fetchHistorialYAutocompletar = async (id) => {
         if (historial.length > 0) {
             const ultimaVisita = historial[0];
             
-            // AUTORELLENO DE IDENTIDAD:
+            // AUTORELLENO DE IDENTIDAD (CAMPOS BLOQUEADOS EXCEPTO DIRECTOR):
             form.plantel.rfc = ultimaVisita.rfc_plantel || form.plantel.rfc;
             form.plantel.direccion = ultimaVisita.direccion_plantel || form.plantel.direccion;
             form.plantel.telefono = ultimaVisita.telefono_plantel || form.plantel.telefono;
@@ -459,9 +526,8 @@ const handleSubmit = async () => {
     attemptedSubmit.value = true;
     if (!selectedCliente.value) return;
 
-    // REGLA: Niveles educativos obligatorios para mantener integridad maestro
     if (form.plantel.niveles.length === 0) {
-        errorMessage.value = "Selecciona niveles educativos para completar el expediente del plantel.";
+        errorMessage.value = "SELECCIONA NIVELES EDUCATIVOS PARA COMPLETAR EL EXPEDIENTE DEL PLANTEL.";
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
     }
@@ -472,7 +538,6 @@ const handleSubmit = async () => {
     try {
         const nivelNombres = nivelesCatalog.value.filter(n => form.plantel.niveles.includes(n.id)).map(n => n.nombre);
         
-        // REGLA ACTUALIZADA: Los materiales (tanto interés como entrega) son opcionales
         const materiales = {
             interes: selectedInterestBooks.value.map(b => ({ titulo: b.titulo, tipo: b.tipo, serie_nombre: b.serie_nombre })),
             entregado: selectedDeliveredBooks.value.map(b => ({ titulo: b.titulo, cantidad: b.cantidad, serie_nombre: b.serie_nombre }))
@@ -541,11 +606,12 @@ onMounted(async () => {
 
 .form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #000000; background: #fafbfc; transition: all 0.2s; font-size: 0.9rem; }
 .form-input:focus { border-color: #000000; background: white; outline: none; }
+.form-input:disabled { background-color: #f8fafc; color: #94a3b8; cursor: not-allowed; border-style: dashed; }
 
-.btn-primary { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+.btn-primary { background: linear-gradient(135deg, #e5a0a3 0%, #881337 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
-.btn-primary-blue { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; font-weight: 900; cursor: pointer; border: none; border-radius: 16px; }
+.btn-primary-blue { background: linear-gradient(135deg, #a93339 0%, #ffd0de 100%); color: white; font-weight: 900; cursor: pointer; border: none; border-radius: 16px; }
 
 .autocomplete-list { position: absolute; z-index: 2000; width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.2); max-height: 250px; overflow-y: auto; list-style: none; padding: 10px; margin: 8px 0 0; }
 .autocomplete-list li { padding: 12px 16px; cursor: pointer; border-radius: 12px; border-bottom: 1px solid #f8fafc; transition: all 0.2s; }
@@ -578,4 +644,7 @@ onMounted(async () => {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
+
+/* Focus helper */
+.lbb:focus { border-color: #000; border-width: 2px; }
 </style>

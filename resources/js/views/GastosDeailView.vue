@@ -46,7 +46,7 @@
             <!-- Contenido del Gasto -->
             <div v-else-if="gasto" class="space-y-8 animate-fade-in pb-20 ">
                 <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-6 rounded-[2.5rem] border border-slate-100">
-                     <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">1. Resumen Ejecutivo</h2>
+                     <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">1. información de viaje</h2>
                    
                     <!-- 1. RESUMEN EJECUTIVO (TOP BAR) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -57,10 +57,6 @@
                     <div class="summary-stat shadow-premium border-t-4 border-t-red-700">
                         <span class="label-lb">Estado / Región</span>
                         <p class="value-text uppercase truncate" :title="gasto.estado_nombre">{{ gasto.estado_nombre || 'No definido' }}</p>
-                    </div>
-                    <div class="summary-stat shadow-premium bg-slate-900 border-none">
-                        <span class="label-lb text-slate-400">Inversión Total</span>
-                        <p class="value-text text-red-400 font-black">{{ formatCurrency(gasto.monto) }}</p>
                     </div>
                     <div class="summary-stat shadow-premium border-t-4" 
                          :class="gasto.status === 'FINALIZADO' ? 'border-t-green-600' : 'border-t-amber-500'">
@@ -89,10 +85,10 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="table-header text-center w-16">#</th>
-                    <th class="table-header">Rubro / Detalles</th>
-                    <th class="table-header text-center">Comprobante</th>
-                    <th class="table-header text-center w-32">Estatus</th>
-                    <th class="table-header text-right w-40">Monto</th>
+                    <th class="table-header">CONCEPTO / DESCRIPCIÓN</th>
+                    <th class="table-header text-center">COMPROBANTE</th>
+                    <th class="table-header text-center w-32">FACTURADO</th>
+                    <th class="table-header text-right w-40">MONTO</th>
                 </tr>
             </thead>
 

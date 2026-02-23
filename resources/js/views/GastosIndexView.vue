@@ -21,7 +21,7 @@
                 </div>
                 <div class="filter-grid mt-4">
                     <div class="form-group col-span-2">
-                        <label for="search">Buscar por viaje:</label>
+                        <label for="search">Buscar Paquete:</label>
                         <div class="relative">
                             <i class="fas fa-search search-icon text-slate-400"></i>
                             <input 
@@ -35,30 +35,11 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="registroStatus">Estado Registro:</label>
+                        <label for="registroStatus">Estado:</label>
                         <select v-model="filters.status" id="registroStatus" class="form-input font-bold">
                             <option value="all">Todos los estados</option>
                             <option value="BORRADOR">Borradores</option>
                             <option value="FINALIZADO">Finalizados</option>
-                        </select>
-                    </div>
-
-                    <!-- NUEVO FILTRO: Auditoría de cambios -->
-                    <div class="form-group">
-                        <label for="modificadoStatus">Modificaciones:</label>
-                        <select v-model="filters.modificado" id="modificadoStatus" class="form-input font-bold text-red-700">
-                            <option value="all">Cualquiera</option>
-                            <option value="edited">Solo Editados</option>
-                            <option value="original">Solo Originales</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="comprobanteStatus">Archivos:</label>
-                        <select v-model="filters.tiene_comprobante" id="comprobanteStatus" class="form-input font-bold">
-                            <option value="all">Mostrar Todos</option>
-                            <option value="missing">Pendientes</option>
-                            <option value="uploaded">Completados</option>
                         </select>
                     </div>
                     
@@ -96,7 +77,7 @@
                         <tr>
                             <th class="table-header w-32 text-white">Fecha</th>
                             <th class="table-header text-white">Paquete de gastos</th>
-                            <th class="table-header text-center w-36 text-white">Registro</th>
+                            <th class="table-header text-center w-36 text-white">Estado</th>
                             <th class="table-header text-right w-36 text-white">Monto</th>
                             <th class="table-header text-center w-36 text-white">Archivos</th>
                             <th class="px-6 py-3 w-28"></th>

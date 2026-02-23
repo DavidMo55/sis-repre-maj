@@ -272,10 +272,7 @@
                                                 </div>
                                         <div>
 
-                                             <p class="label-large"><i class="fas fa-comment-dots text-red-700 label-large"></i>RESOLUCIÓN / RESULTADO</p>
-                                            <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
-                                        {{ h.resultado_visita }}
-                                    </span>
+                                            
 
                                             <h5 class="text-black font-black uppercase text-[11px] label-large tracking-widest mb-4 flex items-center gap-2">
                                                 <i class="fas fa-comment-dots text-red-700 label-large"></i> Observaciones

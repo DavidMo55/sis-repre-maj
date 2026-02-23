@@ -36,11 +36,7 @@
 
             <form v-else @submit.prevent="handleSubmit">
                 
-                <!-- Alerta de Error de Validación -->
-                <div v-if="errorMessage" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl animate-fade-in shadow-sm flex items-center gap-3">
-                    <i class="fas fa-exclamation-circle text-red-600"></i>
-                    <p class="text-red-700 text-[10px] font-black uppercase tracking-widest">{{ errorMessage }}</p>
-                </div>
+               
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     
@@ -275,30 +271,47 @@
                             </div>
                         </div>
 
-                        <!-- RESULTADO Y MOTIVO -->
+ <!-- RESULTADO Y MOTIVO -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="form-group mb-6">
                                 <label class="label-style">Resultado de la Visita</label>
-                                <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required>
+                                <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700 lbb" required>
                                     <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
                                     <option value="compra">DECISIÓN DE COMPRA</option>
                                     <option value="rechazo">RECHAZADO / CERRADO</option>
                                 </select>
                             </div>
 
-                            <div class="form-group mb-6">
-                                <label class="label-style">Comentarios Generales *</label>
-                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" required minlength="20"></textarea>
+                            <!-- CAMPO DE PRÓXIMA ACCIÓN AGENDADA (NUEVO REQUISITO) -->
+                            <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in lbb">
+                                <label class="text-orange-800 font-black uppercase text-[9px] mb-3 block tracking-widest">Próxima Acción Agendada *</label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lbb">
+                                    <div>
+                                        <label class="text-[8px] font-black text-orange-600 uppercase mb-1 block">Fecha estimada</label>
+                                        <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold lbb" required :disabled="loading">
+                                    </div>
+                                    <div>
+                                        <label class="text-[8px] font-black text-orange-600 uppercase mb-1 block">Tipo de actividad</label>
+                                        <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold lbb" :disabled="loading">
+                                            <option value="visita">Visita de Seguimiento</option>
+                                            <option value="presentacion">Presentación Académica</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="form-group p-6 bg-red-50 rounded-[2.5rem] border-2 border-red-100 shadow-inner">
+                            <div class="form-group mb-6">
+                                <label class="label-style">Comentarios Generales *</label>
+                                <textarea v-model="form.visita.comentarios" class="form-input font-medium uppercase text-xs lbb" rows="4" required minlength="20"></textarea>
+                            </div>
+
+                            <div class="form-group p-6 bg-red-50 rounded-[2.5rem] border-2 border-red-100 shadow-inner lbb">
                                 <label class="label-style !text-red-800">Motivo del Ajuste (Log de Auditoría) *</label>
-                                <textarea v-model="form.motivo_cambio" class="form-input border-red-200 font-bold uppercase text-xs" rows="3" placeholder="EXPLIQUE POR QUÉ SE EDITA ESTE REGISTRO..." required minlength="10"></textarea>
-                                <p class="text-[8px] text-red-400 mt-2 italic font-bold">Esta justificación es obligatoria para registrar el cambio en la bitácora.</p>
+                                <textarea v-model="form.motivo_cambio" class="form-input border-red-200 font-bold uppercase text-xs lbb" rows="3" placeholder="EXPLIQUE POR QUÉ SE EDITA ESTE REGISTRO..." required minlength="10"></textarea>
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> 
 
                 <!-- BOTONES FINALES -->
                 <div class="mt-10 flex flex-col md:flex-row justify-end gap-4 border-t border-slate-100 pt-8 pb-20">
@@ -325,11 +338,25 @@
             </Transition>
         </Teleport>
 
+        <Teleport to="body">
+            <Transition name="modal-pop">
+                <div v-if="errorMessage" class="modal-overlay-wrapper" @click.self="errorMessage = null">
+                    <div class="modal-content-success animate-scale-in">
+                        <div class="error-icon
+                        -wrapper shadow-lg shadow-red-100"><i class="fas fa-exclamation-triangle"></i></div>
+                        <h2 class="text-2xl font-black text-red-700 mb-2 uppercase tracking-tighter">Error al Guardar</h2>
+                        <p class="text-sm text-red-600 mb-8 font-medium px-4">{{ errorMessage }}</p>
+                        <button @click="errorMessage = null" class="btn-primary w-full py-4 bg-red-600 border-none text-white font-black tracking-widest text-xs uppercase">Revisar Formulario</button>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
         <!-- MODAL DE INTEGRIDAD (DUPLICADOS) -->
         <Teleport to="body">
             <Transition name="modal-pop">
                 <div v-if="showDuplicateModal" class="modal-overlay-wrapper" @click.self="showDuplicateModal = false">
-                    <div class="modal-content-success bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden border border-red-100 animate-scale-in">
+                    <div class=" modal-content-success        bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden border border-red-100 animate-scale-in">
                         <div class="bg-red-600 h-4 w-full"></div>
                         <div class="p-10 flex flex-col items-center">
                             <div class="bg-red-50 text-red-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-white ring-2 ring-red-50">
@@ -454,6 +481,9 @@ const fetchInitialData = async () => {
         form.visita.cargo = (visita.value.cargo || '').toUpperCase();
         form.visita.comentarios = visita.value.comentarios || '';
         form.visita.resultado_visita = visita.value.resultado_visita || 'seguimiento';
+        // CONSUMO DE FECHA Y ACCIÓN DE SEGUIMIENTO (HIDRATACIÓN)
+        form.visita.proxima_visita = visita.value.proxima_visita_estimada ? visita.value.proxima_visita_estimada.split('T')[0] : '';
+        form.visita.proxima_accion = visita.value.proxima_accion || 'visita';
 
         // Hidratar Materiales
         const materiales = parseMateriales(visita.value.libros_interes);
