@@ -5,7 +5,7 @@
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div class="header-info min-w-0">
                     <h1 class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight leading-tight break-words uppercase">
-                        Expediente #{{ pedido && (pedido.numero_referencia || pedido.display_id) ? (pedido.numero_referencia || pedido.display_id) : id }}
+                        Número de Pedido #{{ pedido && (pedido.numero_referencia || pedido.display_id) ? (pedido.numero_referencia || pedido.display_id) : id }}
                     </h1>
                     <p class="text-xs md:text-sm text-red-600 font-bold mt-1 uppercase tracking-widest italic">Gestión logística y auditoría de materiales.</p>
                 </div>
