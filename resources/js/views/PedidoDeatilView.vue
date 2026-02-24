@@ -120,7 +120,7 @@
                     <!-- Bloque: Resumen de Envío -->
                     <div class="info-card shadow-premium border-t-4 border-t-red-700 bg-white p-6 rounded-3xl border border-slate-100">
                         <div class="section-title !mb-6">
-                            <i class="fas fa-box-open text-red-700"></i> 3. Selección de Material
+                            <i class="fas fa-box-open text-red-700"></i> 3. Estatus de envio
                         </div>
                         <div class="space-y-6">
                             <div>
@@ -131,18 +131,15 @@
                             </div>
 
                             <div class="grid grid-cols-1 gap-4">
-                                <div class="bg-red-50/30 p-4 rounded-2xl border border-red-100">
-                                    <label class="label-mini label-large">Método de Envío</label>
-                                    <span class="text-xs font-black text-red-700 value-text uppercase block">{{ getDeliveryOption(pedido.delivery_option) }}</span>
-                                </div>
+                               
                                 
                                 <div v-if="pedido.delivery_option === 'paqueteria'" class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                    <label class="label-mini label-large">Paquetería Sugerida</label>
+                                    <label class="label-mini label-large">Paquetería</label>
                                     <span class="text-xs font-black text-slate-800 value-text uppercase block">{{ pedido.paqueteria_nombre || 'POR DEFINIR' }}</span>
                                 </div>
 
                                 <div v-else-if="pedido.commentary_delivery_option" class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                    <label class="label-mini label-large">Instrucciones Logísticas</label>
+                                    <label class="label-mini label-large">Instrucciones de logistica</label>
                                     <span class="text-[10px] font-bold text-slate-500 value-text uppercase leading-tight block">
                                         {{ pedido.commentary_delivery_option }}
                                     </span>
@@ -152,30 +149,14 @@
                     </div>
                 </div>
 
-                <!-- 4. COMENTARIOS GENERALES -->
-                <div v-if="pedido.comments" class="info-card comments-section bg-white p-8 md:p-10 rounded-[3rem] border-2 border-amber-200 shadow-premium relative overflow-hidden animate-fade-in mx-2">
-                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-amber-50 rounded-full flex items-center justify-center opacity-40">
-                        <i class="fas fa-quote-right text-6xl text-amber-200 rotate-12"></i>
-                    </div>
-                    
-                    <div class="relative z-10">
-                        <span class="inline-flex label-mini label-large items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                            <i class="fas fa-comment-dots"></i> Comentarios generales del pedido
-                        </span>
-                        <div class="bg-amber-50/50 p-6 rounded-[2rem] border border-dashed border-amber-200">
-                            <p class="text-slate-800 text-base md:text-lg font-bold italic leading-relaxed whitespace-pre-wrap">
-                                "{{ pedido.comments }}"
-                            </p>
-                        </div>
-                    </div>
-                </div>
+               
 
                 <!-- 3. DESGLOSE DE MATERIALES -->
                 <div class="mt-8">
                     <div class="info-card !p-0 shadow-premium border border-slate-200 rounded-[2.5rem] bg-white overflow-hidden border-slate-100">
                         
                          <div class="section-title !mb-6 p-8 pb-0">
-                            <i class="fas fa-box-open text-red-700"></i> 4. Selección de Materiales
+                            <i class="fas fa-box-open text-red-700"></i> 3. Selección de Materiales
                         </div>
                         <div class="table-container animate-fade-in p-8 pt-0">
                             <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
@@ -240,6 +221,23 @@
                         </div>
                     </div>
                 </div>
+                 <!-- 4. COMENTARIOS GENERALES -->
+                <div v-if="pedido.comments" class="info-card comments-section bg-white p-8 md:p-10 rounded-[3rem] border-2 border-amber-200 shadow-premium relative overflow-hidden animate-fade-in mx-2">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 bg-amber-50 rounded-full flex items-center justify-center opacity-40">
+                        <i class="fas fa-quote-right text-6xl text-amber-200 rotate-12"></i>
+                    </div>
+                    
+                    <div class="relative z-10">
+                        <span class="inline-flex label-mini label-large items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
+                            <i class="fas fa-comment-dots"></i> Comentarios generales del pedido
+                        </span>
+                        <div class="bg-amber-50/50 p-6 rounded-[2rem] border border-dashed border-amber-200">
+                            <p class="text-slate-800 text-base md:text-lg font-bold italic leading-relaxed whitespace-pre-wrap">
+                                "{{ pedido.comments }}"
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- 6. EXPEDIENTE DIGITAL -->
                 <div class="info-card shadow-premium border-l-8 border-l-slate-800 bg-white p-6 rounded-3xl overflow-hidden border border-slate-100">
@@ -294,7 +292,7 @@
                                             <div class="flex justify-center">
                                                 <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
                                                     :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
-                                                    #{{ pedido.logs.length - index }}
+                                                    N.{{ pedido.logs.length - index }}
                                                 </span>
                                             </div>
                                         </td>
@@ -305,9 +303,7 @@
                                         </td>
                                         <td class="table-cell">
                                             <div class="flex items-center gap-2">
-                                                <div class="w-6 h-6 bg-slate-800 text-white rounded-lg flex items-center justify-center text-[8px] font-black uppercase">
-                                                    {{ log.user?.name?.charAt(0) || 'S' }}
-                                                </div>
+                                               
                                                 <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
                                                     {{ log.user?.name || 'Sistema' }}
                                                 </span>
