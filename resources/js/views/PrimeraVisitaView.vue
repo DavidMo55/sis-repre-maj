@@ -115,7 +115,7 @@
                         </div>
 
                         <div class="form-group mb-6">
-                            <label class="label-style">Dirección Completa (Para Envío)</label>
+                            <label class="label-style">Dirección Completa</label>
                             <textarea v-model="form.plantel.direccion" class="form-input font-medium" rows="2" placeholder="Calle, número, colonia, CP..." required minlength="10" :disabled="loading"></textarea>
                         </div>
 
@@ -178,7 +178,7 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                 <div class="form-group">
-                                    <label class="label-style">Fecha de la Entrevista *</label>
+                                    <label class="label-style">Fecha de la Visita *</label>
                                     <input v-model="form.visita.fecha" type="date" class="form-input font-bold" required :disabled="loading">
                                 </div>
                                 <div class="form-group">
@@ -267,9 +267,6 @@
                                                             </template>
                                                         </select>
                                                     </td>
-                                                    <td class="table-cell text-center">
-                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-icon-delete-simple"><i class="fas fa-trash-alt"></i>Quitar</button>
-                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -309,7 +306,7 @@
                                     <table class="w-full divide-y divide-gray-200">
                                         <thead class="bg-red-900">
                                             <tr>
-                                                <th class="table-header text-white">Muestra Física</th>
+                                                <th class="table-header text-white">Libro</th>
                                                 <th class="table-header text-center w-32 text-white">Cantidad</th>
                                                 <th class="px-6 py-3 w-16 text-white"></th>
                                             </tr>
@@ -326,9 +323,6 @@
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td class="table-cell text-right">
-                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-icon-delete"><i class="fas fa-trash-alt"></i> Quitar</button>
-                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -339,19 +333,19 @@
                         <!-- RESULTADO Y AGENDA -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="form-group mb-6">
-                                <label class="label-style">Resolución / Resultado Inicial</label>
+                                <label class="label-style">Resolución / Resultado</label>
                                 <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required :disabled="loading">
-                                    <option value="seguimiento">CONTINUAR SEGUIMIENTO (Mantener Prospecto)</option>
-                                    <option value="compra">DECISIÓN DE COMPRA (Convertir a Cliente)</option>
-                                    <option value="rechazo">NO INTERESADO (Inactivar prospecto)</option>
+                                    <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
+                                    <option value="compra">DECISIÓN DE COMPRA</option>
+                                    <option value="rechazo">NO INTERESADO </option>
                                 </select>
                             </div>
 
                             <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
-                                <label class="text-orange-800 font-black uppercase text-[10px] mb-4 block tracking-widest">Próxima Acción Estimada *</label>
+                                
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="text-[9px] text-orange-600 font-black uppercase mb-1 block">Fecha de Cita</label>
+                                        <label class="text-[9px] text-orange-600 font-black uppercase mb-1 block">Fecha de la proxima visita</label>
                                         <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold" required :disabled="loading">
                                     </div>
                                     <div>
@@ -365,7 +359,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="label-style">Comentarios y Acuerdos de la Sesión</label>
+                                <label class="label-style">Detalles de la visita</label>
                                 <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de la entrevista (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
                             </div>
                         </div>

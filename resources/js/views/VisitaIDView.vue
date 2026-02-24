@@ -170,7 +170,7 @@
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative lbb" style="overflow: visible !important;">
                                 <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter uppercase">
-                                    <i class="fas fa-eye mr-1 text-blue-500"></i> Libros de Interés (Opcional)
+                                    <i class="fas fa-eye mr-1 text-blue-500"></i> Libros de Interés
                                 </label>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 lbb">
@@ -200,7 +200,7 @@
                                         <table class="w-full divide-y divide-gray-200 lbb">
                                             <thead class="bg-slate-900 text-white lbb">
                                                 <tr class="text-[9px] uppercase tracking-widest font-black lbb">
-                                                    <th class="px-4 py-3 text-left lbb">Material / Serie</th>
+                                                    <th class="px-4 py-3 text-left lbb">Libro</th>
                                                     <th class="px-4 py-3 text-center w-36 lbb">Formato</th>
                                                     <th class="px-4 py-3 w-12 lbb"></th>
                                                 </tr>
@@ -219,8 +219,7 @@
                                                         </select>
                                                     </td>
                                                     <td class="table-cell text-center lbb">
-                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-icon-delete-simple lbb"><i class="fas fa-trash-alt"></i></button>
-                                                    </td>
+                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -238,7 +237,7 @@
                                 <label class="label-mini mb-4 text-red-800 font-black tracking-tighter uppercase"><i class="fas fa-box-open mr-1"></i> Muestras Entregadas (Opcional)</label>
                                 
                                 <div class="form-group relative mb-4 lbb">
-                                    <label class="label-mini uppercase lbb">Buscar Muestra Física</label>
+                                    <label class="label-mini uppercase lbb">Buscar Muestra de promocion</label>
                                     <div class="relative lbb">
                                         <input v-model="deliveredInput.titulo" type="text" class="form-input pr-10 font-bold border-red-100 shadow-sm lbb uppercase" placeholder="BUSCAR MATERIAL PROMOCIÓN..." @input="searchBooks($event, 'delivered')" autocomplete="off">
                                         <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400 lbb"></i>
@@ -255,7 +254,7 @@
                                         <table class="w-full divide-y divide-gray-200 lbb">
                                             <thead class="bg-red-900 text-white lbb">
                                                 <tr class="text-[9px] uppercase tracking-widest font-black lbb">
-                                                    <th class="px-4 py-3 text-left lbb">Muestra Física</th>
+                                                    <th class="px-4 py-3 text-left lbb">Libro</th>
                                                     <th class="px-4 py-3 text-center w-32 lbb">Cantidad</th>
                                                     <th class="px-4 py-3 w-16 lbb"></th>
                                                 </tr>
@@ -267,8 +266,7 @@
                                                         <div class="text-[8px] font-black text-red-400 uppercase mt-1 lbb">{{ item.serie_nombre }}</div>
                                                     </td>
                                                     <td class="table-cell text-center lbb"><input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center lbb" /></td>
-                                                    <td class="table-cell text-right lbb"><button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-icon-delete lbb"><i class="fas fa-trash-alt"></i></button></td>
-                                                </tr>
+                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>

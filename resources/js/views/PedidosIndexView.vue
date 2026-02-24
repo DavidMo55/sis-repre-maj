@@ -85,12 +85,12 @@
                         <thead class="bg-gray-100">
                             <tr>
                                 <th class="table-header w-32"># Pedido</th>
-                                <th class="table-header">Cliente</th>
+                                <th class="table-header">Nombre del Cliente</th>
                                 <th class="table-header text-center">Prioridad</th>
-                                <th class="table-header">Fecha</th>
+                                <th class="table-header">Fecha en que se creó el pedido</th>
                                 <th class="table-header text-center">Ítems</th>
                                 <th class="table-header">Estado</th>
-                                <th class="px-6 py-3"></th>
+                                <th class="px-6 py-3">Detalles</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white bk divide-y divide-gray-100">

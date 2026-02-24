@@ -27,11 +27,11 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="form-group relative">
-                            <label class="label-style">Cambiar Plantel / Distribuidor *</label>
+                            <label class="label-style">Seleccionar Plantel / Distribuidor *</label>
                             <div class="relative">
                                 <input 
                                     type="text" 
-                                    class="form-input pl-10 font-bold uppercase"  
+                                    class="form-input pl-10 font-bold uppercase lbb"  
                                     placeholder="BUSCAR POR NOMBRE..." 
                                     v-model="orderForm.clientName"
                                     @input="searchClients"
@@ -49,7 +49,7 @@
                         </div>
                         <div class="form-group">
                             <label class="label-style">Prioridad de Atención:</label>
-                            <select v-model="orderForm.prioridad" class="form-input font-bold text-red-700 uppercase">
+                            <select v-model="orderForm.prioridad" class="form-input font-bold text-red-700 uppercase lbb">
                                 <option value="baja">Baja</option>
                                 <option value="media">Media</option>
                                 <option value="alta">Alta</option>
@@ -76,7 +76,7 @@
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'recoleccion'}">
                                     <input type="radio" value="recoleccion" v-model="orderForm.logistics.deliveryOption" class="hidden">
                                     <i class="fas fa-warehouse"></i>
-                                    <span>Recolección</span>
+                                    <span>Recolección en Almacén</span>
                                 </label>
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'entrega'}">
                                     <input type="radio" value="entrega" v-model="orderForm.logistics.deliveryOption" class="hidden">
@@ -88,11 +88,11 @@
                             <div class="mt-6 space-y-4 animate-fade-in">
                                 <div v-if="orderForm.logistics.deliveryOption === 'paqueteria'">
                                     <label class="label-mini">Empresa de Paquetería sugerida:</label>
-                                    <input v-model="orderForm.logistics.paqueteria_nombre" type="text" required minlength="3" class="form-input border-red-200 text-red-700 font-bold uppercase" placeholder="DHL, FEDEX, ETC.">
+                                    <input v-model="orderForm.logistics.paqueteria_nombre" type="text" required minlength="3" class="form-input border-red-200 text-red-700 font-bold uppercase lbb" placeholder="DHL, FEDEX, ETC.">
                                 </div>
                                 <div v-if="['recoleccion', 'entrega'].includes(orderForm.logistics.deliveryOption)">
                                     <label class="label-mini">Instrucciones Logísticas:</label>
-                                    <textarea v-model="orderForm.logistics.comentarios_logistica" minlength="10" class="form-input text-red-600 font-medium uppercase" rows="2" required placeholder="NOTAS PARA ALMACÉN..."></textarea>
+                                    <textarea v-model="orderForm.logistics.comentarios_logistica" minlength="10" class="form-input text-red-600 font-medium uppercase lbb" rows="2" required placeholder="NOTAS PARA ALMACÉN..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -108,7 +108,7 @@
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="existente" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
-                                    <span class="text-[11px] font-black text-red-700 uppercase">Mis Receptores</span>
+                                    <span class="text-[11px] font-black text-red-700 uppercase">Buscar</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="nuevo" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
@@ -117,14 +117,14 @@
                             </div>
                         </div>
 
-                        <!-- BUSCAR RECEPTOR EXISTENTE -->
+                        <!-- 2.A: BUSCAR RECEPTOR PROPIO -->
                         <div v-if="orderForm.receiverType === 'existente'" class="animate-fade-in space-y-4">
                             <div class="form-group relative">
-                                <label class="label-style">Buscar en mi agenda personal (Nombre, RFC o Teléfono)</label>
+                                <label class="label-style">Buscar (Nombre, RFC o Teléfono)</label>
                                 <div class="relative">
                                     <input 
                                         type="text" 
-                                        class="form-input pl-10 font-bold uppercase border-red-200" 
+                                        class="form-input pl-10 font-bold uppercase border-red-200 lbb" 
                                         v-model="searchReceiverQuery" 
                                         @input="searchExistingReceivers"
                                         placeholder="SOLO REGISTROS PROPIOS..."
@@ -138,20 +138,20 @@
                                         <div class="text-xs font-black text-slate-800 uppercase">{{ rec.nombre }}</div>
                                         <div class="flex gap-4 mt-1">
                                             <span class="text-[8px] font-bold text-red-500 uppercase">RFC: {{ rec.rfc }}</span>
-                                            <span class="text-[8px] font-bold text-slate-400 uppercase">TEL: {{ rec.telefono }}</span>
                                         </div>
                                     </li>
                                 </ul>
                             </div>
                         </div>
 
-                        <!-- FICHA RESUMEN (Modo Cliente o Existente) -->
+                        <!-- 2.B: FICHA RESUMEN -->
                         <div v-if="['cliente', 'existente'].includes(orderForm.receiverType)" class="animate-fade-in">
                             <div v-if="activeReceiverDisplay" class="receiver-summary-card shadow-sm border border-red-100 rounded-[2.5rem] p-8 bg-white relative overflow-hidden group">
+                                
                                 <div class="relative z-10 space-y-1">
-                                    <p class="text-[10px] font-black text-red-400 uppercase tracking-[0.2em] mb-3">Información de Destino Seleccionada</p>
-                                    <h4 class="text-2xl font-black text-black leading-none mb-3 uppercase tracking-tighter">{{ activeReceiverDisplay.nombre || activeReceiverDisplay.contacto || activeReceiverDisplay.name }}</h4>
-                                    
+                                    <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i>Nombre del Destinatario: <span class="text-black font-black">{{ activeReceiverDisplay.name || activeReceiverDisplay.nombre || activeReceiverDisplay.contacto || activeReceiverDisplay.name }}</span></p>
+                                       
+                                     
                                     <div class="flex flex-wrap gap-x-8 gap-y-2">
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span class="text-black font-black">{{ activeReceiverDisplay.rfc }}</span></p>
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-file-invoice mr-2 text-red-300"></i> Régimen: <span class="text-black font-black">{{ activeReceiverDisplay.regimen_fiscal || activeReceiverDisplay.receiver_regimen_fiscal || 'SIN RÉGIMEN' }}</span></p>
@@ -159,9 +159,9 @@
                                     
                                     <div class="flex flex-wrap gap-x-8 gap-y-2 mt-2">
                                         <p class="text-xs font-bold text-red-600" style="text-transform: none !important;">
-                                            <i class="fas fa-envelope mr-2 text-red-300"></i> Correo: <span class="text-black font-black">{{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}</span>
+                                            <i class="fas fa-envelope mr-2 text-red-300"></i> Correo Electrónico: <span class="text-black font-black">{{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}</span>
                                         </p>
-                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-phone mr-2 text-red-300"></i> Tel: <span class="text-black font-black">{{ activeReceiverDisplay.telefono || activeReceiverDisplay.phone }}</span></p>
+                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-phone mr-2 text-red-300"></i> Telefono: <span class="text-black font-black">{{ activeReceiverDisplay.telefono || activeReceiverDisplay.phone }}</span></p>
                                     </div>
 
                                     <p class="text-xs font-bold text-red-600 uppercase mt-4">
@@ -175,36 +175,18 @@
                                 </p>
                         </div>
 
-                        <!-- FORMULARIO MANUAL CON VALIDACIÓN INMEDIATA -->
+                        <!-- 2.C: FORMULARIO MANUAL CON VALIDACIÓN INMEDIATA -->
                         <div v-if="orderForm.receiverType === 'nuevo'" class="animate-fade-in space-y-6 bg-white border border-red-100 p-8 rounded-[3rem] shadow-sm">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="form-group relative">
-                                    <label class="label-style">RFC *</label>
-                                    <div class="relative">
-                                        <input 
-                                            v-model="orderForm.receiver.rfc" 
-                                            @blur="validateUniqueness('rfc')"
-                                            @change="validateUniqueness('rfc')"
-                                            type="text" 
-                                            class="form-input font-mono uppercase font-black" 
-                                            :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : 'text-slate-700'"
-                                            placeholder="XXXXXXXXXXXXX" required minlength="12" maxlength="13"
-                                        >
-                                        <i v-if="validatingFields.rfc" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
-                                    </div>
-                                    <p v-if="fieldValidation.rfc.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
-                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message }}
-                                    </p>
-                                </div>
-                                <div class="form-group relative">
-                                    <label class="label-style">Destinatario *</label>
+                                 <div class="form-group relative">
+                                    <label class="label-style">Nombre de Destinatario *</label>
                                     <div class="relative">
                                         <input 
                                             v-model="orderForm.receiver.persona_recibe" 
                                             @blur="validateUniqueness('persona_recibe')" 
                                             @change="validateUniqueness('persona_recibe')"
                                             type="text" 
-                                            class="form-input font-bold uppercase"
+                                            class="form-input font-bold uppercase lbb"
                                             :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : ''"
                                             placeholder="NOMBRE COMPLETO" required minlength="5"
                                         >
@@ -214,13 +196,32 @@
                                         <i class="fas fa-times-circle"></i> {{ fieldValidation.persona_recibe.message }}
                                     </p>
                                 </div>
+                                <div class="form-group relative">
+                                    <label class="label-style">RFC *</label>
+                                    <div class="relative">
+                                        <input 
+                                            v-model="orderForm.receiver.rfc" 
+                                            @blur="validateUniqueness('rfc')"
+                                            @change="validateUniqueness('rfc')"
+                                            type="text" 
+                                            class="form-input font-mono uppercase font-black lbb" 
+                                            :class="fieldValidation.rfc.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : 'text-slate-700'"
+                                            placeholder="XXXXXXXXXXXXX" required minlength="12" maxlength="13"
+                                        >
+                                        <i v-if="validatingFields.rfc" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    </div>
+                                    <p v-if="fieldValidation.rfc.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message }}
+                                    </p>
+                                </div>
+                               
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal *</label>
-                                    <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs text-red-700 uppercase">
+                                    <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs text-red-700 uppercase lbb">
                                         <option value="">SELECCIONAR...</option>
-                                        <option value="601">601 - GENERAL MORALES</option>
-                                        <option value="612">612 - PF ACT. EMPRESARIAL</option>
-                                        <option value="626">626 - RESICO</option>
+                                        <option value="601 - GENERAL DE LEY PERSONAS MORALES">601 - GENERAL MORALES</option>
+                                        <option value="612 - PERSONAS FÍSICAS CON ACTIVIDADES EMPRESARIALES Y PROFESIONALES">612 - PF ACT. EMPRESARIAL</option>
+                                        <option value="626 - RÉGIMEN SIMPLIFICADO DE CONFIANZA">626 - RESICO</option>
                                     </select>
                                 </div>
                             </div>
@@ -234,7 +235,7 @@
                                             @blur="validateUniqueness('correo')" 
                                             @change="validateUniqueness('correo')"
                                             type="email" 
-                                            class="form-input text-red-700 font-bold" 
+                                            class="form-input text-red-700 font-bold lbb" 
                                             :class="fieldValidation.correo.error ? 'border-red-600 bg-red-50 ring-2 ring-red-400 ring-offset-1' : ''"
                                             placeholder="correo@ejemplo.com" required
                                         >
@@ -252,7 +253,7 @@
                                             @blur="validateUniqueness('telefono')" 
                                             @change="validateUniqueness('telefono')"
                                             type="tel" 
-                                            class="form-input text-red-700 font-bold uppercase" 
+                                            class="form-input text-red-700 font-bold uppercase lbb" 
                                             :class="fieldValidation.telefono.error ? 'border-red-600 bg-red-50 ring-2 ring-red-400 ring-offset-1' : ''"
                                             placeholder="10 DÍGITOS" required minlength="10" maxlength="10"
                                         >
@@ -268,21 +269,21 @@
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                                     <div class="form-group relative">
                                         <label class="label-mini">C.P. *</label>
-                                        <input v-model="orderForm.receiver.cp" required type="text" class="form-input font-mono font-black uppercase" maxlength="5" @input="handleCPInput" placeholder="00000">
+                                        <input v-model="orderForm.receiver.cp" required type="text" class="form-input font-mono font-black uppercase lbb" maxlength="5" @input="handleCPInput" placeholder="00000">
                                         <i v-if="searchingCP" class="fas fa-spinner fa-spin absolute right-3 top-10 text-red-600"></i>
                                     </div>
-                                    <div class="form-group col-span-1"><label class="label-mini">Estado</label><input v-model="orderForm.receiver.estado" type="text" placeholder="ESTADO" class="form-input bg-white font-bold text-red-800 uppercase" readonly></div>
-                                    <div class="form-group col-span-2"><label class="label-mini">Municipio</label><input v-model="orderForm.receiver.municipio" type="text" placeholder="MUNICIPIO" class="form-input bg-white font-bold text-red-800 uppercase" readonly></div>
+                                    <div class="form-group col-span-1"><label class="label-mini">Estado</label><input v-model="orderForm.receiver.estado" type="text" placeholder="ESTADO" class="form-input bg-white font-bold text-red-800 uppercase lbb" readonly></div>
+                                    <div class="form-group col-span-2"><label class="label-mini">Municipio</label><input v-model="orderForm.receiver.municipio" type="text" placeholder="MUNICIPIO" class="form-input bg-white font-bold text-red-800 uppercase lbb" readonly></div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="form-group">
                                         <label class="label-mini">Colonia *</label>
-                                        <select v-model="orderForm.receiver.colonia" required class="form-input font-bold text-red-700 uppercase" :disabled="!colonias.length">
+                                        <select v-model="orderForm.receiver.colonia" required class="form-input font-bold text-red-700 uppercase lbb" :disabled="!colonias.length">
                                             <option value="" disabled>{{ colonias.length ? 'SELECCIONE...' : 'INGRESE CP' }}</option>
                                             <option v-for="(col, idx) in colonias" :key="idx" :value="col">{{ col }}</option>
                                         </select>
                                     </div>
-                                    <div class="form-group"><label class="label-mini">Calle y Número *</label><input required minlength="10" v-model="orderForm.receiver.calle_num" type="text" class="form-input font-bold text-red-700 uppercase" placeholder="AV. JUÁREZ 123"></div>
+                                    <div class="form-group"><label class="label-mini">Calle y Número *</label><input required minlength="5" v-model="orderForm.receiver.calle_num" type="text" class="form-input font-bold text-red-700 uppercase lbb" placeholder="AV. JUÁREZ 123"></div>
                                 </div>
                             </div>
                         </div>
@@ -293,62 +294,54 @@
                 <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black">
                     <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 3. Selección de Material</div>
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-red-50/20 p-6 rounded-[2.5rem] border border-red-100">
-                        <div class="md:col-span-2"><label class="label-mini">Tipo</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
+                        <div class="md:col-span-2"><label class="label-mini">Tipo</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700 lbb"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
                         <div class="md:col-span-3 relative">
                             <label class="label-mini">Buscar Libro</label>
-                            <div class="relative">
-                                <input type="text" class="form-input pr-10 font-bold text-black uppercase" v-model="currentOrderItem.bookName" placeholder="TÍTULO..." @input="searchBooks" autocomplete="off">
-                                <i v-if="searchingLibros" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
-                            </div>
+                            <input type="text" class="form-input pr-10 font-bold text-black uppercase lbb" v-model="currentOrderItem.bookName" placeholder="TÍTULO..." @input="searchBooks" autocomplete="off">
                             <ul v-if="currentOrderItem.bookSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
                                 <li v-for="book in currentOrderItem.bookSuggestions" :key="book.id" @click="selectBook(book)" class="p-3 border-b last:border-0 hover:bg-red-50 transition-colors cursor-pointer text-xs font-black uppercase text-black">{{ book.titulo }}</li>
                             </ul>
                         </div>
-                        <div class="md:col-span-3"><label class="label-mini">Formato</label><select class="form-input font-bold text-red-700 uppercase text-xs" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
-                        <div class="md:col-span-1"><label class="label-mini">Cant.</label><input type="number" min="1" class="form-input font-bold text-red-700" v-model.number="currentOrderItem.quantity"></div>
-                        <div class="md:col-span-2"><label class="label-mini">P. Unitario ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700 disabled:text-slate-400 disabled:bg-slate-100" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
-                        <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95"><i class="fas fa-cart-plus mr-1"></i>Añadir</button></div>
+                        <div class="md:col-span-3"><label class="label-mini">Formato</label><select class="form-input font-bold text-red-700 uppercase text-xs lbb" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
+                        <div class="md:col-span-1"><label class="label-mini">Cantidad</label><input type="number" min="1" class="form-input font-bold text-red-700 text-center lbb" v-model.number="currentOrderItem.quantity"></div>
+                        <div class="md:col-span-2"><label class="label-mini">Precio Unitario ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700 lbb" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
+                        <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95 lbb"><i class="fas fa-cart-plus"></i>Añadir</button></div>
                     </div>
 
-                    <!-- TABLA DE CARRITO -->
                     <div class="mt-8 overflow-hidden rounded-[2.5rem] border border-red-100 bg-white shadow-premium">
-                        <div class="table-responsive border-none">
-                            <table class="min-width-full divide-y divide-red-200">
-                                <thead class="bg-black text-white text-[9px] font-black uppercase tracking-widest">
-                                    <tr><th class="px-6 py-5 text-left">Título</th><th class="px-6 py-5 text-center">Tipo</th><th class="px-6 py-5 text-center">Cant.</th><th class="px-6 py-5 text-right">Total</th><th class="px-6 py-5"></th></tr>
-                                </thead>
-                                <tbody class="divide-y divide-red-50">
-                                    <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-red-50/50 transition-colors group">
-                                        <td class="table-cell">
-                                            <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
-                                            <div class="text-[9px] text-red-500 uppercase font-black tracking-widest mt-1">{{ item.sub_type }}</div>
-                                        </td>
-                                        <td class="table-cell text-center"><span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">{{ item.tipo_material.toUpperCase() }}</span></td>
-                                        <td class="table-cell text-center font-black text-red-800 text-lg">{{ item.quantity }}</td>
-                                        <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
-                                        <td class="table-cell text-center"><button type="button" @click="orderForm.orderItems.splice(index, 1)" class="btn-delete-item"><i class="fas fa-trash-alt mr-1"></i> BORRAR</button></td>
-                                    </tr>
-                                    <tr v-if="!orderForm.orderItems.length"><td colspan="5" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales seleccionados</td></tr>
-                                </tbody>
-                                <tfoot v-if="orderForm.orderItems.length" class="bg-red-50/30 border-t-2 border-red-100">
-                                    <tr>
-                                        <td colspan="2" class="px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">Inversión Total:</td>
-                                        <td class="px-6 py-8 text-center font-black text-red-700 text-2xl border-x border-red-100/50">{{ totalUnits }}</td>
-                                        <td class="px-6 py-8 text-right font-black text-3xl text-red-700 tracking-tighter leading-none">{{ formatCurrency(orderTotal) }}</td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+                        <table class="w-full divide-y divide-red-200">
+                            <thead class="bg-black text-white text-[9px] font-black uppercase tracking-widest">
+                                <tr><th class="px-6 py-5 text-left">Título</th><th class="px-6 py-5 text-center">Tipo</th><th class="px-6 py-5 text-center">Cant.</th><th class="px-6 py-5 text-center">Precio Unitario</th><th class="px-6 py-5 text-right">SubTotal</th><th class="px-6 py-5 w-20"></th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-red-50">
+                                <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-red-50/50 transition-colors group">
+                                    <td class="table-cell">
+                                        <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
+                                        <div class="text-[9px] text-red-500 uppercase font-black mt-1">{{ item.sub_type }}</div>
+                                    </td>
+                                    <td class="table-cell text-center"><span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">{{ item.tipo_material.toUpperCase() }}</span></td>
+                                    <td class="table-cell text-center font-black text-red-800 text-lg">{{ item.quantity }}</td>
+                                    <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
+                                    <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
+                                </tr>
+                                <tr v-if="!orderForm.orderItems.length"><td colspan="5" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales seleccionados</td></tr>
+                            </tbody>
+                            <tfoot v-if="orderForm.orderItems.length" class="bg-red-50/30 border-t-2 border-red-100">
+                                <tr>
+                                    <td colspan="2" class="px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">Inversión Total:</td>
+                                    <td class="px-6 py-8 text-center font-black text-red-700 text-2xl border-x border-red-100/50">{{ totalUnits }}</td>
+                                    <td class="px-6 py-8 text-right font-black text-3xl text-red-700 tracking-tighter leading-none">{{ formatCurrency(orderTotal) }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
-                <div>
-                    
-                </div>
 
+                <!-- 4. NOTAS ADICIONALES -->
                 <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                     <div class="section-title text-black">
-                        <i class="fas fa-history text-red-700"></i> 4. Notas Adicionales (Opcional):
+                        <i class="fas fa-history text-red-700"></i> 4. Comentarios Generales en Pedido (Opcional):
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="form-group">
@@ -357,56 +350,49 @@
                     </div>
                 </div>
 
-                <!-- 4. MOTIVO Y COMENTARIOS -->
+                <!-- 5. MOTIVO DE MODIFICACIÓN -->
                 <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                     <div class="section-title text-black">
                         <i class="fas fa-history text-red-700"></i> 5. Auditoría de Modificación
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="form-group">
-                            <label class="label-style">Motivo del Ajuste *</label>
+                            <label class="label-style">Motivo de Modif *</label>
                             <textarea v-model="orderForm.motivo_cambio" class="form-input font-medium uppercase text-xs lbb" rows="3" placeholder="EXPLIQUE POR QUÉ SE MODIFICA EL EXPEDIENTE..." required minlength="10"></textarea>
-                            <p class="text-[8px] text-red-400 mt-2 italic font-black uppercase tracking-widest">* REQUERIDO PARA LA BITÁCORA ACADÉMICA</p>
+                            <p class="text-[8px] text-red-400 mt-2 italic font-black uppercase tracking-widest">* REQUERIDO PARA LA BITÁCORA TÉCNICA</p>
                         </div>
-                        
                     </div>
                 </div>
 
                 <div class="mt-12 flex justify-end">
-                    <button type="submit" class="btn-primary px-20 py-6 text-lg font-black tracking-widest shadow-2xl transition-all active:scale-95 disabled:opacity-50 disabled:grayscale" :disabled="loading || isFormBlockedByDuplicates">
+                    <button type="submit" class="btn-primary px-20 py-6 text-lg font-black tracking-widest shadow-2xl transition-all active:scale-95 disabled:opacity-50 disabled:grayscale lbb" :disabled="loading || isFormBlockedByDuplicates">
                         <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save mr-3'"></i> GUARDAR ACTUALIZACIÓN
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- MODALES DE SISTEMA -->
+        <!-- MODALES -->
         <Teleport to="body">
             <Transition name="modal-pop">
                 <div v-if="systemModal.visible" class="modal-overlay-wrapper" @click.self="systemModal.type !== 'success' ? systemModal.visible = false : null">
-                    
-                    <!-- VISTA DE ÉXITO -->
                     <div v-if="systemModal.type === 'success'" class="modal-content-success animate-scale-in">
                         <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
                         <h2 class="text-2xl font-black text-black mb-3 uppercase tracking-tighter">¡Sincronización Exitosa!</h2>
-                        <p class="text-sm text-slate-500 mb-8 font-medium px-4">El pedido ha sido actualizado y registrado en la bitácora técnica correctamente.</p>
-                        <button type="button" @click="closeAndRedirect" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest">Regresar al Historial</button>
+                        <button type="button" @click="closeAndRedirect" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest rounded-2xl shadow-xl cursor-pointer">Regresar al Historial</button>
                     </div>
 
-                    <!-- VISTA DE CONFLICTO DE INTEGRIDAD -->
                     <div v-else class="modal-content-success bg-white w-full max-w-md rounded-[3rem] shadow-2xl overflow-hidden border border-red-100 animate-scale-in">
                         <div class="bg-red-600 h-4 w-full"></div>
                         <div class="p-10 flex flex-col items-center">
-                            <div class="bg-red-50 text-red-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-white ring-2 ring-red-50">
-                                <i class="fas fa-exclamation-triangle text-3xl animate-pulse"></i>
-                            </div>
-                            <div class="text-danger bgcolor flex flex-col justify-content-center rounded-3 p-4 shadow-inner border border-danger mb-8">
-                                <h4 class="mb-2 font-black uppercase tracking-tighter text-red-700 text-sm">Integridad de Datos</h4>
+                            <div class="bg-red-50 text-red-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-sm border-4 border-white ring-2 ring-red-50"><i class="fas fa-exclamation-triangle text-3xl animate-pulse"></i></div>
+                            <h4 class="mb-2 font-black uppercase tracking-tighter text-red-700 text-sm">Error al Procesar</h4>
+                            <div class="text-danger bgcolor p-4 border border-danger mb-8 w-full rounded-2xl">
                                 <p class="mb-0 font-bold uppercase text-[10px] text-red-600 leading-relaxed text-center">
-                                    {{ systemModal.errorList[0] || 'Uno o más datos ingresados ya existen en el sistema bajo otro representante.' }}
+                                    {{ systemModal.errorList[0] || 'Uno o más datos ingresados pertenecen a otro representante.' }}
                                 </p>
                             </div>
-                            <button type="button" @click="systemModal.visible = false" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest rounded-2xl transition-transform hover:scale-105">Revisar formulario</button>
+                            <button type="button" @click="systemModal.visible = false" class="btn-primary w-full py-5 bg-black border-none text-white font-black uppercase tracking-widest rounded-2xl">Revisar formulario</button>
                         </div>
                     </div>
                 </div>
@@ -438,6 +424,7 @@ const selectedCliente = ref(null);
 const selectedExistingReceiver = ref(null);
 const searchReceiverQuery = ref('');
 const pedidoFolio = ref('');
+const logsList = ref([]);
 
 const errors = reactive({ clientId: false, items: false });
 const validatingFields = reactive({ rfc: false, correo: false, telefono: false, persona_recibe: false });
@@ -449,10 +436,16 @@ const fieldValidation = reactive({
 });
 
 const orderForm = reactive({
-    prioridad: 'media', clientId: null, clientName: '', receiverType: 'cliente',
+    prioridad: 'media', 
+    clientId: null, 
+    clientName: '', 
+    receiverType: 'cliente',
+    receptor_id: null, // Campo crítico añadido para validación
     receiver: { persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' },
     logistics: { deliveryOption: 'paqueteria', paqueteria_nombre: '', comentarios_logistica: '' },
-    comments: '', orderItems: [], motivo_cambio: ''
+    comments: '', 
+    orderItems: [], 
+    motivo_cambio: ''
 });
 
 const systemModal = reactive({ visible: false, type: 'success', title: '', errorList: [] });
@@ -490,7 +483,7 @@ const fetchPedidoData = async () => {
         const p = resPed.data;
         pedidoFolio.value = p.numero_referencia || p.display_id || p.id;
 
-        // Hidratación
+        // Hidratación General
         selectedCliente.value = p.cliente;
         orderForm.clientId = p.cliente_id;
         orderForm.clientName = p.cliente?.name;
@@ -498,27 +491,32 @@ const fetchPedidoData = async () => {
         orderForm.comments = p.comments;
         orderForm.logistics.deliveryOption = p.delivery_option === 'none' ? 'entrega' : p.delivery_option;
         orderForm.logistics.paqueteria_nombre = p.paqueteria_nombre;
-        orderForm.logistics.comentarios_logistica = p.comentarios_logistica;
+        orderForm.logistics.comentarios_logistica = p.commentary_delivery_option || p.comentarios_logistica;
 
+        logsList.value = p.logs || [];
+
+        // Hidratación de Receptor
         if (p.receptor_id) {
             orderForm.receiverType = 'existente';
+            orderForm.receptor_id = p.receptor_id;
             selectedExistingReceiver.value = p.receptor;
             searchReceiverQuery.value = p.receptor?.nombre;
         } else {
-            orderForm.receiverType = p.receiver_type;
+            orderForm.receiverType = p.receiver_type || 'cliente';
+            orderForm.receptor_id = null;
         }
 
         orderForm.receiver = {
-            persona_recibe: p.receiver_nombre,
-            rfc: p.receiver_rfc,
-            regimen_fiscal: p.receiver_regimen_fiscal,
-            telefono: p.receiver_telefono,
-            correo: p.receiver_correo,
-            cp: p.delivery_cp,
-            estado: p.delivery_address?.split(',').pop()?.trim() || '',
-            municipio: p.delivery_municipio,
-            colonia: p.delivery_colonia,
-            calle_num: p.delivery_calle_num
+            persona_recibe: p.receiver_nombre || (p.receptor?.nombre ?? ''),
+            rfc: p.receiver_rfc || (p.receptor?.rfc ?? ''),
+            regimen_fiscal: p.receiver_regimen_fiscal || (p.receptor?.receiver_regimen_fiscal ?? ''),
+            telefono: p.receiver_telefono || (p.receptor?.telefono ?? ''),
+            correo: p.receiver_correo || (p.receptor?.correo ?? ''),
+            cp: p.delivery_cp || '',
+            estado: p.delivery_address?.split(',').reverse()[0]?.trim() || '',
+            municipio: p.delivery_municipio || '',
+            colonia: p.delivery_colonia || '',
+            calle_num: p.delivery_calle_num || ''
         };
 
         orderForm.orderItems = p.detalles.map(d => ({
@@ -535,6 +533,18 @@ const fetchPedidoData = async () => {
     }
 };
 
+watch(() => orderForm.receiverType, (newVal) => {
+    if (newVal !== 'existente') {
+        orderForm.receptor_id = null;
+        selectedExistingReceiver.value = null;
+        searchReceiverQuery.value = '';
+    }
+    if (newVal === 'nuevo') {
+        orderForm.receiver = { persona_recibe: '', rfc: '', regimen_fiscal: '', telefono: '', correo: '', cp: '', estado: '', municipio: '', colonia: '', calle_num: '' };
+        Object.keys(fieldValidation).forEach(k => { fieldValidation[k].error = false; fieldValidation[k].message = ''; });
+    }
+});
+
 const validateUniqueness = async (field) => {
     let val = '';
     let queryParam = field; 
@@ -549,8 +559,8 @@ const validateUniqueness = async (field) => {
     try {
         const res = await axios.get('/search/receptores/check-rfc', { params: { [queryParam]: val } });
         if (res.data.status === 'conflict') {
-            // Regla: Si el conflicto es con el mismo receptor vinculado al pedido, NO marcar error
-            if (selectedExistingReceiver.value && res.data.id === selectedExistingReceiver.value.id) {
+            // No marcar error si el conflicto es con el mismo receptor asignado al pedido
+            if (orderForm.receptor_id && res.data.id === orderForm.receptor_id) {
                 fieldValidation[field].error = false;
             } else {
                 fieldValidation[field].error = true;
@@ -592,7 +602,6 @@ const selectClient = (c) => {
 };
 
 const searchExistingReceivers = () => {
-    selectedExistingReceiver.value = null; 
     if (searchReceiverQuery.value.length < 3) { receiverSuggestions.value = []; return; }
     searchingExisting.value = true;
     setTimeout(async () => {
@@ -605,6 +614,7 @@ const searchExistingReceivers = () => {
 
 const selectExistingReceiver = (rec) => {
     selectedExistingReceiver.value = rec;
+    orderForm.receptor_id = rec.id;
     orderForm.receiver = { ...rec, persona_recibe: rec.nombre }; 
     receiverSuggestions.value = [];
     searchReceiverQuery.value = rec.nombre;
@@ -620,7 +630,7 @@ const searchBooks = async () => {
 };
 
 const selectBook = (book) => {
-    currentOrderItem.bookId = book.id; currentOrderItem.bookName = book.titulo; currentOrderItem.bookSuggestions = [];
+    currentOrderItem.bookId = book.id; currentOrderItem.bookName = book.titulo; currentOrderItem.category = book.type; currentOrderItem.bookSuggestions = [];
 };
 
 const addItemToCart = () => {
@@ -645,13 +655,13 @@ const submitUpdate = async () => {
             bookId: i.bookId, quantity: i.quantity, price: i.price, sub_type: i.sub_type, tipo_material: i.tipo_material 
         }));
 
-        const payload = { 
-            ...orderForm, 
-            items: itemsPayload,
-            receiverType: orderForm.receiverType === 'existente' ? 'nuevo' : orderForm.receiverType // Compatibilidad DB
-        };
-        
-        await axios.put(`/pedidos/${id}`, payload);
+        // Limpieza de datos según el tipo para evitar errores de validación en el servidor
+        const finalForm = JSON.parse(JSON.stringify(orderForm));
+        if (finalForm.receiverType !== 'nuevo') {
+            finalForm.receiver = null; 
+        }
+
+        await axios.put(`/pedidos/${id}`, { ...finalForm, items: itemsPayload });
         systemModal.type = 'success'; systemModal.visible = true;
     } catch (e) {
         systemModal.type = 'error';
@@ -665,6 +675,16 @@ const totalUnits = computed(() => orderForm.orderItems.reduce((s, i) => s + i.qu
 const orderTotal = computed(() => orderForm.orderItems.reduce((s, i) => s + i.totalCost, 0));
 const formatCurrency = (v) => Number(v).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 const availableSubTypes = computed(() => ['Solo Físico', 'Pack (Físico + Digital)', 'Licencia Digital']);
+
+const formatDateOnly = (dateString) => {
+    if (!dateString) return '---';
+    return new Date(dateString).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+const formatTimeOnly = (dateString) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+};
 
 onMounted(fetchPedidoData);
 </script>
@@ -683,12 +703,10 @@ onMounted(fetchPedidoData);
 .shipping-card span { @apply text-[10px] font-black uppercase tracking-widest text-center; }
 .shipping-card.active { @apply border-black text-black shadow-xl scale-[1.02]; }
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; transition: 0.2s; text-transform: uppercase; font-size: 0.8rem; }
-.modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); padding: 1.5rem; }
-.modal-content-success { background: white; padding: 45px; border-radius: 40px; text-align: center; width: 90%; max-width: 450px; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #fee2e2; }
-.success-icon-wrapper { width: 75px; height: 75px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 25px; border: 4px solid white; }
-.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.table-cell { padding: 20px 24px; vertical-align: middle; color: #dc2626; font-weight: 700; }
+.modal-overlay-wrapper { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); }
+.modal-content-success { background: white; padding: 50px; border-radius: 50px; text-align: center; width: 90%; max-width: 450px; border: 1px solid #fee2e2; }
+.success-icon-wrapper { width: 85px; height: 85px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 25px; border: 4px solid white; }
+.table-cell { padding: 20px 24px; vertical-align: middle; color: #334155; font-weight: 700; }
 .btn-delete-item { background: none; border: none; color: #fca5a5; font-size: 11px; font-weight: 900; cursor: pointer; text-transform: uppercase; }
 .badge-material-sale { @apply bg-black text-white px-3 py-1 rounded-full text-[9px] font-black; }
 .badge-material-promo { @apply bg-red-600 text-white px-3 py-1 rounded-full text-[9px] font-black; }
@@ -709,6 +727,10 @@ onMounted(fetchPedidoData);
     text-transform: uppercase;
     cursor: pointer;
 }
+
+.table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; text-align: left; }
+.table-shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02); }
+
 /* Estilo para los inputs lbb (Lower Border Black) */
 .lbb:focus { border-color: #000; border-width: 2px; }
 </style>

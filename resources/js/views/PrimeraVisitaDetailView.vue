@@ -49,7 +49,7 @@
 
                              <div class="data-row">
                                     <label class="label-large">Estatus</label>
-                                    <p class="font-black text-sm value-text  uppercase tracking-wider" :class="visita?.cliente?.tipo === 'CLIENTE' ? 'text-green-600' : 'text-red-700'">
+                                    <p class="font-black text-sm value-text uppercase tracking-wider" :class="visita?.cliente?.tipo === 'CLIENTE' ? 'text-green-600' : 'text-red-700'">
                                         {{ visita?.cliente?.tipo || 'PROSPECTO' }}
                                     </p>
                                 </div>
@@ -77,7 +77,7 @@
                                 <div class="data-row">
                                     <label class="label-large">Niveles Educativos</label>
                                     <div class="flex flex-wrap gap-1.5 mt-1">
-                                        <span v-for="n in formatLevels(visita.nivel_educativo_plantel || visita.cliente?.nivel_educativo)" :key="n" class="value-text   badge-red-outline">
+                                        <span v-for="n in formatLevels(visita.nivel_educativo_plantel || visita.cliente?.nivel_educativo)" :key="n" class="value-text badge-red-outline">
                                           -  {{ n }}
                                             <br>
                                         </span>
@@ -94,7 +94,6 @@
                                     <label class="label-large">Dirección Completa</label>
                                     <p class="value-text uppercase">{{ visita.direccion_plantel|| 'No especificado' }}</p>
                                 </div>
-                               
                             </div>
                         </div>  
                         <br>
@@ -107,7 +106,6 @@
                             </div>
                           <div class="data-row">
                                     <label class="label-large">Correo Electrónico</label>
-                                    <!-- APLICACIÓN DE CORREO EN MINÚSCULAS CON ESTILO PRIORITARIO -->
                                     <p class="value-text text-sm" style="text-transform: none !important;">
                                         <i class="fas fa-envelope mr-2 opacity-30"></i>
                                         {{ (visita.email_plantel || visita.cliente?.email || 'N/A').toLowerCase() === 'n/a' ? 'N/A' : (visita.email_plantel || visita.cliente?.email).toLowerCase() }}
@@ -126,7 +124,7 @@
                     <div class="flex items-center gap-3 px-2">
                         <div class="w-2 h-8 bg-red-700 rounded-full"></div>
                         <div class="section-title text-black !border-black/5">
-                            <i class="fas fa-handshake text-black"></i> 2. Historial Cronológico de Interacciones
+                            <i class="fas fa-handshake text-black"></i> 2. Historial de Visita
                         </div>
                     </div>
 
@@ -139,34 +137,32 @@
                         <div v-for="(h, index) in historial" :key="h.id" class="border border-slate-100 rounded-3xl overflow-hidden shadow-sm relative group bg-white">
                             <!-- Header de la tarjeta -->
                             <div class="p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 transition-colors">
-                                
                                 <div class="flex items-center gap-6 w-full md:w-auto">
                                     <div class="min-w-0">
                                         <p class="text-[8px] label-large font-black uppercase tracking-[0.2em] mb-1" :class="h.es_primera_visita ? 'text-blue-600' : 'text-purple-600'">
-                                            {{ h.es_primera_visita ? 'Apertura de Prospecto' : 'Interacción de Seguimiento' }}
+                                            Fecha de la visita
                                         </p>
                                         <h4 class="text-xl font-black text-black uppercase tracking-tight truncate max-w-[200px] md:max-w-none">
                                             {{ formatDate(h.fecha) }}
                                         </h4>
-                                         <p class="label-large"><i class="fas fa-comment-dots text-red-700 label-large"></i>Estatus</p>
+                                         <p class="label-large"><i class="fas fa-comment-dots text-red-700 label-large"></i> Estatus</p>
                                             <span :class="getOutcomeClass(h.resultado_visita)" class="status-badge !px-5 !py-2 uppercase shadow-sm">
                                         {{ h.resultado_visita }}
                                     </span>
-                                         <div>
-                                                        <label class="label-large">Persona Entrevistada</label>
-                                                        <p class="value-text">{{ h.persona_entrevistada }}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label class="label-large">Cargo/Puesto</label>
-                                                        <p class="value-text">{{ h.cargo }}</p>
-                                                    </div>
+                                         <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="label-large">Persona Entrevistada</label>
+                                                <p class="value-text">{{ h.persona_entrevistada }}</p>
+                                            </div>
+                                            <div>
+                                                <label class="label-large">Cargo/Puesto</label>
+                                                <p class="value-text">{{ h.cargo }}</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-
                                 <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-                                     
-                                    <!-- LÓGICA: Solo permite modificar si no se ha modificado antes -->
                                     <button 
                                         v-if="(h.modificaciones_realizadas || 0) < 1"
                                         @click="router.push({ name: 'VisitaEdit', params: { id: h.id } })"
@@ -174,8 +170,7 @@
                                     >
                                         <i class="fas fa-edit mr-1"></i> MODIFICAR
                                     </button>
-<br><br>
-                                    <!-- BOTÓN VER DETALLE (Controlador del Acordeón) -->
+
                                     <button 
                                         @click="toggleExpand(h.id)"
                                         class="btn-primary !border-red-600 !text-red-700 hover:bg-red-50 hover:scale-105 transition-all"
@@ -183,8 +178,6 @@
                                         <i class="fas" :class="expandedId === h.id ? 'fa-eye-slash' : 'fa-plus-circle'"></i>
                                         <span class="ml-2">{{ expandedId === h.id ? 'OCULTAR' : 'VER DETALLE' }}</span>
                                     </button>
-
-                                   
                                     
                                     <div @click="toggleExpand(h.id)" class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 cursor-pointer hover:text-red-600 transition-colors">
                                         <i class="fas fa-chevron-down transition-transform duration-500" 
@@ -195,23 +188,22 @@
 
                             <!-- Contenido Desplegable (Expediente) -->
                             <div v-if="expandedId === h.id" class="p-8 md:p-12 bg-slate-50/40 border-t border-slate-100 animate-fade-in">
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                                    <div class="space-y-8">
-                                        
-                                    </div>
-
-                                    <div class="space-y-8">
-                                        <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-4 flex items-center gap-2">
-                                            <i class="fas fa-book-open text-red-700"></i> Materiales y Muestras
+                                <div class="space-y-12">
+                                    
+                                    <!-- SECCIÓN DE MATERIALES: VISIBILIDAD CONDICIONAL -->
+                                    <div v-if="parseMateriales(h.libros_interes).interes.length || parseMateriales(h.libros_interes).entregado.length">
+                                        <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
+                                            <i class="fas fa-book-open text-red-700"></i> Libros de interes
                                         </h5>
                                         
-                                       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fade-in">
-                                            <div class="table-container">
+                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                            <!-- TABLA A: INTERÉS (Solo si tiene datos) -->
+                                            <div v-if="parseMateriales(h.libros_interes).interes.length" class="table-container">
                                                 <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
                                                     <table class="min-width-full divide-y divide-gray-200">
                                                         <thead class="bg-gray-100">
                                                             <tr>
-                                                                <th class="table-header">Material de Interés</th>
+                                                                <th class="table-header">Libros</th>
                                                                 <th class="table-header text-right">Formato</th>
                                                             </tr>
                                                         </thead>
@@ -228,24 +220,22 @@
                                                                     </span>
                                                                 </td>
                                                             </tr>
-                                                            <tr v-if="!parseMateriales(h.libros_interes).interes.length">
-                                                                <td colspan="2" class="px-5 py-10 text-center text-[10px] text-slate-300 font-black uppercase tracking-widest italic">
-                                                                    Sin intereses registrados
-                                                                </td>
-                                                            </tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
-
-                                                
                                             </div>
-                                        <br>
-                                            <div class="table-container">
+
+                                            <!-- TABLA B: MUESTRAS (Solo si tiene datos) -->
+                                            <div v-if="parseMateriales(h.libros_interes).entregado.length" class="table-container">
                                                 <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white border-red-100">
+                                                    <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
+                                            <i class="fas fa-book-open text-red-700"></i> Muestra de promocion entregadas
+                                        </h5>
                                                     <table class="min-width-full divide-y divide-gray-200">
                                                         <thead class="bg-red-50">
+                                                            
                                                             <tr>
-                                                                <th class="table-header !text-red-800">Muestra Entregada</th>
+                                                                <th class="table-header !text-red-800">Libro</th>
                                                                 <th class="table-header text-right !text-red-800">Cantidad</th>
                                                             </tr>
                                                         </thead>
@@ -262,29 +252,22 @@
                                                                     </span>
                                                                 </td>
                                                             </tr>
-                                                            <tr v-if="!parseMateriales(h.libros_interes).entregado.length">
-                                                                <td colspan="2" class="px-5 py-10 text-center text-[10px] text-red-200 font-black uppercase tracking-widest italic">
-                                                                    No se entregaron muestras físicas
-                                                                </td>
-                                                            </tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
-                                        <div>
-
-                                            
-
-                                            <h5 class="text-black font-black uppercase text-[11px] label-large tracking-widest mb-4 flex items-center gap-2">
-                                                <i class="fas fa-comment-dots text-red-700 label-large"></i> Observaciones
-                                            </h5>
-                                            <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner">
-                                                "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
                                             </div>
-                                            <br>
-                                           
                                         </div>
-    </div>
-</div></div>
+                                    </div>
+
+                                    <!-- OBSERVACIONES -->
+                                    <div class="space-y-4">
+                                        <h5 class="text-black font-black uppercase text-[11px] label-large tracking-widest flex items-center gap-2">
+                                            <i class="fas fa-comment-dots text-red-700 label-large"></i> Observaciones de la Intervención
+                                        </h5>
+                                        <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner">
+                                            "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -296,10 +279,8 @@
                     </div>
                 </div>
 
-
-
-                <!-- 4. PRÓXIMO COMPROMISO -->
-                <div class="info-card border-none bg-slate-100 p-10 rounded-[3rem] border border-slate-200 shadow-sm mt-8 text-center">
+                <!-- 3. PRÓXIMO COMPROMISO (VISIBILIDAD BASADA EN EL ÚLTIMO RESULTADO) -->
+                <div v-if="ultimoResultado === 'seguimiento'" class="info-card border-none bg-slate-100 p-10 rounded-[3rem] border border-slate-200 shadow-sm mt-8 text-center animate-fade-in">
                     <div class="flex flex-col items-center gap-6">
                         <div class="section-title text-black !border-black/5 !mb-0">
                             <i class="fas fa-calendar-alt text-black"></i> 3. Próximo Compromiso y Acción
@@ -309,15 +290,14 @@
                             <label class="label-large !text-red-700">Fecha Agendada</label>
                             <p class="text-4xl font-black text-black tracking-tighter mt-2">{{ formatDate(proximoCompromisoFinal.fecha) }}</p>
                             <div class="flex items-center justify-center gap-2 mt-4 bg-red-700 text-white p-3 rounded-2xl">
-                                <p class="label-large "><i class="fas fa-bullseye text-sm"></i>Objetivo</p>
+                                <p class="label-large mb-0"><i class="fas fa-bullseye text-sm mr-2"></i>Objetivo</p>
                                 <span class="text-[11px] font-black uppercase tracking-widest">{{ proximoCompromisoFinal.accion }}</span>
                             </div>
-                            <br>
                         </div>
                         
                         <p v-else class="text-slate-400 italic text-sm">Sin fecha programada de retorno</p>
 
-                        <button v-if="visita.resultado_visita === 'seguimiento' && visita.cliente?.tipo !== 'CLIENTE'" 
+                        <button v-if="visita.cliente?.tipo !== 'CLIENTE'" 
                             @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
                             class="w-full max-w-md btn-primary-action shadow-2xl transition-all active:scale-95 mx-auto">
                             <i class="fas fa-plus-circle mr-2 "></i> Registrar Nuevo Seguimiento
@@ -325,77 +305,69 @@
                     </div>
                 </div>
 
-                                <!-- 3. BITÁCORA DE AJUSTES TÉCNICOS (Auditoría) -->
-                <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden mt-16">
+                <!-- 4. BITÁCORA DE AJUSTES TÉCNICOS (Auditoría) - VISIBILIDAD CONDICIONAL -->
+                <div v-if="allLogs.length > 0" class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden mt-16">
                     <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
-                        
                         <div class="section-title text-black !border-black/5">
                             <i class="fas fa-handshake text-black"></i> 4. Bitácora de Ajustes Técnicos
                         </div>
+                        <span class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
+                            {{ allLogs.length }} AJUSTES REGISTRADOS
+                        </span>
                     </div>
 
                     <div class="table-container mt-4 animate-fade-in">
-    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-        <table class="min-width-full divide-y divide-gray-200">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="table-header w-64">Intervención Editada</th>
-                    <th class="table-header">Motivo de la Modificación</th>
-                    <th class="table-header w-56">Responsable</th>
-                    <th class="table-header text-right w-48">Sincronización</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white bk divide-y divide-gray-100">
-                <tr v-for="(log, index) in allLogs" :key="log.id" class="hover:bg-gray-50 transition-colors">
-                    <td class="table-cell">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] font-black text-red-800 uppercase tracking-tighter">
-                                {{ log.visit_type === 'primera' ? 'Primera Visita' : 'Seguimiento' }}
-                            </span>
-                            <br>
-                            <span class="text-[10px] font-bold text-gray-400 uppercase mt-1 italic">
-                                {{ formatDateShort(log.visit_date) }}
-                            </span>
+                        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                            <table class="min-width-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="table-header w-64">Intervención Editada</th>
+                                        <th class="table-header">Motivo de la Modificación</th>
+                                        <th class="table-header w-56">Responsable</th>
+                                        <th class="table-header text-right w-48">Sincronización</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white bk divide-y divide-gray-100">
+                                    <tr v-for="(log, index) in allLogs" :key="log.id" class="hover:bg-gray-50 transition-colors">
+                                        <td class="table-cell">
+                                            <div class="flex flex-col">
+                                                <span class="text-[10px] font-black text-red-800 uppercase tracking-tighter">
+                                                    {{ log.visit_type === 'primera' ? 'Primera Visita' : 'Seguimiento' }}
+                                                </span>
+                                                <br>
+                                                <span class="text-[10px] font-bold text-gray-400 uppercase mt-1 italic">
+                                                    {{ formatDateShort(log.visit_date) }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="table-cell">
+                                            <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
+                                                "{{ log.motivo_cambio || 'SIN JUSTIFICACIÓN TÉCNICA' }}"
+                                            </p>
+                                        </td>
+                                        <td class="table-cell">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] font-black text-gray-800 uppercase tracking-tight">
+                                                    {{ log.user?.name || 'Representante' }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="table-cell text-right">
+                                            <div class="flex flex-col items-end">
+                                                <span class="text-[11px] font-black text-gray-800 uppercase">
+                                                    {{ formatDateOnly(log.created_at) }}
+                                                </span>
+                                                <br>
+                                                <span class="text-[9px] font-bold text-gray-400 mt-0.5 tracking-tighter uppercase">
+                                                    {{ formatTimeOnly(log.created_at) }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                    </td>
-                    <td class="table-cell">
-                        <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
-                            "{{ log.motivo_cambio || 'SIN JUSTIFICACIÓN TÉCNICA' }}"
-                        </p>
-                    </td>
-                    <td class="table-cell">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[11px] font-black text-gray-800 uppercase tracking-tight">
-                                {{ log.user?.name || 'Representante' }}
-                            </span>
-                        </div>
-                    </td>
-                    <td class="table-cell text-right">
-                        <div class="flex flex-col items-end">
-                            <span class="text-[11px] font-black text-gray-800 uppercase">
-                                {{ formatDateOnly(log.created_at) }}
-                            </span>
-                            <br>
-                            <span class="text-[9px] font-bold text-gray-400 mt-0.5 tracking-tighter uppercase">
-                                {{ formatTimeOnly(log.created_at) }}
-                            </span>
-                        </div>
-                    </td>
-                </tr>
-
-                <tr v-if="allLogs.length === 0">
-                    <td colspan="4" class="px-6 py-20 text-center">
-                        <div class="flex flex-col items-center opacity-40">
-                            <i class="fas fa-shield-alt text-4xl text-slate-300 mb-4"></i>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Expediente con integridad original</p>
-                            <p class="text-[9px] text-slate-400 mt-1 italic">No se han registrado ajustes posteriores al registro inicial.</p>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -436,7 +408,6 @@ const fetchVisitaDetail = async () => {
 const fetchFullHistory = async (clienteId) => {
     loadingHistory.value = true;
     try {
-        // Solicitamos el historial completo incluyendo los logs para la auditoría
         const response = await axios.get('/visitas', { 
             params: { 
                 cliente_id: clienteId, 
@@ -458,9 +429,16 @@ const fetchFullHistory = async (clienteId) => {
 };
 
 /**
- * LÓGICA DE AUDITORÍA:
- * Agregamos todos los logs de todas las visitas del historial en una sola lista cronológica.
+ * DETERMINA EL ESTADO FINAL REAL:
+ * Si hay historial, tomamos el resultado de la última visita (el ID más alto).
+ * Si no hay historial extra, usamos el resultado de la visita base.
  */
+const ultimoResultado = computed(() => {
+    if (!historial.value.length) return visita.value?.resultado_visita || 'seguimiento';
+    const sorted = [...historial.value].sort((a, b) => b.id - a.id);
+    return sorted[0].resultado_visita;
+});
+
 const allLogs = computed(() => {
     const aggregated = [];
     historial.value.forEach(v => {
@@ -523,15 +501,6 @@ const formatTimeOnly = (dateString) => {
     return new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
 };
 
-const getMonthShort = (dateString) => {
-    if (!dateString) return '---';
-    const cleanDate = dateString.split('T')[0];
-    const [year, month, day] = cleanDate.split('-').map(Number);
-    return new Date(year, month - 1, day).toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase();
-};
-
-const getDay = (dateString) => dateString ? dateString.split('T')[0].split('-')[2] : '--';
-
 const getOutcomeClass = (outcome) => {
     const base = 'status-badge uppercase font-black tracking-widest ';
     if (outcome === 'compra') return base + 'bg-green-100 text-green-700 border-green-200';
@@ -562,12 +531,8 @@ onMounted(fetchVisitaDetail);
 
 .btn-primary-action { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; padding: 14px 45px; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
-/* Botón Editar y Desplegar dentro de Historial */
-.btn-edit-inline { @apply bg-white border-2 border-slate-200 text-slate-500 py-1.5 px-4 rounded-xl text-[10px] font-black uppercase hover:bg-red-50 hover:text-red-700 hover:border-red-200; cursor: pointer; }
-
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d8afbb 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
-
 
 .btn-secondary {
     padding: 8px 15px;
@@ -581,7 +546,8 @@ onMounted(fetchVisitaDetail);
     cursor: pointer;
 }
 
-
+.table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; text-align: left; }
+.table-shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02); }
 
 .badge-red-outline { @apply bg-red-50 text-red-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border border-red-100; }
 </style>

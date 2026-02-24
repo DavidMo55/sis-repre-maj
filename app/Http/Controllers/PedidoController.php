@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 class PedidoController extends Controller
 {
     /**
-     * Proxy para Dipomex: Mantiene segura tu API KEY en el servidor.
+     * Proxy para Dipomex.
      */
     public function proxyDipomex(Request $request)
     {
@@ -132,7 +132,7 @@ class PedidoController extends Controller
     }
 
     /**
-     * Registro de pedido con Doble Escritura y Validación.
+     * Registro de pedido con Doble Escritura y Validación de Unicidad Cuádruple.
      */
     public function store(Request $request)
     {
@@ -142,7 +142,7 @@ class PedidoController extends Controller
             'receiverType' => 'required|in:cliente,nuevo,existente',
             'receptor_id'  => 'nullable|required_if:receiverType,existente|exists:pedido_receptores,id',
             
-            // Datos del Receptor - REGLA ACTUALIZADA: nullable|string para evitar error 422 en tipos no requeridos
+            // Datos del Receptor
             'receiver.persona_recibe' => 'required_if:receiverType,nuevo|string|max:255',
             'receiver.rfc' => 'required_if:receiverType,nuevo|string|min:12|max:13',
             'receiver.regimen_fiscal' => 'nullable|string|required_if:receiverType,nuevo', 
@@ -174,6 +174,7 @@ class PedidoController extends Controller
                 $user = $request->user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
                 
+                // VALIDACIÓN DE INTEGRIDAD GLOBAL
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $r = $validatedData['receiver'];
                     $rfcNorm      = strtoupper(trim($r['rfc']));
@@ -230,14 +231,16 @@ class PedidoController extends Controller
                 } elseif ($validatedData['receiverType'] === 'existente') {
                     $receptor = PedidoReceptor::findOrFail($receptorId);
                     $direccionFormateada = $receptor->direccion;
+                    $regimenFull = $receptor->receiver_regimen_fiscal;
                 } else {
                     $cliente = Cliente::findOrFail($validatedData['clientId']);
                     $direccionFormateada = $cliente->direccion;
+                    $regimenFull = $cliente->regimen_fiscal;
                 }
 
                 $dbReceiverType = ($validatedData['receiverType'] === 'existente') ? 'nuevo' : $validatedData['receiverType'];
 
-                // Escritura en DB Local
+                // Escritura Local
                 $pedido = Pedido::create([
                     'user_id'                 => $ownerId,
                     'cliente_id'              => $validatedData['clientId'],
@@ -260,7 +263,7 @@ class PedidoController extends Controller
                 
                 $pedido->update(['numero_referencia' => 'PED-' . Carbon::now()->format('ymd') . '-' . str_pad($pedido->id, 4, '0', STR_PAD_LEFT)]);
 
-                // Sincronización con Inventario Externo
+                // Escritura Inventario
                 try {
                     $dbInventario = DB::connection('mysql_inventario');
                     $idInventario = $dbInventario->table('pedidos')->insertGetId([
@@ -318,7 +321,7 @@ class PedidoController extends Controller
     }
 
     /**
-     * Actualización de pedido.
+     * Actualización de pedido con Validación de Integridad Completa.
      */
     public function update(Request $request, $id)
     {
@@ -328,10 +331,22 @@ class PedidoController extends Controller
             return response()->json(['message' => "No se puede modificar un pedido en estado {$pedido->status}"], 403);
         }
 
+        // FIX: Agregamos validación para los campos del receptor para evitar Undefined Array Key
         $validatedData = $request->validate([
             'clientId' => 'required|exists:clientes,id',
             'prioridad' => 'required|in:baja,media,alta',
             'receiverType' => 'required|in:cliente,nuevo,existente',
+            'receptor_id'  => 'nullable|required_if:receiverType,existente|exists:pedido_receptores,id',
+            'receiver.persona_recibe' => 'required_if:receiverType,nuevo|string|max:255',
+            'receiver.rfc' => 'required_if:receiverType,nuevo|string|min:12|max:13',
+            'receiver.regimen_fiscal' => 'nullable|string|required_if:receiverType,nuevo', 
+            'receiver.telefono' => 'required_if:receiverType,nuevo|string',
+            'receiver.correo' => 'required_if:receiverType,nuevo|email',
+            'receiver.cp' => 'required_if:receiverType,nuevo|string|size:5',
+            'receiver.estado' => 'required_if:receiverType,nuevo|string', 
+            'receiver.municipio' => 'required_if:receiverType,nuevo|string',
+            'receiver.colonia' => 'required_if:receiverType,nuevo|string',
+            'receiver.calle_num' => 'required_if:receiverType,nuevo|string',
             'items' => 'required|array|min:1',
             'motivo_cambio' => 'required|string|min:10'
         ]);
@@ -341,6 +356,7 @@ class PedidoController extends Controller
                 $user = Auth::user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
+                // VALIDACIÓN DE INTEGRIDAD GLOBAL
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $r = $request->input('receiver');
                     $rfcNorm      = strtoupper(trim($r['rfc']));
@@ -378,9 +394,11 @@ class PedidoController extends Controller
 
                 $receptorId = $request->receptor_id;
                 $direccionFormateada = $pedido->delivery_address;
+                $regimenFull = $pedido->receiver_regimen_fiscal;
 
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $r = $request->input('receiver');
+                    $regimenFull = $r['regimen_fiscal'] ?? $pedido->receiver_regimen_fiscal;
                     $direccionFormateada = "{$r['calle_num']}, COL. {$r['colonia']}, {$r['municipio']}, {$r['estado']}, CP {$r['cp']}";
                     $receptor = PedidoReceptor::updateOrCreate(
                         ['rfc' => strtoupper($r['rfc'])],
@@ -388,20 +406,28 @@ class PedidoController extends Controller
                             'user_id' => $ownerId,
                             'cliente_id' => $validatedData['clientId'],
                             'nombre' => strtoupper($r['persona_recibe']),
-                            'receiver_regimen_fiscal' => strtoupper($r['regimen_fiscal'] ?? $pedido->receiver_regimen_fiscal),
+                            'receiver_regimen_fiscal' => strtoupper($regimenFull),
                             'telefono' => $r['telefono'],
                             'correo' => strtolower($r['correo']),
                             'direccion' => strtoupper($direccionFormateada)
                         ]
                     );
                     $receptorId = $receptor->id;
+                } elseif ($validatedData['receiverType'] === 'existente') {
+                    $receptor = PedidoReceptor::findOrFail($receptorId);
+                    $direccionFormateada = $receptor->direccion;
+                    $regimenFull = $receptor->receiver_regimen_fiscal;
+                } else {
+                    $cliente = Cliente::findOrFail($validatedData['clientId']);
+                    $direccionFormateada = $cliente->direccion;
+                    $regimenFull = $cliente->regimen_fiscal;
                 }
 
                 $pedido->update([
                     'cliente_id'              => $validatedData['clientId'],
                     'prioridad'               => $validatedData['prioridad'],
                     'receptor_id'             => $receptorId,
-                    'receiver_regimen_fiscal' => $request->input('receiver.regimen_fiscal') ? strtoupper($request->input('receiver.regimen_fiscal')) : $pedido->receiver_regimen_fiscal,
+                    'receiver_regimen_fiscal' => $regimenFull ? strtoupper($regimenFull) : null,
                     'delivery_address'        => strtoupper($direccionFormateada),
                     'delivery_option'         => $request->input('logistics.deliveryOption') === 'entrega' ? 'none' : $request->input('logistics.deliveryOption'),
                     'paqueteria_nombre'       => strtoupper($request->input('logistics.paqueteria_nombre') ?? ''),
@@ -410,7 +436,7 @@ class PedidoController extends Controller
                     'actualizado_por'         => strtoupper($user->name),
                 ]);
 
-                // Sincronización Inventario
+                // Sync Inventario
                 try {
                     $dbInv = DB::connection('mysql_inventario');
                     $pedidoExterno = $dbInv->table('pedidos')

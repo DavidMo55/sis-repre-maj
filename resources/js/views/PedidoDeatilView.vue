@@ -52,13 +52,13 @@
                         </div>
                         <div class="space-y-4">
                             <div class="pb-3 border-b border-slate-50">
-                                <label class="label-mini label-large text-slate-400">Plantel / Distribuidor</label>
+                                <label class="label-mini label-large text-slate-400">PLANTEL / DISTRIBUIDOR</label>
                                 <p class="text-sm font-black text-slate-800 value-text uppercase leading-tight">
                                     {{ pedido.cliente?.name || 'No disponible' }}
                                 </p>
                             </div>
                             <div class="pt-2">
-                                <label class="label-mini label-large text-slate-400">Prioridad de Atención</label>
+                                <label class="label-mini label-large text-slate-400">Prioridad</label>
                                 <span :class="getPriorityClass(pedido.prioridad)" class="status-badge !px-3 !py-1 text-[10px]">
                                     {{ (pedido.prioridad || 'media').toUpperCase() }}
                                 </span>
@@ -95,7 +95,7 @@
                             </div>
 
                             <div class="pt-3 border-t border-slate-50 min-w-0">
-                                <label class="label-mini label-large text-slate-400">Correo</label>
+                                <label class="label-mini label-large text-slate-400">Correo Electrónico</label>
                                 <p class="text-xs font-bold text-slate-800 value-text truncate lowercase" style="text-transform: none !important;">
                                     <i class="fas fa-envelope mr-1 text-red-300"></i>
                                     {{ pedido.receiver_type === 'nuevo' ? (pedido.receptor?.correo || pedido.receiver_correo || '---') : (pedido.cliente?.email || '---') }}
@@ -124,7 +124,7 @@
                         </div>
                         <div class="space-y-6">
                             <div>
-                                <label class="label-mini label-large">Estado del pedido</label>
+                                <label class="label-mini label-large">Estatus del pedido</label>
                                 <span :class="getStatusClass(pedido.status)" class="status-badge w-full text-center value-text py-2.5 shadow-sm rounded-xl">
                                     {{ pedido.status }}
                                 </span>
@@ -152,7 +152,7 @@
                     </div>
                 </div>
 
-                    <!-- 4. COMENTARIOS GENERALES -->
+                <!-- 4. COMENTARIOS GENERALES -->
                 <div v-if="pedido.comments" class="info-card comments-section bg-white p-8 md:p-10 rounded-[3rem] border-2 border-amber-200 shadow-premium relative overflow-hidden animate-fade-in mx-2">
                     <div class="absolute -right-6 -top-6 w-32 h-32 bg-amber-50 rounded-full flex items-center justify-center opacity-40">
                         <i class="fas fa-quote-right text-6xl text-amber-200 rotate-12"></i>
@@ -160,7 +160,7 @@
                     
                     <div class="relative z-10">
                         <span class="inline-flex label-mini label-large items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                            <i class="fas fa-comment-dots label-mini label-large"></i> Comentarios generales del pedido
+                            <i class="fas fa-comment-dots"></i> Comentarios generales del pedido
                         </span>
                         <div class="bg-amber-50/50 p-6 rounded-[2rem] border border-dashed border-amber-200">
                             <p class="text-slate-800 text-base md:text-lg font-bold italic leading-relaxed whitespace-pre-wrap">
@@ -174,74 +174,74 @@
                 <div class="mt-8">
                     <div class="info-card !p-0 shadow-premium border border-slate-200 rounded-[2.5rem] bg-white overflow-hidden border-slate-100">
                         
-                         <div class="section-title !mb-6">
+                         <div class="section-title !mb-6 p-8 pb-0">
                             <i class="fas fa-box-open text-red-700"></i> 4. Selección de Materiales
                         </div>
-                        <div class="table-container mt-4 animate-fade-in">
-    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-        <table class="min-width-full divide-y divide-gray-200">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="table-header">Libro</th>
-                    <th class="table-header text-center w-32">Tipo</th>
-                    <th class="table-header text-center w-32">Formato</th>
-                    <th class="table-header text-center w-24">Cantidad</th>
-                    <th class="table-header text-right w-32">P. Unitario</th>
-                    <th class="table-header text-right w-32">Subtotal</th>
-                </tr>
-            </thead>
+                        <div class="table-container animate-fade-in p-8 pt-0">
+                            <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                                <table class="min-width-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="table-header">Libro</th>
+                                            <th class="table-header text-center w-32">Tipo</th>
+                                            <th class="table-header text-center w-32">Formato</th>
+                                            <th class="table-header text-center w-24">Cantidad</th>
+                                            <th class="table-header text-right w-32">P. Unitario</th>
+                                            <th class="table-header text-right w-32">Subtotal</th>
+                                        </tr>
+                                    </thead>
 
-            <tbody class="bg-white bk divide-y divide-gray-100">
-                <tr v-for="detalle in pedido.detalles" :key="detalle.id" class="hover:bg-gray-50 transition-colors">
-                    <td class="table-cell">
-                        <p class="font-black text-slate-800 text-sm uppercase leading-tight">
-                            {{ detalle.libro?.titulo || 'Material no identificado' }}
-                        </p>
-                        <div class="mt-1.5 flex items-center gap-2">
-                            <span class="text-[9px] font-black text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase tracking-widest">
-                                ISBN: {{ detalle.libro?.ISBN || 'N/A' }}
-                            </span>
+                                    <tbody class="bg-white divide-y divide-gray-100">
+                                        <tr v-for="detalle in pedido.detalles" :key="detalle.id" class="hover:bg-gray-50 transition-colors">
+                                            <td class="table-cell">
+                                                <p class="font-black text-slate-800 text-sm uppercase leading-tight">
+                                                    {{ detalle.libro?.titulo || 'Material no identificado' }}
+                                                </p>
+                                                <div class="mt-1.5 flex items-center gap-2">
+                                                    <span class="text-[9px] font-black text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase tracking-widest">
+                                                        ISBN: {{ detalle.libro?.ISBN || 'N/A' }}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="table-cell text-center">
+                                                <span class="status-badge bg-slate-100 text-slate-600 border border-slate-200">
+                                                    {{ (detalle.tipo_licencia || 'N/A').toUpperCase() }}
+                                                </span>
+                                            </td>
+                                            <td class="table-cell text-center">
+                                                <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
+                                                    {{ (detalle.tipo || 'VENTA').toUpperCase() }}
+                                                </span>
+                                            </td>
+                                            <td class="table-cell text-center font-black text-slate-700 text-lg">
+                                                {{ detalle.cantidad }}
+                                            </td>
+                                            <td class="table-cell text-right font-bold text-slate-500 text-xs">
+                                                {{ formatCurrency(detalle.precio_unitario) }}
+                                            </td>
+                                            <td class="table-cell text-right font-black text-red-800 text-base tracking-tighter">
+                                                {{ formatCurrency(detalle.costo_total) }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+
+                                    <tfoot class="bg-slate-50 border-t-2 border-slate-100">
+                                        <tr>
+                                            <td colspan="5" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+                                                Total Neto del Expediente:
+                                            </td>
+                                            <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none tracking-tighter">
+                                                {{ formatCurrency(totalOrderCostNum) }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
-                    </td>
-                    <td class="table-cell text-center">
-                        <span class="status-badge bg-slate-100 text-slate-600 border border-slate-200">
-                            {{ (detalle.tipo_licencia || 'N/A').toUpperCase() }}
-                        </span>
-                    </td>
-                    <td class="table-cell text-center">
-                        <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
-                            {{ (detalle.tipo || 'VENTA').toUpperCase() }}
-                        </span>
-                    </td>
-                    <td class="table-cell text-center font-black text-slate-700 text-lg">
-                        {{ detalle.cantidad }}
-                    </td>
-                    <td class="table-cell text-right font-bold text-slate-500 text-xs">
-                        {{ formatCurrency(detalle.precio_unitario) }}
-                    </td>
-                    <td class="table-cell text-right font-black text-red-800 text-base tracking-tighter">
-                        {{ formatCurrency(detalle.costo_total) }}
-                    </td>
-                </tr>
-            </tbody>
-
-            <tfoot class="bg-slate-50 border-t-2 border-slate-100">
-                <tr>
-                    <td colspan="5" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
-                        Total Neto del Expediente:
-                    </td>
-                    <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none tracking-tighter">
-                        {{ formatCurrency(totalOrderCostNum) }}
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-</div>
                     </div>
                 </div>
 
-                  <!-- 6. EXPEDIENTE DIGITAL -->
+                <!-- 6. EXPEDIENTE DIGITAL -->
                 <div class="info-card shadow-premium border-l-8 border-l-slate-800 bg-white p-6 rounded-3xl overflow-hidden border border-slate-100">
                     <div class="section-title !border-b-0 mb-6">
                         <i class="fas fa-folder-open text-slate-800 "></i> 5. Expediente Digital y Documentos
@@ -264,83 +264,71 @@
                 </div>
             
 
-                <!-- 5. HISTORIAL DE AJUSTES (REDISEÑADO A TABLA ESTÉTICA) -->
-                <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden">
+                <!-- 5. HISTORIAL DE AJUSTES (MOSTRAR SOLO SI HAY LOGS) -->
+                <div v-if="pedido.logs && pedido.logs.length > 0" class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden">
                     <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
                         
-                         <div class="section-title !mb-6">
-                            <i class="fas fa-box-open text-red-700"></i> 6. MODIFICACIONES
+                         <div class="section-title !mb-0 border-none">
+                            <i class="fas fa-history text-red-700"></i> 6. MODIFICACIONES
                         </div>
-                        <span v-if="pedido.logs?.length" class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
-                            {{ pedido.logs.length }} MODIFICACIONES
+                        <span class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
+                            {{ pedido.logs.length }} AJUSTES REGISTRADOS
                         </span>
                     </div>
 
-                    <div class="table-container mt-4 animate-fade-in">
-    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-        <table class="min-width-full divide-y divide-gray-200">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="table-header text-center w-24">Ajuste</th>
-                    <th class="table-header">Motivo de la Modificación</th>
-                    <th class="table-header w-56">Responsable</th>
-                    <th class="table-header text-right w-48">Sincronización</th>
-                </tr>
-            </thead>
-            
-            <tbody class="bg-white bk divide-y divide-gray-100">
-                <tr v-for="(log, index) in pedido.logs" :key="log.id" class="hover:bg-gray-50 transition-colors">
-                    <td class="table-cell text-center">
-                        <div class="flex justify-center">
-                            <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
-                                  :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
-                                #{{ pedido.logs.length - index }}
-                            </span>
+                    <div class="table-container mt-4 animate-fade-in p-8 pt-0">
+                        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                            <table class="min-width-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="table-header text-center w-24">Ajuste</th>
+                                        <th class="table-header">Motivo de la Modificación</th>
+                                        <th class="table-header w-56">Responsable</th>
+                                        <th class="table-header text-right w-48">Sincronización</th>
+                                    </tr>
+                                </thead>
+                                
+                                <tbody class="bg-white divide-y divide-gray-100">
+                                    <tr v-for="(log, index) in pedido.logs" :key="log.id" class="hover:bg-gray-50 transition-colors">
+                                        <td class="table-cell text-center">
+                                            <div class="flex justify-center">
+                                                <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
+                                                    :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
+                                                    #{{ pedido.logs.length - index }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="table-cell">
+                                            <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
+                                                "{{ log.motivo_cambio || 'Sin justificación técnica' }}"
+                                            </p>
+                                        </td>
+                                        <td class="table-cell">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-6 h-6 bg-slate-800 text-white rounded-lg flex items-center justify-center text-[8px] font-black uppercase">
+                                                    {{ log.user?.name?.charAt(0) || 'S' }}
+                                                </div>
+                                                <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
+                                                    {{ log.user?.name || 'Sistema' }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="table-cell text-right">
+                                            <div class="flex flex-col items-end">
+                                                <span class="text-[11px] font-black text-slate-800 uppercase leading-none">
+                                                    {{ formatDateOnly(log.created_at) }}
+                                                </span>
+                                                <span class="text-[9px] font-bold text-slate-400 mt-1 uppercase italic">
+                                                    {{ formatTimeOnly(log.created_at) }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                    </td>
-                    <td class="table-cell">
-                        <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
-                            "{{ log.motivo_cambio || 'Sin justificación técnica' }}"
-                        </p>
-                    </td>
-                    <td class="table-cell">
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 bg-slate-800 text-white rounded-lg flex items-center justify-center text-[8px] font-black uppercase">
-                                {{ log.user?.name?.charAt(0) || 'S' }}
-                            </div>
-                            <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
-                                {{ log.user?.name || 'Sistema' }}
-                            </span>
-                        </div>
-                    </td>
-                    <td class="table-cell text-right">
-                        <div class="flex flex-col items-end">
-                            <span class="text-[11px] font-black text-slate-800 uppercase leading-none">
-                                {{ formatDateOnly(log.created_at) }}
-                            </span>
-                            <span class="text-[9px] font-bold text-slate-400 mt-1 uppercase italic">
-                                {{ formatTimeOnly(log.created_at) }}
-                            </span>
-                        </div>
-                    </td>
-                </tr>
-                
-                <tr v-if="!pedido.logs || pedido.logs.length === 0">
-                    <td colspan="4" class="px-6 py-16 text-center">
-                        <div class="flex flex-col items-center opacity-40">
-                            <i class="fas fa-shield-alt text-4xl text-slate-300 mb-4"></i>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Expediente con integridad original</p>
-                            <p class="text-[9px] text-slate-400 mt-1 italic">No se han registrado ajustes posteriores al registro inicial.</p>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+                    </div>
                 </div>
-
-              
 
             </div>
         </div>
@@ -380,8 +368,6 @@ const totalOrderCostNum = computed(() => {
 const formatCurrency = (value) => {
     return Number(value || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 };
-
-const calculateTotalItems = (detalles) => detalles ? detalles.reduce((sum, item) => sum + Number(item.cantidad), 0) : 0;
 
 const getStatusClass = (status) => {
     const base = 'status-badge ';
@@ -451,16 +437,7 @@ onMounted(() => {
 .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
 .badge-format-red {
-    display: inline-block;
-    font-size: 10px;
-    font-weight: 900;
-    color: #b91c1c;
-    text-transform: uppercase;
-    background-color: #ffffff;
-    padding: 4px 12px;
-    border-radius: 8px;
-    border: 1px solid #fee2e2;
-    letter-spacing: 0.05em;
+    display: inline-block; font-size: 10px; font-weight: 900; color: #b91c1c; text-transform: uppercase; background-color: #ffffff; padding: 4px 12px; border-radius: 8px; border: 1px solid #fee2e2; letter-spacing: 0.05em;
 }
 
 .btn-icon-action { width: 34px; height: 34px; color: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; flex-shrink: 0; border: none; cursor: pointer; }
@@ -473,51 +450,12 @@ onMounted(() => {
 .btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
-.btn-secondary {
-    padding: 8px 15px;
-    background: white;
-    border: 1px solid #cbd5e1;
-    border-radius: 12px;
-    color: #64748b;
-    font-size: 0.7rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    cursor:pointer;
-}
+.btn-secondary { padding: 8px 15px; background: white; border: 1px solid #cbd5e1; border-radius: 12px; color: #64748b; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; cursor:pointer; }
 
-.table-header { 
-    padding: 14px 16px; 
-    font-size: 0.7rem; 
-    font-weight: 800; 
-    color: #64748b; 
-    text-transform: uppercase; 
-    text-align: left; 
-}
+.table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; text-align: left; }
+.table-cell { padding: 14px 16px; font-size: 0.85rem; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+.table-shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02); }
 
-.table-cell { 
-    padding: 14px 16px; 
-    font-size: 0.85rem; 
-    vertical-align: middle; 
-    border-bottom: 1px solid #f1f5f9; 
-}
-
-.table-shadow-lg {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-}
-
-.animate-fade-in { 
-    animation: fadeIn 0.3s ease-out; 
-}
-
-@keyframes fadeIn { 
-    from { opacity: 0; transform: translateY(-10px); } 
-    to { opacity: 1; transform: translateY(0); } 
-}
-
-/* Manejo de texto de motivo */
-.leading-relaxed {
-    line-height: 1.5;
-}
 .value-text { color: #be5e5e; line-height: 1.4; }
 .label-large { display: block; font-size: 0.72rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 </style>

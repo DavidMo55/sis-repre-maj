@@ -19,7 +19,7 @@
                 </div>
                 <div class="filter-grid">
                     <div class="form-group col-span-2">
-                        <label for="search">Buscar Plantel o Persona:</label>
+                        <label for="search">Plantel o Entrevistado:</label>
                         <div class="relative">
                             <i class="fas fa-search search-icon"></i>
                             <input 
@@ -103,8 +103,8 @@
                             <th class="table-header">Fecha</th>
                             <th class="table-header">Plantel</th>
                             <th class="table-header">Entrevistado</th>
-                            <th class="table-header text-center">Resultado</th>
-                            <th class="table-header">Próxima</th>
+                            <th class="table-header text-center">Estado</th>
+                            <th class="table-header">Próxima visita</th>
                             <th class="px-6 py-3"></th>
                         </tr>
                     </thead>
