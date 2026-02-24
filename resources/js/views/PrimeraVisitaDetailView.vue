@@ -124,7 +124,7 @@
                     <div class="flex items-center gap-3 px-2">
                         <div class="w-2 h-8 bg-red-700 rounded-full"></div>
                         <div class="section-title text-black !border-black/5">
-                            <i class="fas fa-handshake text-black"></i> 2. Historial de Visita
+                            <i class="fas fa-handshake text-black"></i> 2. Historial de Visitas
                         </div>
                     </div>
 
@@ -140,7 +140,7 @@
                                 <div class="flex items-center gap-6 w-full md:w-auto">
                                     <div class="min-w-0">
                                         <p class="text-[8px] label-large font-black uppercase tracking-[0.2em] mb-1" :class="h.es_primera_visita ? 'text-blue-600' : 'text-purple-600'">
-                                            Fecha de la visita
+                                            Fecha de visitas
                                         </p>
                                         <h4 class="text-xl font-black text-black uppercase tracking-tight truncate max-w-[200px] md:max-w-none">
                                             {{ formatDate(h.fecha) }}
@@ -262,16 +262,21 @@
                                     <!-- OBSERVACIONES -->
                                     <div class="space-y-4">
                                         <h5 class="text-black font-black uppercase text-[11px] label-large tracking-widest flex items-center gap-2">
-                                            <i class="fas fa-comment-dots text-red-700 label-large"></i> Observaciones de la Intervención
+                                            <i class="fas fa-comment-dots text-red-700 label-large"></i> COMENTARIOS Y ACUERDOS DE LA SESIÓN
                                         </h5>
                                         <div class="bg-amber-50 p-8 rounded-3xl border border-amber-100 italic text-slate-700 text-sm leading-relaxed font-medium shadow-inner">
                                             "{{ h.comentarios || 'El representante no dejó observaciones escritas en esta sesión.' }}"
                                         </div>
                                     </div>
+
+                                    
                                 </div>
                             </div>
+                            <br><br>
                         </div>
+                        
                     </div>
+                    
 
                     <div v-else class="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 opacity-60">
                         <i class="fas fa-history text-4xl text-slate-200 mb-4 block"></i>
@@ -309,11 +314,8 @@
                 <div v-if="allLogs.length > 0" class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden mt-16">
                     <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
                         <div class="section-title text-black !border-black/5">
-                            <i class="fas fa-handshake text-black"></i> 4. Bitácora de Ajustes Técnicos
+                            <i class="fas fa-handshake text-black"></i> 4. Modificaciones
                         </div>
-                        <span class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
-                            {{ allLogs.length }} AJUSTES REGISTRADOS
-                        </span>
                     </div>
 
                     <div class="table-container mt-4 animate-fade-in">
@@ -321,7 +323,7 @@
                             <table class="min-width-full divide-y divide-gray-200">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="table-header w-64">Intervención Editada</th>
+                                        <th class="table-header w-64">Visita</th>
                                         <th class="table-header">Motivo de la Modificación</th>
                                         <th class="table-header w-56">Responsable</th>
                                         <th class="table-header text-right w-48">Sincronización</th>

@@ -40,13 +40,14 @@ return [
     | Expiration Minutes
     |--------------------------------------------------------------------------
     |
-    | This value controls the number of minutes until an issued token will be
-    | considered expired. If this value is null, personal access tokens do
-    | not expire. This won't tweak the lifetime of first-party sessions.
+    | Este valor controla los minutos hasta que un token emitido se considere
+    | expirado. Al dejarlo en 'null', los tokens de acceso personal no 
+    | expiran por tiempo fijo, permitiendo que la sesión maneje la 
+    | inactividad de 2 horas correctamente.
     |
     */
 
-    'expiration' => 120,
+    'expiration' => null,
 
     /*
     |--------------------------------------------------------------------------

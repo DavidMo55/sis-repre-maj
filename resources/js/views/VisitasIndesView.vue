@@ -27,7 +27,7 @@
                                 id="search" 
                                 v-model="filters.query" 
                                 class="form-input pl-10" 
-                                placeholder="Nombre de escuela o contacto..."
+                                placeholder="Plantel o Entrevistado..."
                                 @keyup.enter="fetchVisitas"
                             >
                         </div>

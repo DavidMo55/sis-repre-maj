@@ -154,18 +154,18 @@
                                      
                                     <div class="flex flex-wrap gap-x-8 gap-y-2">
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span class="text-black font-black">{{ activeReceiverDisplay.rfc }}</span></p>
-                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-file-invoice mr-2 text-red-300"></i> Régimen: <span class="text-black font-black">{{ activeReceiverDisplay.regimen_fiscal || activeReceiverDisplay.receiver_regimen_fiscal || 'SIN RÉGIMEN' }}</span></p>
+                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-file-invoice mr-2 text-red-300"></i> Régimen fiscal: <span class="text-black font-black">{{ activeReceiverDisplay.regimen_fiscal || activeReceiverDisplay.receiver_regimen_fiscal || 'SIN RÉGIMEN' }}</span></p>
                                     </div>
                                     
                                     <div class="flex flex-wrap gap-x-8 gap-y-2 mt-2">
                                         <p class="text-xs font-bold text-red-600" style="text-transform: none !important;">
-                                            <i class="fas fa-envelope mr-2 text-red-300"></i> Correo Electrónico: <span class="text-black font-black">{{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}</span>
+                                            <i class="fas fa-envelope mr-2 text-red-300"></i> CORREO ELECTRONNICO: <span class="text-black font-black">{{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}</span>
                                         </p>
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-phone mr-2 text-red-300"></i> Telefono: <span class="text-black font-black">{{ activeReceiverDisplay.telefono || activeReceiverDisplay.phone }}</span></p>
                                     </div>
 
                                     <p class="text-xs font-bold text-red-600 uppercase mt-4">
-                                        <i class="fas fa-map-marker-alt mr-2 text-red-300"></i> Dirección: <span class="text-black font-black"> {{ activeReceiverDisplay.direccion }}</span>
+                                        <i class="fas fa-map-marker-alt mr-2 text-red-300"></i> Dirección completa: <span class="text-black font-black"> {{ activeReceiverDisplay.direccion }}</span>
                                     </p>
                                 </div>
                                 <i class="fas fa-user-check absolute -right-6 -bottom-6 text-[10rem] text-red-50/50"></i>
@@ -309,42 +309,67 @@
                     </div>
 
                     <div class="mt-8 overflow-hidden rounded-[2.5rem] border border-red-100 bg-white shadow-premium">
-                        <table class="w-full divide-y divide-red-200">
-                            <thead class="bg-black text-white text-[9px] font-black uppercase tracking-widest">
-                                <tr><th class="px-6 py-5 text-left">Título</th><th class="px-6 py-5 text-center">Tipo</th><th class="px-6 py-5 text-center">Cant.</th><th class="px-6 py-5 text-center">Precio Unitario</th><th class="px-6 py-5 text-right">SubTotal</th><th class="px-6 py-5 w-20"></th></tr>
-                            </thead>
-                            <tbody class="divide-y divide-red-50">
-                                <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-red-50/50 transition-colors group">
-                                    <td class="table-cell">
-                                        <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
-                                        <div class="text-[9px] text-red-500 uppercase font-black mt-1">{{ item.sub_type }}</div>
-                                    </td>
-                                    <td class="table-cell text-center"><span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">{{ item.tipo_material.toUpperCase() }}</span></td>
-                                    <td class="table-cell text-center font-black text-red-800 text-lg">{{ item.quantity }}</td>
-                                    <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
-                                    <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
-                                    <td class="table-cell text-center">
-                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
-                                                </td>
-                                </tr>
-                                <tr v-if="!orderForm.orderItems.length"><td colspan="5" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales seleccionados</td></tr>
-                            </tbody>
-                            <tfoot v-if="orderForm.orderItems.length" class="bg-red-50/30 border-t-2 border-red-100">
-                                <tr>
-                                    <td colspan="2" class="px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">Inversión Total:</td>
-                                    <td class="px-6 py-8 text-center font-black text-red-700 text-2xl border-x border-red-100/50">{{ totalUnits }}</td>
-                                    <td class="px-6 py-8 text-right font-black text-3xl text-red-700 tracking-tighter leading-none">{{ formatCurrency(orderTotal) }}</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                        <table class="min-width-full divide-y divide-red-200">
+                                <thead class="bg-black text-white text-[9px] font-black uppercase tracking-widest">
+                                    <tr>
+                                        <th class="px-6 py-5 text-left">Libro</th>
+                                        <th class="px-6 py-5 text-center w-24">Tipo</th>
+                                        <th class="px-6 py-5 text-center w-32">Formato</th>
+                                        <th class="px-6 py-5 text-center w-20">Cantidad</th>
+                                        <th class="px-6 py-5 text-right w-28">Precio Unitario</th>
+                                        <th class="px-6 py-5 w-20"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-red-50">
+                                    <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-red-50/50 transition-colors group">
+                                        <td class="table-cell">
+                                            <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
+                                            <div class="text-[8px] text-slate-400 uppercase font-bold mt-1 italic">ID: {{ item.bookId }}</div>
+                                        </td>
+                                        <td class="table-cell text-center">
+                                            <span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">
+                                                {{ item.tipo_material.toUpperCase() }}
+                                            </span>
+                                        </td>
+                                        <td class="table-cell text-center">
+                                            <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-[9px] font-black uppercase tracking-tighter">
+                                                {{ item.sub_type }}
+                                            </span>
+                                        </td>
+                                        <td class="table-cell text-center font-black text-slate-700 text-lg">
+                                            {{ item.quantity }}
+                                        </td>
+                                        <td class="table-cell text-right font-bold text-slate-500 text-xs">
+                                            {{ formatCurrency(item.price) }}
+                                        </td>
+                                        <td class="table-cell text-center">
+                                            <button type="button" @click="orderForm.orderItems.splice(index, 1)" class="btn-secondary hover:text-red-600 transition-colors">
+                                                <i class="fas fa-trash-alt mr-1"></i> Borrar
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="!orderForm.orderItems.length">
+                                        <td colspan="6" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales en la orden</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot v-if="orderForm.orderItems.length" class="bg-red-50/30 border-t-2 border-red-100">
+                                    <tr>
+                                        <td colspan="3" class="px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">Resumen de Orden:</td>
+                                        <td class="px-4 py-8 text-center font-black text-red-700 text-2xl border-x border-red-100/50">{{ totalUnits }}</td>
+                                        <td class="px-6 py-8 text-right font-black text-3xl text-red-700 tracking-tighter leading-none">
+                                            {{ formatCurrency(orderTotal) }}
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                     </div>
                 </div>
 
                 <!-- 4. NOTAS ADICIONALES -->
                 <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                     <div class="section-title text-black">
-                        <i class="fas fa-history text-red-700"></i> 4. Comentarios Generales en Pedido (Opcional):
+                        <i class="fas fa-history text-red-700"></i> 4. Comentarios Generales en Pedido:
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="form-group">
@@ -356,14 +381,12 @@
                 <!-- 5. MOTIVO DE MODIFICACIÓN -->
                 <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                     <div class="section-title text-black">
-                        <i class="fas fa-history text-red-700"></i> 5. Auditoría de Modificación
+                        <i class="fas fa-history text-red-700"></i> 5. Motivo de Modificación
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="form-group">
-                            <label class="label-style">Motivo de Modif *</label>
                             <textarea v-model="orderForm.motivo_cambio" class="form-input font-medium uppercase text-xs lbb" rows="3" placeholder="EXPLIQUE POR QUÉ SE MODIFICA EL EXPEDIENTE..." required minlength="10"></textarea>
-                            <p class="text-[8px] text-red-400 mt-2 italic font-black uppercase tracking-widest">* REQUERIDO PARA LA BITÁCORA TÉCNICA</p>
-                        </div>
+                       </div>
                     </div>
                 </div>
 
@@ -624,12 +647,39 @@ const selectExistingReceiver = (rec) => {
 };
 
 const searchBooks = async () => {
-    if (currentOrderItem.bookName.length < 3) { currentOrderItem.bookSuggestions = []; return; }
+    // Si no hay 3 caracteres, limpiamos sugerencias
+    if (currentOrderItem.bookName.length < 3) { 
+        currentOrderItem.bookSuggestions = []; 
+        return; 
+    }
+    
     searchingLibros.value = true;
+    
     try {
-        const res = await axios.get('/search/libros', { params: { query: currentOrderItem.bookName } });
-        currentOrderItem.bookSuggestions = res.data;
-    } catch (e) { console.error(e); } finally { searchingLibros.value = false; }
+        const nivelesDelPlantel = selectedCliente.value?.nivel_educativo || '';
+
+        const res = await axios.get('/search/libros', { 
+            params: { 
+                query: currentOrderItem.bookName,
+                niveles: nivelesDelPlantel,
+                tipo: currentOrderItem.tipo_material 
+            } 
+        });
+
+        currentOrderItem.bookSuggestions = res.data.filter(b => {
+            const bType = b.type?.toLowerCase() || '';
+            
+            if (currentOrderItem.tipo_material === 'promocion') {
+                return bType === 'promocion' || bType === 'digital';
+            } else {
+                return bType === 'venta' || bType === 'digital';
+            }
+        });
+    } catch (e) { 
+        console.error("Error en búsqueda de libros:", e); 
+    } finally { 
+        searchingLibros.value = false; 
+    }
 };
 
 const selectBook = (book) => {
@@ -677,8 +727,12 @@ const closeAndRedirect = () => { systemModal.visible = false; router.push('/pedi
 const totalUnits = computed(() => orderForm.orderItems.reduce((s, i) => s + i.quantity, 0));
 const orderTotal = computed(() => orderForm.orderItems.reduce((s, i) => s + i.totalCost, 0));
 const formatCurrency = (v) => Number(v).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-const availableSubTypes = computed(() => ['Solo Físico', 'Pack (Físico + Digital)', 'Licencia Digital']);
-
+const availableSubTypes = computed(() => {
+    if (!currentOrderItem.bookId) return [];
+    const category = currentOrderItem.category?.toLowerCase() || '';
+    if (currentOrderItem.tipo_material === 'promocion') return category === 'digital' ? ['Licencia', 'Demo'] : ['Físico'];
+    return category === 'digital' ? ['Digital'] : ['Pack (Físico + Digital)', 'Físico'];
+});
 const formatDateOnly = (dateString) => {
     if (!dateString) return '---';
     return new Date(dateString).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });

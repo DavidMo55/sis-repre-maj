@@ -71,7 +71,7 @@
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'recoleccion'}">
                                     <input type="radio" value="recoleccion" v-model="orderForm.logistics.deliveryOption" class="hidden">
                                     <i class="fas fa-warehouse"></i>
-                                    <span>Recolección</span>
+                                    <span>Recolección en ALMACÉN</span>
                                 </label>
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'entrega'}">
                                     <input type="radio" value="entrega" v-model="orderForm.logistics.deliveryOption" class="hidden">
@@ -99,11 +99,11 @@
                             <div class="flex flex-wrap gap-4 md:gap-8">
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="cliente" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600" :disabled="!orderForm.clientId">
-                                    <span class="text-[11px] font-black text-red-700 uppercase">Datos del Cliente</span>
+                                    <span class="text-[11px] font-black text-red-700 uppercase">Datos del Envio</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="existente" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
-                                    <span class="text-[11px] font-black text-red-700 uppercase">Mis Receptores</span>
+                                    <span class="text-[11px] font-black text-red-700 uppercase">Buscar</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="nuevo" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
@@ -147,23 +147,22 @@
                         <div v-if="['cliente', 'existente'].includes(orderForm.receiverType)" class="animate-fade-in">
                             <div v-if="activeReceiverDisplay" class="receiver-summary-card shadow-sm border border-red-100 rounded-[2.5rem] p-8 bg-white relative overflow-hidden group">
                                 <div class="relative z-10 space-y-1">
-                                    <p class="text-[10px] font-black text-red-400 uppercase tracking-[0.2em] mb-3">Información de Destino Seleccionada</p>
-                                    <h4 class="text-2xl font-black text-black leading-none mb-3 uppercase tracking-tighter">{{ activeReceiverDisplay.nombre || activeReceiverDisplay.contacto || activeReceiverDisplay.name }}</h4>
-                                    
+                                      <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> Nombre del Destinatario: <span class="text-black font-black">{{ activeReceiverDisplay.nombre || activeReceiverDisplay.contacto || activeReceiverDisplay.name }}</span></p>
+                                      
                                     <div class="flex flex-wrap gap-x-8 gap-y-2">
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span class="text-black font-black">{{ activeReceiverDisplay.rfc }}</span></p>
-                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-file-invoice mr-2 text-red-300"></i> Régimen: <span class="text-black font-black">{{ activeReceiverDisplay.regimen_fiscal || activeReceiverDisplay.receiver_regimen_fiscal || 'SIN RÉGIMEN' }}</span></p>
+                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-file-invoice mr-2 text-red-300"></i> Régimen fiscal: <span class="text-black font-black">{{ activeReceiverDisplay.regimen_fiscal || activeReceiverDisplay.receiver_regimen_fiscal || 'SIN RÉGIMEN' }}</span></p>
                                     </div>
                                     
                                     <div class="flex flex-wrap gap-x-8 gap-y-2 mt-2">
                                         <p class="text-xs font-bold text-red-600" style="text-transform: none !important;">
-                                            <i class="fas fa-envelope mr-2 text-red-300"></i> Correo: <span class="text-black font-black">{{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}</span>
+                                            <i class="fas fa-envelope mr-2 text-red-300"></i> CORREO ElECTRONICO: <span class="text-black font-black">{{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}</span>
                                         </p>
-                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-phone mr-2 text-red-300"></i> Tel: <span class="text-black font-black">{{ activeReceiverDisplay.telefono || activeReceiverDisplay.phone }}</span></p>
+                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-phone mr-2 text-red-300"></i> Telefono: <span class="text-black font-black">{{ activeReceiverDisplay.telefono || activeReceiverDisplay.phone }}</span></p>
                                     </div>
 
                                     <p class="text-xs font-bold text-red-600 uppercase mt-4">
-                                        <i class="fas fa-map-marker-alt mr-2 text-red-300"></i> Dirección: <span class="text-black font-black"> {{ activeReceiverDisplay.direccion }}</span>
+                                        <i class="fas fa-map-marker-alt mr-2 text-red-300"></i> Dirección completa: <span class="text-black font-black"> {{ activeReceiverDisplay.direccion }}</span>
                                     </p>
                                 </div>
                                 <i class="fas fa-user-check absolute -right-6 -bottom-6 text-[10rem] text-red-50/50"></i>
@@ -173,6 +172,24 @@
                         <!-- 2.C: FORMULARIO MANUAL CON VALIDACIÓN INMEDIATA -->
                         <div v-if="orderForm.receiverType === 'nuevo'" class="animate-fade-in space-y-6 bg-white border border-red-100 p-8 rounded-[3rem] shadow-sm">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="form-group relative">
+                                    <label class="label-style">Nombre del Destinatario *</label>
+                                    <div class="relative">
+                                        <input 
+                                            v-model="orderForm.receiver.persona_recibe" 
+                                            @blur="validateUniqueness('persona_recibe')" 
+                                            @change="validateUniqueness('persona_recibe')"
+                                            type="text" 
+                                            class="form-input font-bold uppercase lbb"
+                                            :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : ''"
+                                            placeholder="NOMBRE COMPLETO" required minlength="5"
+                                        >
+                                        <i v-if="validatingFields.persona_recibe" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    </div>
+                                    <p v-if="fieldValidation.persona_recibe.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.persona_recibe.message }}
+                                    </p>
+                                </div>
                                 <div class="form-group relative">
                                     <label class="label-style">RFC *</label>
                                     <div class="relative">
@@ -191,24 +208,7 @@
                                         <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message }}
                                     </p>
                                 </div>
-                                <div class="form-group relative">
-                                    <label class="label-style">Destinatario *</label>
-                                    <div class="relative">
-                                        <input 
-                                            v-model="orderForm.receiver.persona_recibe" 
-                                            @blur="validateUniqueness('persona_recibe')" 
-                                            @change="validateUniqueness('persona_recibe')"
-                                            type="text" 
-                                            class="form-input font-bold uppercase lbb"
-                                            :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : ''"
-                                            placeholder="NOMBRE COMPLETO" required minlength="5"
-                                        >
-                                        <i v-if="validatingFields.persona_recibe" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
-                                    </div>
-                                    <p v-if="fieldValidation.persona_recibe.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
-                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.persona_recibe.message }}
-                                    </p>
-                                </div>
+                                
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal *</label>
                                     <!-- APLICADO: required para nuevos registros -->
@@ -301,36 +301,64 @@
                             </ul>
                         </div>
                         <div class="md:col-span-3"><label class="label-mini">Formato</label><select class="form-input font-bold text-red-700 uppercase text-xs lbb" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
-                        <div class="md:col-span-1"><label class="label-mini">Cant.</label><input type="number" min="1" class="form-input font-bold text-red-700 lbb" v-model.number="currentOrderItem.quantity"></div>
-                        <div class="md:col-span-2"><label class="label-mini">P. Unitario ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700 disabled:text-slate-400 disabled:bg-slate-100 lbb" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
+                        <div class="md:col-span-1"><label class="label-mini">Cantidad</label><input type="number" min="1" class="form-input font-bold text-red-700 lbb" v-model.number="currentOrderItem.quantity"></div>
+                        <div class="md:col-span-2"><label class="label-mini">Precio Unitario ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700 disabled:text-slate-400 disabled:bg-slate-100 lbb" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
                         <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95 lbb"><i class="fas fa-cart-plus mr-1"></i>Añadir</button></div>
                     </div>
 
                     <!-- TABLA DE CARRITO -->
                     <div class="mt-8 overflow-hidden rounded-[2.5rem] border border-red-100 bg-white shadow-premium">
                         <div class="table-responsive border-none">
-                            <table class="min-width-full divide-y divide-red-200">
+                           <table class="min-width-full divide-y divide-red-200">
                                 <thead class="bg-black text-white text-[9px] font-black uppercase tracking-widest">
-                                    <tr><th class="px-6 py-5 text-left">Título</th><th class="px-6 py-5 text-center">Tipo</th><th class="px-6 py-5 text-center">Cant.</th><th class="px-6 py-5 text-right">Total</th><th class="px-6 py-5"></th></tr>
+                                    <tr>
+                                        <th class="px-6 py-5 text-left">Libro</th>
+                                        <th class="px-6 py-5 text-center w-24">Tipo</th>
+                                        <th class="px-6 py-5 text-center w-32">Formato</th>
+                                        <th class="px-6 py-5 text-center w-20">Cantidad</th>
+                                        <th class="px-6 py-5 text-right w-28">Precio Unitario</th>
+                                        <th class="px-6 py-5 w-20"></th>
+                                    </tr>
                                 </thead>
                                 <tbody class="divide-y divide-red-50">
                                     <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-red-50/50 transition-colors group">
                                         <td class="table-cell">
                                             <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
-                                            <div class="text-[9px] text-red-500 uppercase font-black tracking-widest mt-1">{{ item.sub_type }}</div>
+                                            <div class="text-[8px] text-slate-400 uppercase font-bold mt-1 italic">ID: {{ item.bookId }}</div>
                                         </td>
-                                        <td class="table-cell text-center"><span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">{{ item.tipo_material.toUpperCase() }}</span></td>
-                                        <td class="table-cell text-center font-black text-red-800 text-lg">{{ item.quantity }}</td>
-                                        <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
-                                        <td class="table-cell text-center"><button type="button" @click="orderForm.orderItems.splice(index, 1)" class="btn-delete-item lbb"><i class="fas fa-trash-alt mr-1"></i> BORRAR</button></td>
+                                        <td class="table-cell text-center">
+                                            <span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">
+                                                {{ item.tipo_material.toUpperCase() }}
+                                            </span>
+                                        </td>
+                                        <td class="table-cell text-center">
+                                            <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-[9px] font-black uppercase tracking-tighter">
+                                                {{ item.sub_type }}
+                                            </span>
+                                        </td>
+                                        <td class="table-cell text-center font-black text-slate-700 text-lg">
+                                            {{ item.quantity }}
+                                        </td>
+                                        <td class="table-cell text-right font-bold text-slate-500 text-xs">
+                                            {{ formatCurrency(item.price) }}
+                                        </td>
+                                        <td class="table-cell text-center">
+                                            <button type="button" @click="orderForm.orderItems.splice(index, 1)" class="btn-delete-item hover:text-red-600 transition-colors">
+                                                <i class="fas fa-trash-alt mr-1"></i> Borrar
+                                            </button>
+                                        </td>
                                     </tr>
-                                    <tr v-if="!orderForm.orderItems.length"><td colspan="5" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales en la orden</td></tr>
+                                    <tr v-if="!orderForm.orderItems.length">
+                                        <td colspan="6" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales en la orden</td>
+                                    </tr>
                                 </tbody>
                                 <tfoot v-if="orderForm.orderItems.length" class="bg-red-50/30 border-t-2 border-red-100">
                                     <tr>
-                                        <td colspan="2" class="px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">Inversión Total:</td>
-                                        <td class="px-6 py-8 text-center font-black text-red-700 text-2xl border-x border-red-100/50">{{ totalUnits }}</td>
-                                        <td class="px-6 py-8 text-right font-black text-3xl text-red-700 tracking-tighter leading-none">{{ formatCurrency(orderTotal) }}</td>
+                                        <td colspan="3" class="px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">Resumen de Orden:</td>
+                                        <td class="px-4 py-8 text-center font-black text-red-700 text-2xl border-x border-red-100/50">{{ totalUnits }}</td>
+                                        <td class="px-6 py-8 text-right font-black text-3xl text-red-700 tracking-tighter leading-none">
+                                            {{ formatCurrency(orderTotal) }}
+                                        </td>
                                         <td></td>
                                     </tr>
                                 </tfoot>
@@ -529,8 +557,8 @@ const validateUniqueness = async (field) => {
 const availableSubTypes = computed(() => {
     if (!currentOrderItem.bookId) return [];
     const category = currentOrderItem.category?.toLowerCase() || '';
-    if (currentOrderItem.tipo_material === 'promocion') return category === 'digital' ? ['Licencia Digital', 'Demo Digital'] : ['Físico (Muestra Promoción)'];
-    return category === 'digital' ? ['Libro Digital'] : ['Pack (Físico + Digital)', 'Solo Físico'];
+    if (currentOrderItem.tipo_material === 'promocion') return category === 'digital' ? ['Licencia', 'Demo'] : ['Físico'];
+    return category === 'digital' ? ['Digital'] : ['Pack (Físico + Digital)', 'Físico'];
 });
 
 const handleCPInput = () => { if (orderForm.receiver.cp?.length === 5) fetchAddressByCP(orderForm.receiver.cp); };
@@ -564,15 +592,39 @@ const selectClient = (c) => {
 };
 
 const searchBooks = async () => {
-    if (currentOrderItem.bookName.length < 3) { currentOrderItem.bookSuggestions = []; return; }
+    if (currentOrderItem.bookName.length < 3) { 
+        currentOrderItem.bookSuggestions = []; 
+        return; 
+    }
+    
+    if (!selectedCliente.value) {
+        // Opcional: mostrar un mensaje o simplemente buscar global
+        console.warn("Buscando sin filtro de nivel educativo porque no hay plantel seleccionado");
+    }
+
     searchingLibros.value = true;
     try {
-        const res = await axios.get('/search/libros', { params: { query: currentOrderItem.bookName } });
+        const nivelesDelPlantel = selectedCliente.value?.nivel_educativo || '';
+
+        const res = await axios.get('/search/libros', { 
+            params: { 
+                query: currentOrderItem.bookName,
+                niveles: nivelesDelPlantel 
+            } 
+        });
         currentOrderItem.bookSuggestions = res.data.filter(b => {
             const bType = b.type?.toLowerCase() || '';
-            return currentOrderItem.tipo_material === 'promocion' ? (bType === 'promocion' || bType === 'digital') : (bType === 'venta' || bType === 'digital');
+            if (currentOrderItem.tipo_material === 'promocion') {
+                return (bType === 'promocion' || bType === 'digital');
+            } else {
+                return (bType === 'venta' || bType === 'digital');
+            }
         });
-    } catch (e) { console.error(e); } finally { searchingLibros.value = false; }
+    } catch (e) { 
+        console.error(e); 
+    } finally { 
+        searchingLibros.value = false; 
+    }
 };
 
 const selectBook = (book) => {

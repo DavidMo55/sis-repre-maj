@@ -17,8 +17,8 @@
                     
                     <!-- BLOQUE 1: DATOS DEL PLANTEL -->
                     <div class="form-section shadow-premium border-t-8 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                        <div class="section-title text-black">
-                            <i class="fas fa-school text-red-700"></i> Datos del Plantel
+                        <div class="section-title label-large  text-black">
+                            <i class="fas fa-school ext-red-700"></i>1. Datos del Plantel
                         </div>
                         
                         <!-- NOMBRE DEL PLANTEL -->
@@ -172,8 +172,8 @@
                     <!-- BLOQUE 2: DETALLES DE LA VISITA -->
                     <div class="space-y-8">
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                            <div class="section-title text-black">
-                                <i class="fas fa-handshake text-slate-800"></i> Detalles de la Visita
+                            <div class="section-title label-large text-black">
+                                <i class="fas fa-handshake text-slate-800"></i> 2. Detalles de la Visita
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -207,7 +207,7 @@
                         <!-- LIBROS DE INTERÉS Y MUESTRAS -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i> Libros de Interés del Plantel por Serie</label>
+                                <label class="label-mini label-large mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i> 3. Libros de Interés </label>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                                     <div class="form-group">
@@ -246,7 +246,7 @@
                                         <table class="w-full divide-y divide-gray-200">
                                             <thead class="bg-slate-900">
                                                 <tr>
-                                                    <th class="table-header text-white">Material / Serie</th>
+                                                    <th class="table-header text-white">Libro</th>
                                                     <th class="table-header text-center w-36 text-white">Formato</th>
                                                     <th class="px-6 py-3 w-12 text-white"></th>
                                                 </tr>
@@ -280,10 +280,10 @@
 
                         <!-- MUESTRAS ENTREGADAS -->
                         <div class="mt-6 form-section bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
-                            <label class="label-mini mb-4 text-red-800 font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> Muestras de Promoción Entregadas </label>
+                            <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 4. MUESTRAS DE PROMOCIÓN ENTREGADAS</label>
                             
                             <div class="form-group relative mb-4">
-                                <label class="label-mini">Buscar Libro para Entrega Física</label>
+                                <label class="label-mini ">Buscar Libro para Entrega Física</label>
                                 <div class="relative">
                                     <input 
                                         v-model="deliveredInput.titulo" 
@@ -338,6 +338,8 @@
 
                         <!-- RESULTADO Y AGENDA -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 5. RESULTADO Y COMENTARIOS DE LA SESIÓN</label>
+                            
                             <div class="form-group mb-6">
                                 <label class="label-style">Resolución / Resultado</label>
                                 <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700" required :disabled="loading">
@@ -347,8 +349,15 @@
                                 </select>
                             </div>
 
-                            <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
-                                
+                            <div class="form-group">
+                                <label class="label-style">Detalles de la visita</label>
+                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de la entrevista (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                             <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 animate-fade-in shadow-inner">
+                                  <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 6. PROXIMO COMPROMISO</label>
+                           
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="text-[9px] text-orange-600 font-black uppercase mb-1 block">Fecha de la proxima visita</label>
@@ -362,11 +371,6 @@
                                         </select>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="label-style">Detalles de la visita</label>
-                                <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de la entrevista (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
                             </div>
                         </div>
                     </div>
@@ -699,6 +703,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 .btn-icon-delete:hover { color: #dc2626; }
 .btn-icon-delete-simple { background: none; border: none; color: #cbd5e1; font-size: 0.9rem; cursor: pointer; transition: color 0.2s; }
 .btn-icon-delete-simple:hover { color: #dc2626; }
+.label-large { display: block; font-size: 0.79rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 
 .btn-secondary {
     padding: 8px 15px;

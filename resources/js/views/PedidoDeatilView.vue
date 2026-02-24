@@ -156,7 +156,7 @@
                     <div class="info-card !p-0 shadow-premium border border-slate-200 rounded-[2.5rem] bg-white overflow-hidden border-slate-100">
                         
                          <div class="section-title !mb-6 p-8 pb-0">
-                            <i class="fas fa-box-open text-red-700"></i> 3. Selección de Materiales
+                            <i class="fas fa-box-open text-red-700"></i> 4. Material
                         </div>
                         <div class="table-container animate-fade-in p-8 pt-0">
                             <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
@@ -167,7 +167,7 @@
                                             <th class="table-header text-center w-32">Tipo</th>
                                             <th class="table-header text-center w-32">Formato</th>
                                             <th class="table-header text-center w-24">Cantidad</th>
-                                            <th class="table-header text-right w-32">P. Unitario</th>
+                                            <th class="table-header text-right w-32">Precio Unitario</th>
                                             <th class="table-header text-right w-32">Subtotal</th>
                                         </tr>
                                     </thead>
@@ -207,16 +207,27 @@
                                     </tbody>
 
                                     <tfoot class="bg-slate-50 border-t-2 border-slate-100">
+                                        <!-- Fila de Unidades Totales -->
+                                        <tr class="border-b border-slate-100/50">
+                                            <td colspan="3" class="px-8 py-4 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+                                                Volumen Total de Unidades:
+                                            </td>
+                                            <td class="px-4 py-4 text-center font-black text-xl text-slate-700">
+                                                {{ totalUnidades }}
+                                            </td>
+                                            <td colspan="2" class="bg-slate-50/30"></td>
+                                        </tr>
+                                        <!-- Fila de Monto Total -->
                                         <tr>
                                             <td colspan="5" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
-                                                Total Neto del Expediente:
+                                                Inversión Total del Expediente:
                                             </td>
                                             <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none tracking-tighter">
                                                 {{ formatCurrency(totalOrderCostNum) }}
                                             </td>
                                         </tr>
                                     </tfoot>
-                                </table>
+                                    </table>
                             </div>
                         </div>
                     </div>
@@ -229,7 +240,7 @@
                     
                     <div class="relative z-10">
                         <span class="inline-flex label-mini label-large items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                            <i class="fas fa-comment-dots"></i> Comentarios generales del pedido
+                            <i class="fas fa-comment-dots"></i> 5. Comentarios generales del pedido
                         </span>
                         <div class="bg-amber-50/50 p-6 rounded-[2rem] border border-dashed border-amber-200">
                             <p class="text-slate-800 text-base md:text-lg font-bold italic leading-relaxed whitespace-pre-wrap">
@@ -241,9 +252,10 @@
 
                 <!-- 6. EXPEDIENTE DIGITAL -->
                 <div class="info-card shadow-premium border-l-8 border-l-slate-800 bg-white p-6 rounded-3xl overflow-hidden border border-slate-100">
-                    <div class="section-title !border-b-0 mb-6">
-                        <i class="fas fa-folder-open text-slate-800 "></i> 5. Expediente Digital y Documentos
-                    </div>
+                    
+                    <div class="section-title !mb-0 border-none">
+                            <i class="fas fa-history text-red-700"></i> 6. Expediente Digital y Documentos
+                        </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div class="flex items-center justify-between p-5 rounded-2xl border-2 transition-all" 
                              :class="pedido.factura_path ? 'border-red-50 bg-red-50/20' : 'border-slate-50 bg-slate-50/30 opacity-60'">
@@ -267,11 +279,8 @@
                     <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
                         
                          <div class="section-title !mb-0 border-none">
-                            <i class="fas fa-history text-red-700"></i> 6. MODIFICACIONES
+                            <i class="fas fa-history text-red-700"></i> 7. MODIFICACIONES
                         </div>
-                        <span class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
-                            {{ pedido.logs.length }} AJUSTES REGISTRADOS
-                        </span>
                     </div>
 
                     <div class="table-container mt-4 animate-fade-in p-8 pt-0">
@@ -355,6 +364,11 @@ const fetchPedidoDetail = async () => {
         loading.value = false;
     }
 };
+const totalUnidades = computed(() => {
+    if (!pedido.value?.detalles) return 0;
+    return pedido.value.detalles.reduce((acc, item) => acc + (Number(item.cantidad) || 0), 0);
+});
+
 
 const totalOrderCostNum = computed(() => {
     if (!pedido.value || !pedido.value.detalles) return 0;
