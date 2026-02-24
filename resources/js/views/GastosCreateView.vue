@@ -23,11 +23,11 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                                 <div class="form-group">
-                                    <label class="label-style">Fecha de Inicio</label>
+                                    <label class="label-style">Fecha de Viaje</label>
                                     <input v-model="form.fecha" type="date" class="form-input w-full" required>
                                 </div>
                                 <div class="form-group">
-                                    <label class="label-style">Estado / Región</label>
+                                    <label class="label-style">Estado</label>
                                     <div class="relative">
                                         <select v-model="form.estado_nombre" class="form-input w-full appearance-none" required>
                                             <option value="" disabled>Seleccione el estado...</option>
@@ -101,10 +101,9 @@
                             <thead class="bg-slate-900 text-white hidden md:table-header-group">
                                 <tr>
                                     <th class="table-header-dark text-left">Concepto / Descripción</th>
-                                    <th class="table-header-dark text-center">Documento</th>
-                                    <th class="table-header-dark text-center">Fiscal</th>
+                                    <th class="table-header-dark text-center">Comprobante</th>
+                                    <th class="table-header-dark text-center">Facturado</th>
                                     <th class="table-header-dark text-right">Monto</th>
-                                    <th class="table-header-dark text-center"></th>
                                 </tr>
                             </thead>
 
@@ -145,12 +144,7 @@
                                         ${{ item.monto.toFixed(2) }}
                                     </td>
 
-                                    <td class="table-cell block md:table-cell text-center absolute top-5 right-5 md:static">
-                                        <button type="button" @click="removeSubExpense(index)" 
-                                            class="btn-delete-action">
-                                            <i class="fas fa-trash-alt"></i> <span class="hidden md:inline ml-1">Borrar</span>
-                                        </button>
-                                    </td>
+                                    
                                 </tr>
 
                                 <tr v-if="subExpenses.length === 0">
@@ -189,29 +183,11 @@
                     <!-- COLUMNA DERECHA: ACCIÓN -->
                     <div class="lg:col-span-1">
                         <div class="form-section shadow-premium sticky top-28 bg-slate-900 text-white border-none">
-                            <div class="section-title !text-white !border-white/20">
-                                <i class="fas fa-paper-plane"></i> Finalizar Registro
-                            </div>
                             
                             <div class="space-y-6 py-4">
-                                <div class="p-5 bg-white/5 rounded-2xl border border-white/10">
-                                    <p class="text-[10px] font-black text-white/40 uppercase mb-4 tracking-[0.2em]">Resumen de Envío</p>
-                                    <div class="flex justify-between items-center mb-3">
-                                        <span class="text-sm font-medium text-white/60">Conceptos:</span>
-                                        <span class="font-black">{{ subExpenses.length }}</span>
-                                    </div>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-sm font-medium text-white/60">Total a Postear:</span>
-                                        <span class="text-xl font-black text-red-400">${{ totalMonto.toFixed(2) }}</span>
-                                    </div>
-                                </div>
-
-                                <div class="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl text-center">
-                                    <p class="text-[10px] text-amber-500 font-black uppercase leading-tight">
-                                        <i class="fas fa-info-circle mr-1"></i> 
-                                        El proceso subirá los archivos  automáticamente.
-                                    </p>
-                                </div>
+                               <div class="section-title">
+                                <i class="fas fa-plus-circle"></i> 3. Guardar Paquete de Gastos
+                            </div>
 
                                 <div class="space-y-4">
                                     <button type="button" @click="handleFinalSubmit('BORRADOR')" class="w-full btn-secondary py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase transition-all bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
@@ -404,7 +380,7 @@ const handleSubmit = async (targetStatus) => {
 .shadow-premium { box-shadow: 0 10px 25px -5px rgba(0,0,0,0.04); }
 .form-section { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f1f5f9; }
 
-.section-title { font-weight: 900; color: #a93339; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
+.section-title { font-weight: 900; color: #000000; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
 
 .form-input { width: 100%; padding: 12px 16px; border-radius: 14px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; }
 .form-input:focus { border-color: #a93339; background: white; outline: none; }

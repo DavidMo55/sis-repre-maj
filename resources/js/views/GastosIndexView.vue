@@ -79,7 +79,6 @@
                             <th class="table-header text-white">Paquete de gastos</th>
                             <th class="table-header text-center w-36 text-white">Estado</th>
                             <th class="table-header text-right w-36 text-white">Monto</th>
-                            <th class="table-header text-center w-36 text-white">Archivos</th>
                             <th class="px-6 py-3 w-28"></th>
                         </tr>
                     </thead>
@@ -111,17 +110,10 @@
                                 {{ formatCurrency(gasto.monto) }}
                             </td>
 
-                            <td class="table-cell text-center">
-                                <span class="status-badge" 
-                                      :class="gasto.comprobantes?.length ? 'badge-completed' : 'badge-pending'">
-                                    <i :class="gasto.comprobantes?.length ? 'fas fa-file-invoice' : 'fas fa-clock'" class="mr-1.5 opacity-60"></i>
-                                    {{ gasto.comprobantes?.length ? 'LISTO' : 'FALTANTE' }}
-                                </span>
-                            </td>
 
                             <td class="table-cell text-right">
                                 <button @click="viewDetails(gasto)" class="text-red-link flex items-center justify-end gap-1 w-full">
-                                    <i class="fas fa-eye"></i> VER
+                                    <i class="fas fa-eye"></i> Detalles
                                 </button>
                             </td>
                         </tr>
@@ -160,7 +152,6 @@ const isEdited = (g) => {
     if (!g.created_at || !g.updated_at) return false;
     const created = new Date(g.created_at).getTime();
     const updated = new Date(g.updated_at).getTime();
-    // Margen de 2 seg para procesos de guardado asíncronos iniciales
     return updated > (created + 2000);
 };
 

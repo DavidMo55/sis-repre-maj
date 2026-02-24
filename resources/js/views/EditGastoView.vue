@@ -7,7 +7,8 @@
                     <h1 class="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tighter truncate">Modificar Paquete</h1>
                 </div>
                 <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-                    <button @click="router.push({ name: 'GastoDetail', params: { id: gastoId } })" class="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all hover:bg-slate-50 text-black uppercase border-2 border-slate-200">
+                   <button @click="router.push('/gastos/' + gastoId)" 
+                        class="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all hover:bg-slate-50 text-black uppercase border-2 border-slate-200 bg-white">
                         <i class="fas fa-eye"></i> Ver Detalle
                     </button>
                 </div>
@@ -45,11 +46,11 @@
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4">
                                 <div class="form-group">
-                                    <label class="label-style">Fecha de Inicio</label>
+                                    <label class="label-style">Fecha de Viaje</label>
                                     <input v-model="form.fecha" type="date" class="form-input w-full font-bold" :disabled="form.status === 'BORRADOR'" :class="{'bg-slate-50 opacity-60': form.status === 'BORRADOR'}" required>
                                 </div>
                                 <div class="form-group">
-                                    <label class="label-style">Estado / Región</label>
+                                    <label class="label-style">Estado</label>
                                     <div class="relative">
                                         <select v-model="form.estado_nombre" class="form-input w-full appearance-none font-bold" :disabled="form.status === 'BORRADOR'" :class="{'bg-slate-50 opacity-60': form.status === 'BORRADOR'}" required>
                                             <option value="" disabled>Seleccione el estado...</option>
@@ -105,7 +106,7 @@
                                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-50">
                                     <label class="flex items-center gap-3 cursor-pointer group">
                                         <input type="checkbox" v-model="tempSub.es_facturado" class="w-5 h-5 accent-red-600 cursor-pointer">
-                                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:text-red-600 transition-colors">¿Factura fiscal?</span>
+                                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:text-red-600 transition-colors">¿Cuenta con Factura fiscal?</span>
                                     </label>
 
                                     <br/><br/>
@@ -118,15 +119,14 @@
                             <!-- TABLA DE REVISIÓN Y EDICIÓN -->
                             <div class="mt-8 overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-200 bg-white shadow-premium">
                                 <div class="overflow-x-auto scrollbar-thin">
-                                    <div class="table-responsive min-w-[700px]">
+                                    <div class="w-full">
                                         <table class="w-full text-sm border-collapse">
                                             <thead class="bg-slate-900 text-white">
                                                 <tr class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                                    <th class="px-4 md:px-6 py-5 text-left">Concepto</th>
-                                                    <th class="px-4 md:px-6 py-5 text-center w-40">Documento</th>
-                                                    <th class="px-4 md:px-6 py-5 text-center w-32">Fiscal</th>
+                                                    <th class="px-4 md:px-6 py-5 text-left">Concepto/Descripción</th>
+                                                    <th class="px-4 md:px-6 py-5 text-center w-40">Comprobante</th>
                                                     <th class="px-4 md:px-6 py-5 text-right w-32">Monto</th>
-                                                    <th class="px-4 md:px-6 py-5 text-center w-20">Borrar</th>
+                                                    <th class="px-4 md:px-6 py-5 text-center w-32">Facturado</th>
                                                 </tr>
                                             </thead>
 
@@ -181,14 +181,6 @@
                                                        
                                                        </div>
                                                     </td>
-
-                                                    <td class="table-cell text-center">
-                                                        <select v-model="item.es_facturado" class="status-select-mini form-input !text-[9px]" :class="item.es_facturado ? 'text-green-700 font-black' : 'text-slate-400'">
-                                                            <option :value="true">FACTURADO</option>
-                                                            <option :value="false">S/F</option>
-                                                        </select>
-                                                    </td>
-
                                                     <td class="table-cell text-right font-black text-red-700">
                                                         <div class="flex items-center justify-end">
                                                             <span class="text-[10px] mr-1 opacity-50">$</span>
@@ -197,14 +189,10 @@
                                                     </td>
 
                                                     <td class="table-cell text-center">
-                                                        <button 
-                                                            type="button" 
-                                                            @click="confirmDeleteConcept(item.localId)" 
-                                                            class="btn-secondary mx-auto flex items-center gap-1 !py-2 !px-3" 
-                                                        >
-                                                            <i class="fas fa-trash-alt text-[10px]"></i>
-                                                            <span class="text-[9px]">QUITAR</span>
-                                                        </button>
+                                                        <select v-model="item.es_facturado" class="status-select-mini form-input !text-[9px]" :class="item.es_facturado ? 'text-green-700 font-black' : 'text-slate-400'">
+                                                            <option :value="true">FACTURADO</option>
+                                                            <option :value="false">S/F</option>
+                                                        </select>
                                                     </td>
                                                 </tr>
 
@@ -239,20 +227,11 @@
                             </div>
                             
                             <div class="space-y-6 mt-6">
-                                <div class="p-5 bg-white/5 rounded-3xl border border-white/10 space-y-3">
-                                    <div class="flex justify-between items-center text-[10px]">
-                                        <span class="font-black text-white/40 uppercase">Conceptos:</span>
-                                        <span class="font-black">{{ subExpenses.length }}</span>
-                                    </div>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-[10px] font-black text-white/40 uppercase">Total:</span>
-                                        <span class="text-xl font-black text-red-400">${{ totalMonto.toFixed(2) }}</span>
-                                    </div>
-                                </div>
+                                
 
                                 <!-- REGLA: El campo de motivo siempre aparece si el paquete ya está FINALIZADO -->
                                 <div v-if="form.status === 'FINALIZADO'" class="bg-white/5 p-5 rounded-3xl border border-white/5 animate-fade-in">
-                                    <label class="label-style !text-red-400 mb-2 uppercase text-[9px]">Motivo del Ajuste (Obligatorio)</label>
+                                    <label class="label-style !text-red-400 mb-2 uppercase text-[9px]">Motivo de Modifiación*</label>
                                     <textarea v-model="form.motivo_cambio" class="form-input !bg-slate-800 !border-slate-700 !text-white text-xs" rows="3" placeholder="EXPLIQUE POR QUÉ SE MODIFICA EL PAQUETE..."></textarea>
                                 </div>
 
@@ -397,6 +376,7 @@ onMounted(async () => {
     await fetchEstados();
     await fetchGastoData();
 });
+
 
 const fetchEstados = async () => {
     loadingEstados.value = true;
@@ -608,7 +588,7 @@ const handleSubmit = async (targetStatus) => {
 .form-section { background: white; border: 1px solid #f1f5f9; }
 .section-title { font-weight: 900; color: #a93339; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; }
 
-.form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.85rem; }
+.form-input { width: 100%; padding: 10px 10px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.85rem; }
 .form-input:focus { border-color: #a93339; background: white; outline: none; }
 .form-input:disabled { cursor: not-allowed; }
 
@@ -649,4 +629,6 @@ const handleSubmit = async (targetStatus) => {
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.75rem center; background-repeat: no-repeat; background-size: 1.25em 1.25em; padding-right: 2.25rem; appearance: none; }
 
 .bgcolor { background: #fef2f2; border: 1px solid #fee2e2; padding: 16px; }
+
+
 </style>

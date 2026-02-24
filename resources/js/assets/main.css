@@ -18,18 +18,8 @@ label.no-transform {
   text-transform: none;
 }
 
-/* --- LAYOUT GENERAL --- */
-.app-container {
-    display: flex;
-    min-height: 100vh;
-    background-color: white;
-}
 
-.content-wrapper {
-    flex-grow: 1; 
-    padding: 20px;
-    transition: margin-left 0.3s ease;
-}
+
 
 .sidenav {
     width: 260px; 
@@ -138,3 +128,4 @@ label.no-transform {
     flex-grow: 1; 
     padding: 20px; 
 }
+

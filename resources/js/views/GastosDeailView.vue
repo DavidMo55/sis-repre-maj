@@ -4,8 +4,8 @@
             <!-- Encabezado -->
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div class="header-info min-w-0">
-                    <h1 v-if="gasto" class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight leading-tight break-words">
-                        DETALLE DE PAQUETE #{{ gasto.id }}
+                    <h1 v-if="gasto" class="text-2xl md:text-3xl font-black text-slate-800 tracking-tight leading-tight break-words uppercase">
+                        DETALLES DEL PAQUETE DE GASTOS
                     </h1>
                     <h1 v-else-if="loading" class="text-2xl font-black text-slate-300 animate-pulse uppercase">Sincronizando...</h1>
                     <p class="text-xs md:text-sm text-slate-500 font-medium uppercase tracking-widest mt-1">Expediente de comprobación y bitácora de auditoría.</p>
@@ -44,31 +44,33 @@
             </div>
 
             <!-- Contenido del Gasto -->
-            <div v-else-if="gasto" class="space-y-8 animate-fade-in pb-20 ">
+            <div v-else-if="gasto" class="space-y-8 animate-fade-in pb-20">
+                
+                <!-- 1. INFORMACIÓN DE VIAJE -->
                 <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-6 rounded-[2.5rem] border border-slate-100">
-                     <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">1. información de viaje</h2>
+                    <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">1. información de viaje</h2>
                    
-                    <!-- 1. RESUMEN EJECUTIVO (TOP BAR) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="summary-stat shadow-premium border-t-4 border-t-slate-800">
-                        <span class="label-lb">Fecha del Viaje</span>
-                        <p class="value-text ">{{ formatDate(gasto.fecha) }}</p>
-                    </div>
-                    <div class="summary-stat shadow-premium border-t-4 border-t-red-700">
-                        <span class="label-lb">Estado / Región</span>
-                        <p class="value-text uppercase truncate" :title="gasto.estado_nombre">{{ gasto.estado_nombre || 'No definido' }}</p>
-                    </div>
-                    <div class="summary-stat shadow-premium border-t-4" 
-                         :class="gasto.status === 'FINALIZADO' ? 'border-t-green-600' : 'border-t-amber-500'">
-                        <span class="label-lb">Estatus Técnico</span>
-                        <p class="value-text flex items-center gap-2" 
-                           :class="gasto.status === 'FINALIZADO' ? 'text-green-700' : 'text-amber-600'">
-                            <i class="fas" :class="gasto.status === 'FINALIZADO' ? 'fa-check-circle' : 'fa-pen-nib'"></i>
-                            {{ gasto.status }}
-                        </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+                        <div class="summary-stat shadow-premium border-t-4 border-t-slate-800">
+                            <span class="label-lb">Fecha del Viaje</span>
+                            <p class="value-text">{{ formatDate(gasto.fecha) }}</p>
+                        </div>
+                        <div class="summary-stat shadow-premium border-t-4 border-t-red-700">
+                            <span class="label-lb">Estado</span>
+                            <p class="value-text uppercase truncate" :title="gasto.estado_nombre">{{ gasto.estado_nombre || 'No definido' }}</p>
+                        </div>
+                        <div class="summary-stat shadow-premium border-t-4" 
+                             :class="gasto.status === 'FINALIZADO' ? 'border-t-green-600' : 'border-t-amber-500'">
+                            <span class="label-lb">Estatus</span>
+                            <p class="value-text flex items-center gap-2" 
+                               :class="gasto.status === 'FINALIZADO' ? 'text-green-700' : 'text-amber-600'">
+                                <i class="fas" :class="gasto.status === 'FINALIZADO' ? 'fa-check-circle' : 'fa-pen-nib'"></i>
+                                {{ gasto.status }}
+                            </p>
+                        </div>
                     </div>
                 </div>
-                </div>
+
                 <!-- 2. TABLA: DESGLOSE DE CONCEPTOS -->
                 <div class="info-card shadow-premium !p-0 overflow-hidden border border-slate-200 rounded-[2.5rem] bg-white">
                     <div class="p-6 md:p-8 border-b border-slate-50 flex items-center gap-3">
@@ -80,70 +82,72 @@
 
                     <div class="overflow-x-auto p-4 md:p-8">
                         <div class="table-container mt-4 animate-fade-in">
-    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-        <table class="min-width-full divide-y divide-gray-200">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="table-header text-center w-16">#</th>
-                    <th class="table-header">CONCEPTO / DESCRIPCIÓN</th>
-                    <th class="table-header text-center">COMPROBANTE</th>
-                    <th class="table-header text-center w-32">FACTURADO</th>
-                    <th class="table-header text-right w-40">MONTO</th>
-                </tr>
-            </thead>
+                            <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                                <table class="min-width-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="table-header text-center w-16">#</th>
+                                            <th class="table-header">CONCEPTO / DESCRIPCIÓN</th>
+                                            <th class="table-header text-center">COMPROBANTE</th>
+                                            <th class="table-header text-right w-40">MONTO</th>
+                                            <th class="table-header text-center w-32">FACTURA</th>
+                                            
+                                        </tr>
+                                    </thead>
 
-            <tbody class="bg-white bk divide-y divide-gray-100">
-                <tr v-for="(sub, idx) in gasto.detalles" :key="idx" class="hover:bg-gray-50 transition-colors">
-                    <td class="table-cell text-center font-black text-slate-300">
-                        {{ idx + 1 }}
-                    </td>
-                    <td class="table-cell">
-                        <p class="font-black text-slate-800 text-sm uppercase leading-tight">
-                            {{ sub.concepto || 'Sin rubro' }}
-                        </p>
-                        <div v-if="sub.descripcion" class="mt-1.5 flex items-start gap-2">
-                            <i class="fas fa-caret-right text-red-600 mt-0.5"></i>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase leading-relaxed tracking-tighter">
-                                {{ sub.descripcion }}
-                            </p>
-                        </div>
-                    </td>
-                    <td class="table-cell text-center">
-                        <div v-if="gasto.comprobantes && gasto.comprobantes[idx]" class="inline-flex items-center">
-                            <a :href="getViewableUrl(gasto.comprobantes[idx].public_url)" 
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               class="btn-note !bg-white hover:!border-red-600 hover:!text-red-600 flex items-center gap-2">
-                                <i class="fas text-[10px]" :class="getFileIcon(gasto.comprobantes[idx].extension)"></i>
-                                EXPEDIENTE
-                            </a>
-                        </div>
-                        <span v-else class="text-[10px] font-black text-slate-300 uppercase italic">Faltante</span>
-                    </td>
-                    <td class="table-cell text-center">
-                        <span class="status-badge" :class="sub.es_facturado ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500 border border-slate-200'">
-                            {{ sub.es_facturado ? 'FACTURADO' : 'S/F' }}
-                        </span>
-                    </td>
-                    <td class="table-cell text-right font-black text-red-800 text-base tracking-tighter">
-                        {{ formatCurrency(sub.monto) }}
-                    </td>
-                </tr>
-            </tbody>
+                                    <tbody class="bg-white bk divide-y divide-gray-100">
+                                        <tr v-for="(sub, idx) in gasto.detalles" :key="idx" class="hover:bg-gray-50 transition-colors">
+                                            <td class="table-cell text-center font-black text-slate-300">
+                                                {{ idx + 1 }}
+                                            </td>
+                                            <td class="table-cell">
+                                                <p class="font-black text-slate-800 text-sm uppercase leading-tight">
+                                                    {{ sub.concepto || 'Sin rubro' }}
+                                                </p>
+                                                <div v-if="sub.descripcion" class="mt-1.5 flex items-start gap-2">
+                                                    <i class="fas fa-caret-right text-red-600 mt-0.5"></i>
+                                                    <p class="text-[10px] text-slate-400 font-bold uppercase leading-relaxed tracking-tighter">
+                                                        {{ sub.descripcion }}
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="table-cell text-center">
+                                                <div v-if="gasto.comprobantes && gasto.comprobantes[idx]" class="inline-flex items-center">
+                                                    <a :href="getViewableUrl(gasto.comprobantes[idx].public_url)" 
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       class="btn-note !bg-white hover:!border-red-600 hover:!text-red-600 flex items-center gap-2">
+                                                        <i class="fas text-[10px]" :class="getFileIcon(gasto.comprobantes[idx].extension)"></i>
+                                                        EXPEDIENTE
+                                                    </a>
+                                                </div>
+                                                <span v-else class="text-[10px] font-black text-slate-300 uppercase italic">Faltante</span>
+                                            </td>
+                                            <td class="table-cell text-right font-black text-red-800 text-base tracking-tighter">
+                                                {{ formatCurrency(sub.monto) }}
+                                            </td>
+                                            <td class="table-cell text-center">
+                                                <span class="status-badge" :class="sub.es_facturado ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500 border border-slate-200'">
+                                                    {{ sub.es_facturado ? 'FACTURA' : 'S/F' }}
+                                                </span>
+                                            </td>
+                                            
+                                        </tr>
+                                    </tbody>
 
-            <tfoot class="bg-slate-50 border-t-2 border-slate-100">
-                <tr>
-                    <td colspan="4" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
-                        Suma Total del Paquete:
-                    </td>
-                    <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none tracking-tighter">
-                        {{ formatCurrency(gasto.monto) }}
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-</div>
+                                    <tfoot class="bg-slate-50 border-t-2 border-slate-100">
+                                        <tr>
+                                            <td colspan="4" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+                                                Suma Total del Paquete:
+                                            </td>
+                                            <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none tracking-tighter">
+                                                {{ formatCurrency(gasto.monto) }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -162,79 +166,72 @@
                     </div>
                 </div>
 
-                <!-- 4. HISTORIAL DE AJUSTES (AUDITORÍA TÉCNICA) -->
-                <div class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden mt-16">
+                <!-- 4. HISTORIAL DE AJUSTES (REACTIVO) -->
+                <div v-if="gasto.logs && gasto.logs.length > 0" class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden mt-16 animate-fade-in">
                     <div class="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg">
                                 <i class="fas fa-history"></i>
                             </div>
-                            <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">3. Bitácora de Ajustes Técnicos</h2>
+                            <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">Bitácora de Ajustes Técnicos</h2>
                         </div>
+                        <span class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
+                            {{ gasto.logs.length }} MODIFICACIONES
+                        </span>
                     </div>
 
-                    <div class="table-container mt-4 animate-fade-in">
-    <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-        <table class="min-width-full divide-y divide-gray-200">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="table-header text-center w-24">ID</th>
-                    <th class="table-header">Motivo de la Modificación</th>
-                    <th class="table-header w-56">Responsable</th>
-                    <th class="table-header text-right w-48">Sincronización</th>
-                </tr>
-            </thead>
-            
-            <tbody class="bg-white bk divide-y divide-gray-100">
-                <tr v-for="(log, index) in gasto.logs" :key="log.id" class="hover:bg-gray-50 transition-colors">
-                    <td class="table-cell text-center">
-                        <div class="flex justify-center">
-                            <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
-                                  :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
-                               {{ gasto.logs.length - index }}
-                            </span>
+                    <div class="table-container mt-4 p-8 pt-0">
+                        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+                            <table class="min-width-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="table-header text-center w-24">ID</th>
+                                        <th class="table-header">Motivo de la Modificación</th>
+                                        <th class="table-header w-56">Responsable</th>
+                                        <th class="table-header text-right w-48">Sincronización</th>
+                                    </tr>
+                                </thead>
+                                
+                                <tbody class="bg-white bk divide-y divide-gray-100">
+                                    <tr v-for="(log, index) in gasto.logs" :key="log.id" class="hover:bg-gray-50 transition-colors">
+                                        <td class="table-cell text-center">
+                                            <div class="flex justify-center">
+                                                <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
+                                                      :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
+                                                   {{ gasto.logs.length - index }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="table-cell">
+                                            <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
+                                                "{{ log.motivo_cambio || 'SIN JUSTIFICACIÓN TÉCNICA REGISTRADA' }}"
+                                            </p>
+                                        </td>
+                                        <td class="table-cell">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-6 h-6 bg-slate-800 text-white rounded-lg flex items-center justify-center text-[8px] font-black uppercase">
+                                                    {{ log.user?.name?.charAt(0) || 'S' }}
+                                                </div>
+                                                <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
+                                                    {{ log.user?.name || 'Sistema' }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="table-cell text-right">
+                                            <div class="flex flex-col items-end">
+                                                <span class="text-[11px] font-black text-slate-800 uppercase leading-none tracking-tighter">
+                                                    {{ formatDateOnly(log.created_at) }}
+                                                </span>
+                                                <span class="text-[9px] font-bold text-slate-400 mt-1.5 uppercase tracking-widest italic">
+                                                    {{ formatTimeOnly(log.created_at) }}
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                    </td>
-                    <td class="table-cell">
-                        <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
-                            "{{ log.motivo_cambio || 'SIN JUSTIFICACIÓN TÉCNICA REGISTRADA' }}"
-                        </p>
-                    </td>
-                    <td class="table-cell">
-                        <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 bg-slate-800 text-white rounded-lg flex items-center justify-center text-[8px] font-black uppercase">
-                                {{ log.user?.name?.charAt(0) || 'S' }}
-                            </div>
-                            <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
-                                {{ log.user?.name || 'Sistema' }}
-                            </span>
-                        </div>
-                    </td>
-                    <td class="table-cell text-right">
-                        <div class="flex flex-col items-end">
-                            <span class="text-[11px] font-black text-slate-800 uppercase leading-none tracking-tighter">
-                                {{ formatDateOnly(log.created_at) }}
-                            </span>
-                            <span class="text-[9px] font-bold text-slate-400 mt-1.5 uppercase tracking-widest italic">
-                                {{ formatTimeOnly(log.created_at) }}
-                            </span>
-                        </div>
-                    </td>
-                </tr>
-                
-                <tr v-if="!gasto.logs || gasto.logs.length === 0">
-                    <td colspan="4" class="px-6 py-16 text-center">
-                        <div class="flex flex-col items-center opacity-40">
-                            <i class="fas fa-shield-alt text-4xl text-slate-300 mb-4"></i>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Expediente con integridad original</p>
-                            <p class="text-[9px] text-slate-400 mt-1 italic uppercase tracking-wider">No se han registrado ajustes posteriores al registro inicial.</p>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+                    </div>
                 </div>
 
             </div>
@@ -269,7 +266,6 @@ const fetchGastoDetail = async () => {
     loading.value = true;
     error.value = null;
     try {
-        // CORRECCIÓN: Solicitamos explícitamente los logs con sus usuarios para la tabla de auditoría
         const response = await axios.get(`/gastos/${gastoId}`);
         gasto.value = response.data;
     } catch (err) {
@@ -334,48 +330,27 @@ onMounted(fetchGastoDetail);
     line-height: 1.2;
 }
 
-.label-xs {
-    font-size: 0.65rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    font-weight: 900;
-    display: block;
-    letter-spacing: 0.15em;
-}
 .label-large { display: block; font-size: 1rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 .label-lb { display: block; font-size: 0.70rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
-
 
 .table-responsive { width: 100%; overflow-x: auto; background: white; }
 .table-cell { padding: 20px 24px; vertical-align: middle; }
 
-/* Badges Fiscales */
-.badge-tax-success { background-color: #dcfce7; color: #15803d; padding: 6px 14px; border-radius: 12px; font-size: 9px; font-weight: 900; border: 1px solid #bbf7d0; }
-.badge-tax-none { background-color: #f1f5f9; color: #94a3b8; padding: 6px 14px; border-radius: 12px; font-size: 9px; font-weight: 900; }
+.table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; text-align: left; letter-spacing: 0.025em; }
 
-/* Botón Archivo */
-.btn-file-view {
-    display: inline-flex;
-    align-items: center;
-    background-color: white;
-    border: 2px solid #f1f5f9;
-    padding: 10px 18px;
-    border-radius: 14px;
-    font-size: 9px;
-    font-weight: 900;
-    color: #475569;
-    transition: all 0.2s;
-    text-decoration: none;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-.btn-file-view:hover { border-color: #dc2626; color: #b91c1c; background-color: #fef2f2; }
+.status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; }
+
+.btn-note { padding: 8px 15px; border-radius: 12px; color: #64748b; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; cursor: pointer; border: 1px solid #cbd5e1; transition: 0.2s; text-decoration: none; }
 
 .btn-primary { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; border-radius: 16px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
 .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
 
+.btn-secondary { padding: 10px 20px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.value-text { color: #be5e5e; line-height: 1.4; }
-.section-title { font-weight: 900; color: #1e293b; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; }
+
+.value-text { color: #be5e5e; line-height: 1.4; font-size: 1rem; }
+
+.table-shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02); }
 </style>

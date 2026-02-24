@@ -1,331 +1,522 @@
 <template>
-  <div class="profile-page-wrapper min-h-screen bg-slate-50 animate-fade-in pb-20">
-    <!-- Header Especial de Perfil -->
-    <header class="profile-header bg-white shadow-sm border-b border-slate-100 sticky top-0 z-50">
-      <div class="header-container max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
-        <div>
-          <h1 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-            <i class="fas fa-id-card text-red-700"></i> Mi Perfil Profesional
-          </h1>
-        </div>
-       
-      </div>
-    </header>
+  <div class="profile-root">
 
-    <!-- Loader Inicial -->
-    <div v-if="loadingData" class="flex flex-col items-center justify-center py-40 animate-pulse">
-        <i class="fas fa-circle-notch fa-spin text-5xl text-red-700 mb-4"></i>
-        <p class="text-slate-400 font-bold uppercase tracking-widest text-xs italic">Sincronizando perfil...</p>
+    <!-- ── Fondo decorativo ── -->
+    <div class="bg-orbs" aria-hidden="true">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
     </div>
 
-    <div v-else class="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-8 py-10">
-      <!-- Sidebar de Navegación Interna -->
-      <aside class="w-full lg:w-80 shrink-0">
-        <div class="inner-nav-card shadow-premium sticky top-28">
-          
-          <nav class="p-4 space-y-2">
-            <button @click="activeSection = 'personal'" :class="['inner-nav-item', { 'active': activeSection === 'personal' }]">
-              <i class="fas fa-user-edit"></i><span>Datos Personales</span>
-            </button>
-            <button @click="activeSection = 'tools'" :class="['inner-nav-item', { 'active': activeSection === 'tools' }]">
-              <i class="fas fa-tools"></i><span>Herramientas de Trabajo</span>
-            </button>
-            <button @click="activeSection = 'security'" :class="['inner-nav-item', { 'active': activeSection === 'security' }]">
-              <i class="fas fa-shield-alt"></i><span>Seguridad</span>
-            </button>
-            <button v-if="user.position !== 'Delegado Autorizado'" @click="activeSection = 'delegates'" :class="['inner-nav-item', { 'active': activeSection === 'delegates' }]">
-              <i class="fas fa-users-cog"></i><span>Gestionar Delegados</span>
-            </button>
-          </nav>
+    <!-- ── LOADER ── -->
+    <Transition name="fade">
+      <div v-if="loadingData" class="loader-screen">
+        <div class="loader-ring"></div>
+        <p class="loader-text">Sincronizando perfil...</p>
+      </div>
+    </Transition>
 
-          <div class="p-6 bg-slate-50 rounded-b-3xl text-center border-t border-slate-100">
+    <div v-if="!loadingData" class="profile-layout">
+
+      <aside class="sidebar">
+
+        <!-- Separador con etiqueta -->
+        <div class="nav-label">Navegación</div>
+
+        <!-- Items de navegación -->
+        <nav class="sidebar-nav">
+          <button
+            v-for="item in navItems"
+            :key="item.key"
+            @click="activeSection = item.key"
+            :class="['nav-item', { 'nav-item--active': activeSection === item.key }]"
+          >
+            <span class="nav-icon"><i :class="item.icon"></i></span>
+            <span class="nav-label-text">{{ item.label }}</span>
+            <span v-if="activeSection === item.key" class="nav-pip"></span>
+          </button>
+        </nav>
+
+        <!-- Footer del sidebar -->
+        <div class="sidebar-footer">
+          <div class="sidebar-footer-inner">
+            <i class="fas fa-shield-check text-emerald-400"></i>
+            <span>Sesión verificada</span>
           </div>
         </div>
+
       </aside>
 
-      <!-- ÁREA PRINCIPAL -->
-      <main class="flex-1 min-w-0">
-        
-        <!-- SECCIÓN: DATOS PERSONALES -->
-        <section v-if="activeSection === 'personal'" class="form-card shadow-premium animate-slide-up">
-          <div class="section-title-box mb-8">
-            <h2 class="form-title">Identidad y Ubicación</h2>
-            <p class="text-xs text-slate-400 mt-1 uppercase font-black tracking-widest">Información oficial de contacto</p>
+      <main class="content-area">
+
+        <!-- Encabezado de sección -->
+        <header class="content-header">
+          <div class="content-header-left">
+            <div class="section-eyebrow">Mi Perfil Profesional</div>
+            <h1 class="section-title">{{ currentSection.label }}</h1>
           </div>
-
-          <form @submit.prevent="confirmUpdateProfile">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              <div class="form-group col-span-full md:col-span-1">
-                <label>Nombre Completo (Real) *</label>
-                <input v-model="user.full_name" type="text" class="form-input font-bold" placeholder="Nombre completo" required>
-                <p class="text-[10px] text-red-500 mt-1 italic font-bold">Asegúrese de usar su nombre oficial para trámites.</p>
-              </div>
-              
-              <div class="form-group">
-                <label>Usuario de Acceso (Login)</label>
-                <input v-model="user.name" type="text" class="form-input bg-slate-50 cursor-not-allowed font-mono text-slate-400" readonly>
-              </div>
-
-              <div class="form-group">
-                <label>RFC Personal</label>
-                <input v-model="user.rfc" type="text" class="form-input uppercase font-mono" placeholder="ABCD000000XXX">
-              </div>
-
-              <div class="form-group opacity-80">
-                <label>Puesto / Cargo Administrativo</label>
-                <input v-model="user.position" type="text" class="form-input bg-slate-100 font-bold" readonly>
-              </div>
-
-              <div class="form-group">
-                <label>Correo Electrónico Laboral *</label>
-                <input v-model="user.email" type="email" class="form-input" required>
-              </div>
-              
-              <div class="form-group"><label>Teléfono Trabajo</label><input v-model="user.phone" type="tel" class="form-input"></div>
-              <div class="form-group"><label>Teléfono Personal</label><input v-model="user.personal_phone" type="tel" class="form-input"></div>
-
-              <hr class="col-span-full border-slate-100 my-4">
-
-              <div class="form-group">
-                <label>Estado / Región *</label>
-                <select v-model="user.state_id" class="form-input" required>
-                  <option value="">Seleccione...</option>
-                  <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
-                </select>
-              </div>
-
-              <div class="form-group"><label>Ciudad</label><input v-model="user.city" type="text" class="form-input"></div>
-              <div class="form-group col-span-full"><label>Dirección Completa de Domicilio</label><input v-model="user.address" type="text" class="form-input" placeholder="Calle, número, colonia..."></div>
+          <div class="header-actions">
+            <div class="header-date">
+              <i class="far fa-calendar"></i>
+              {{ today }}
             </div>
-
-            <div class="mt-10 flex justify-end">
-              <button type="submit" class="btn-primary-action" :disabled="loading">
-                <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save mr-2'"></i> 
-                Actualizar Información
-              </button>
-            </div>
-          </form>
-        </section>
-
-        <!-- SECCIÓN: HERRAMIENTAS DE TRABAJO -->
-        <section v-if="activeSection === 'tools'" class="form-card shadow-premium animate-slide-up">
-          <div class="section-title-box mb-8">
-            <h2 class="form-title text-blue-900 border-blue-700">Herramientas del Trabajo</h2>
-            <p class="text-xs text-slate-400 mt-1 uppercase font-black tracking-widest">Recursos y activos asignados</p>
           </div>
+        </header>
 
-          <form @submit.prevent="confirmUpdateTools">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              <div class="form-group"><label>Automóvil (Placas)</label><input v-model="user.car_plates" type="text" class="form-input uppercase font-mono"></div>
-              <div class="form-group"><label>Tag de Telepeaje</label><input v-model="user.tag_number" type="text" class="form-input font-mono"></div>
-              <div class="form-group col-span-full"><label>Póliza de Seguro</label><input v-model="user.insurance_policy" type="text" class="form-input"></div>
-              <hr class="col-span-full border-slate-100 my-4">
-              <div class="form-group"><label>Equipo Celular</label><input v-model="user.phone_model" type="text" class="form-input"></div>
-              <div class="form-group"><label>Tablet</label><input v-model="user.tablet_model" type="text" class="form-input"></div>
-              <div class="form-group"><label>Equipo Cómputo</label><input v-model="user.computer_model" type="text" class="form-input"></div>
-              <div class="form-group"><label>Tarjeta Empresarial</label><input v-model="user.business_card" type="text" class="form-input font-mono"></div>
-            </div>
+        <!-- ─────────── SECCIÓN: DATOS PERSONALES ─────────── -->
+        <Transition name="section-slide" mode="out-in">
+          <section v-if="activeSection === 'personal'" key="personal" class="section-card">
 
-            <div class="mt-10 flex justify-end">
-              <button type="submit" class="btn-primary-action bg-blue-800 shadow-blue-100" :disabled="loading">
-                <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save mr-2'"></i> 
-                Guardar Inventario
-              </button>
-            </div>
-          </form>
-        </section>
+            <div class="card-strip card-strip--crimson"></div>
 
-        <!-- SECCIÓN: SEGURIDAD -->
-        <section v-if="activeSection === 'security'" class="form-card shadow-premium animate-slide-up max-w-2xl">
-          <div class="section-title-box mb-8">
-            <h2 class="form-title text-red-800 border-red-700">Seguridad</h2>
-            <p class="text-xs text-slate-500 mt-1 uppercase font-black tracking-widest">Protección de acceso</p>
-          </div>
-          <form @submit.prevent="confirmUpdatePassword" class="space-y-6">
-            <div class="form-group"><label>Contraseña Actual</label><input v-model="security.current_password" type="password" class="form-input" required></div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="form-group"><label>Nueva Contraseña</label><input v-model="security.password" type="password" class="form-input" required></div>
-              <div class="form-group"><label>Confirmar Nueva Contraseña</label><input v-model="security.password_confirmation" type="password" class="form-input" required></div>
-            </div>
-            
-            <div class="mt-6">
-              <button type="submit" class="btn-primary-action w-full" :disabled="loading">
-                <i class="fas fa-key mr-2"></i> Cambiar Credenciales
-              </button>
-            </div>
-          </form>
-        </section>
+            <div class="card-body">
+              <div class="card-intro">
+                <div class="card-intro-icon"><i class="fas fa-user-edit"></i></div>
+                <div>
+                  <h2 class="card-heading">Identidad y Ubicación</h2>
+                  <p class="card-subheading">Información oficial para trámites y contacto</p>
+                </div>
+              </div>
 
-        <!-- SECCIÓN: GESTIONAR DELEGADOS -->
-        <section v-if="activeSection === 'delegates'" class="form-card shadow-premium animate-slide-up">
-    <div class="flex justify-between items-center mb-8">
-        <h2 class="form-title text-purple-800 border-purple-700">Gestionar Delegados</h2>
-        <button v-if="!showAddDelegate" @click="showAddDelegate = true" class="btn-add-circle">
-            <i class="fas fa-plus"></i>
-        </button>
-    </div>
+              <form @submit.prevent="confirmUpdateProfile">
+                <div class="fields-grid">
 
-    <div v-if="showAddDelegate" class="bg-red-50 p-6 rounded-3xl border-2 border-red-100 mb-8 animate-fade-in shadow-inner">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div>
-                <label class="text-[10px] font-black uppercase mb-2 block text-red-800">Usuario Delegado</label>
-                <input v-model="newDelegate.username" type="text" class="form-input text-sm" placeholder="Ej. juan.perez">
+                  <div class="field-group field-full">
+                    <label class="field-label">Nombre Completo (Real) <span class="req">*</span></label>
+                    <div class="input-wrap">
+                      <i class="fas fa-user input-icon"></i>
+                      <input v-model="user.full_name" type="text" class="field-input" placeholder="Nombre oficial completo" required>
+                    </div>
+                    <p class="field-hint"><i class="fas fa-info-circle"></i> Use su nombre exacto como aparece en documentos oficiales.</p>
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label">Usuario de Acceso</label>
+                    <div class="input-wrap">
+                      <i class="fas fa-at input-icon"></i>
+                      <input v-model="user.name" type="text" class="field-input field-readonly" readonly>
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label">RFC Personal</label>
+                    <div class="input-wrap">
+                      <i class="fas fa-id-card input-icon"></i>
+                      <input v-model="user.rfc" type="text" class="field-input field-mono" placeholder="ABCD000000XXX">
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label">Puesto / Cargo</label>
+                    <div class="input-wrap">
+                      <i class="fas fa-briefcase input-icon"></i>
+                      <input v-model="user.position" type="text" class="field-input field-readonly" readonly>
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label">Correo Electrónico <span class="req">*</span></label>
+                    <div class="input-wrap">
+                      <i class="fas fa-envelope input-icon"></i>
+                      <input v-model="user.email" type="email" class="field-input" required>
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label">Teléfono Trabajo</label>
+                    <div class="input-wrap">
+                      <i class="fas fa-phone input-icon"></i>
+                      <input v-model="user.phone" type="tel" class="field-input">
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label">Teléfono Personal</label>
+                    <div class="input-wrap">
+                      <i class="fas fa-mobile-alt input-icon"></i>
+                      <input v-model="user.personal_phone" type="tel" class="field-input">
+                    </div>
+                  </div>
+
+                  <div class="field-divider"></div>
+
+                  <div class="field-group">
+                    <label class="field-label">Estado / Región <span class="req">*</span></label>
+                    <div class="input-wrap">
+                      <i class="fas fa-map-marker-alt input-icon"></i>
+                      <select v-model="user.state_id" class="field-input" required>
+                        <option value="">Seleccione...</option>
+                        <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="field-group">
+                    <label class="field-label">Ciudad</label>
+                    <div class="input-wrap">
+                      <i class="fas fa-city input-icon"></i>
+                      <input v-model="user.city" type="text" class="field-input">
+                    </div>
+                  </div>
+
+                  <div class="field-group field-full">
+                    <label class="field-label">Dirección Completa</label>
+                    <div class="input-wrap">
+                      <i class="fas fa-home input-icon"></i>
+                      <input v-model="user.address" type="text" class="field-input" placeholder="Calle, número, colonia...">
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="form-footer">
+                  <button type="submit" class="btn-primary" :disabled="loading">
+                    <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save'"></i>
+                    {{ loading ? 'Guardando...' : 'Actualizar Información' }}
+                  </button>
+                </div>
+              </form>
             </div>
-            <div>
-                <label class="text-[10px] font-black uppercase mb-2 block text-red-800">Contraseña Temporal</label>
-                <input v-model="newDelegate.password" type="password" class="form-input text-sm" placeholder="••••••••">
+          </section>
+        </Transition>
+
+        <!-- ─────────── SECCIÓN: HERRAMIENTAS ─────────── -->
+        <Transition name="section-slide" mode="out-in">
+          <section v-if="activeSection === 'tools'" key="tools" class="section-card">
+            <div class="card-strip card-strip--blue"></div>
+            <div class="card-body">
+              <div class="card-intro">
+                <div class="card-intro-icon card-intro-icon--blue"><i class="fas fa-tools"></i></div>
+                <div>
+                  <h2 class="card-heading">Herramientas del Trabajo</h2>
+                  <p class="card-subheading">Recursos y activos asignados a tu cuenta</p>
+                </div>
+              </div>
+
+              <form @submit.prevent="confirmUpdateTools">
+
+                <!-- Bloque: Vehículo -->
+                <div class="tools-block">
+                  <div class="tools-block-label"><i class="fas fa-car"></i> Vehículo y Movilidad</div>
+                  <div class="fields-grid">
+                    <div class="field-group">
+                      <label class="field-label">Placas del Automóvil</label>
+                      <div class="input-wrap">
+                        <i class="fas fa-car input-icon"></i>
+                        <input v-model="user.car_plates" type="text" class="field-input field-mono field-upper">
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Tag de Telepeaje</label>
+                      <div class="input-wrap">
+                        <i class="fas fa-tag input-icon"></i>
+                        <input v-model="user.tag_number" type="text" class="field-input field-mono">
+                      </div>
+                    </div>
+                    <div class="field-group field-full">
+                      <label class="field-label">Póliza de Seguro</label>
+                      <div class="input-wrap">
+                        <i class="fas fa-file-contract input-icon"></i>
+                        <input v-model="user.insurance_policy" type="text" class="field-input">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bloque: Equipo -->
+                <div class="tools-block">
+                  <div class="tools-block-label"><i class="fas fa-laptop"></i> Equipo Tecnológico</div>
+                  <div class="fields-grid">
+                    <div class="field-group">
+                      <label class="field-label">Equipo Celular</label>
+                      <div class="input-wrap">
+                        <i class="fas fa-mobile-alt input-icon"></i>
+                        <input v-model="user.phone_model" type="text" class="field-input">
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Tablet</label>
+                      <div class="input-wrap">
+                        <i class="fas fa-tablet-alt input-icon"></i>
+                        <input v-model="user.tablet_model" type="text" class="field-input">
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Equipo de Cómputo</label>
+                      <div class="input-wrap">
+                        <i class="fas fa-laptop input-icon"></i>
+                        <input v-model="user.computer_model" type="text" class="field-input">
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Tarjeta Empresarial</label>
+                      <div class="input-wrap">
+                        <i class="fas fa-credit-card input-icon"></i>
+                        <input v-model="user.business_card" type="text" class="field-input field-mono">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-footer">
+                  <button type="submit" class="btn-primary btn-primary--blue" :disabled="loading">
+                    <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save'"></i>
+                    {{ loading ? 'Guardando...' : 'Guardar Inventario' }}
+                  </button>
+                </div>
+              </form>
             </div>
-            
-            <div class="flex gap-2">
-                <button @click="addDelegate" class="btn-save-profile py-3 px-6 flex-1 text-sm">Crear Cuenta</button>
-                <br><br>
-                <button @click="showAddDelegate = false" class="btn-secondary bg-white text-slate-400 p-2 rounded-xl border-2 hover:bg-slate-50 transition-colors">
-                  
-                    <i class="fas fa-times"></i>Quitar
+          </section>
+        </Transition>
+
+        <!-- ─────────── SECCIÓN: SEGURIDAD ─────────── -->
+        <Transition name="section-slide" mode="out-in">
+          <section v-if="activeSection === 'security'" key="security" class="section-card">
+            <div class="card-strip card-strip--amber"></div>
+            <div class="card-body">
+              <div class="card-intro">
+                <div class="card-intro-icon card-intro-icon--amber"><i class="fas fa-shield-alt"></i></div>
+                <div>
+                  <h2 class="card-heading">Seguridad de Acceso</h2>
+                  <p class="card-subheading">Mantén tus credenciales seguras y actualizadas</p>
+                </div>
+              </div>
+
+              <!-- Indicador de seguridad -->
+              <div class="security-meter">
+                <div class="security-meter-label">Nivel de seguridad</div>
+                <div class="security-bars">
+                  <div class="security-bar security-bar--filled"></div>
+                  <div class="security-bar security-bar--filled"></div>
+                  <div class="security-bar security-bar--filled"></div>
+                  <div class="security-bar"></div>
+                  <div class="security-bar"></div>
+                </div>
+                <span class="security-level-text">Medio</span>
+              </div>
+
+              <form @submit.prevent="confirmUpdatePassword" class="security-form">
+                <div class="field-group">
+                  <label class="field-label">Contraseña Actual</label>
+                  <div class="input-wrap">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input v-model="security.current_password" :type="showPwd[0] ? 'text' : 'password'" class="field-input" required>
+                    <button type="button" class="pwd-toggle" @click="showPwd[0] = !showPwd[0]">
+                      <i class="fas" :class="showPwd[0] ? 'fa-eye-slash' : 'fa-eye'"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="fields-grid mt-6">
+                  <div class="field-group">
+                    <label class="field-label">Nueva Contraseña</label>
+                    <div class="input-wrap">
+                      <i class="fas fa-key input-icon"></i>
+                      <input v-model="security.password" :type="showPwd[1] ? 'text' : 'password'" class="field-input" required>
+                      <button type="button" class="pwd-toggle" @click="showPwd[1] = !showPwd[1]">
+                        <i class="fas" :class="showPwd[1] ? 'fa-eye-slash' : 'fa-eye'"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">Confirmar Nueva Contraseña</label>
+                    <div class="input-wrap">
+                      <i class="fas fa-key input-icon"></i>
+                      <input v-model="security.password_confirmation" :type="showPwd[2] ? 'text' : 'password'" class="field-input" required>
+                      <button type="button" class="pwd-toggle" @click="showPwd[2] = !showPwd[2]">
+                        <i class="fas" :class="showPwd[2] ? 'fa-eye-slash' : 'fa-eye'"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Requisitos de contraseña -->
+                <div class="pwd-requirements">
+                  <p class="pwd-req" :class="{ 'pwd-req--met': security.password.length >= 8 }">
+                    <i class="fas fa-check-circle"></i> Mínimo 8 caracteres
+                  </p>
+                  <p class="pwd-req" :class="{ 'pwd-req--met': /[A-Z]/.test(security.password) }">
+                    <i class="fas fa-check-circle"></i> Al menos una mayúscula
+                  </p>
+                  <p class="pwd-req" :class="{ 'pwd-req--met': /\d/.test(security.password) }">
+                    <i class="fas fa-check-circle"></i> Al menos un número
+                  </p>
+                </div>
+
+                <div class="form-footer">
+                  <button type="submit" class="btn-primary btn-primary--amber" :disabled="loading">
+                    <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-key'"></i>
+                    {{ loading ? 'Cambiando...' : 'Cambiar Credenciales' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </section>
+        </Transition>
+
+        <!-- ─────────── SECCIÓN: DELEGADOS ─────────── -->
+        <Transition name="section-slide" mode="out-in">
+          <section v-if="activeSection === 'delegates'" key="delegates" class="section-card">
+            <div class="card-strip card-strip--purple"></div>
+            <div class="card-body">
+
+              <div class="delegates-header">
+                <div class="card-intro">
+                  <div class="card-intro-icon card-intro-icon--purple"><i class="fas fa-users-cog"></i></div>
+                  <div>
+                    <h2 class="card-heading">Gestionar Delegados</h2>
+                    <p class="card-subheading">Cuentas autorizadas bajo tu supervisión</p>
+                  </div>
+                </div>
+                <button v-if="!showAddDelegate" @click="showAddDelegate = true" class="btn-add">
+                  <i class="fas fa-plus"></i> Nuevo Delegado
                 </button>
-            </div>
-        </div>
-    </div>
-
-    <div v-if="delegates.length === 0" class="empty-delegates text-center py-20 border-2 border-dashed border-slate-200 rounded-[2.5rem] bg-slate-50/50">
-        <i class="fas fa-user-shield text-4xl text-slate-200 mb-4"></i>
-        <p class="text-slate-400 font-bold italic">No hay cuentas de delegados autorizadas.</p>
-    </div>
-    
-    <div v-else class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm">
-        <table class="min-width-full divide-y divide-gray-200">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="table-header w-16 text-center">Inic.</th>
-                    <th class="table-header">Nombre de Usuario</th>
-                    <th class="table-header">Rol / Permisos</th>
-                    <th class="table-header text-center">Estado</th>
-                    <th class="px-6 py-3"></th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-100">
-                <tr v-for="delegate in delegates" :key="delegate.id" class="hover:bg-gray-50 transition-colors">
-                    <td class="table-cell">
-                        <div class="w-10 h-10 bg-slate-100 text-slate-500 rounded-full flex items-center justify-center font-black text-xs mx-auto border border-slate-200">
-                            {{ delegate.name.charAt(0).toUpperCase() }}
-                        </div>
-                    </td>
-
-                    <td class="table-cell">
-                        <div class="text-sm font-black text-slate-800 uppercase leading-tight">
-                            {{ delegate.name }}
-                        </div>
-                        <div class="text-[9px] text-slate-400 font-bold mt-1 tracking-widest">
-                            ID: #00{{ delegate.id }}
-                        </div>
-                    </td>
-
-                    <td class="table-cell">
-                        <span class="text-[10px] font-black text-purple-700 bg-purple-50 px-3 py-1 rounded-lg border border-purple-100 uppercase tracking-tighter">
-                            Delegado Autorizado
-                        </span>
-                    </td>
-
-                    <td class="table-cell text-center">
-                        <span class="status-badge-sm">
-                            <i class="fas fa-circle text-[6px] text-green-500 mr-2"></i> ACTIVO
-                        </span>
-                    </td>
-
-                    <td class="table-cell text-right">
-                        <button @click="confirmRemoveDelegate(delegate)" 
-                                class="btn-delete-delegate" 
-                                title="Revocar acceso">
-                            <i class="fas fa-trash-alt"></i>
-                            <span class="hidden md:inline ml-1">Revocar</span>
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</section>
-
-      </main>    
-    </div>
-
-    <!-- MODAL DE SISTEMA (OVERLAY TIPO PEDIDOS) -->
-    <Teleport to="body">
-      <Transition name="modal-pop">
-        <div v-if="modal.visible" class="modal-overlay-wrapper">
-          
-          <!-- ESTILO PARA CONFIRMACIÓN -->
-          <div v-if="modal.type !== 'success'" class="form-card bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-scale-in">
-            <div :class="['h-2 w-full', modal.type === 'danger' ? 'bg-red-600' : 'bg-blue-600']"></div>
-            <div class="p-10 text-center">
-              <div :class="['w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg', modal.type === 'danger' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600']">
-                <i :class="['fas fa-2xl', modal.type === 'danger' ? 'fa-exclamation-triangle' : 'fa-info-circle']"></i>
               </div>
-              <h3 class="text-2xl font-black text-slate-800 leading-tight mb-2 uppercase tracking-tighter">{{ modal.title }}</h3>
-              <p class="text-slate-500 text-sm leading-relaxed font-medium">{{ modal.message }}</p>
-            </div>
-            <div class="bg-slate-50 p-6 flex gap-3 border-t">
-              <button v-if="modal.confirm" @click="closeModal" class="btn-primary-action1 flex-1 py-4 text-xs font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">Cancelar</button>
-              <button @click="handleModalConfirm" class="btn-primary-action flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl transition-all active:scale-95" :class="modal.type === 'danger' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white'">
-                {{ modal.confirm ? 'Confirmar' : 'Aceptar' }}
-              </button>
-            </div>
-          </div>
 
-          <!-- ESTILO PARA ÉXITO (COMO EL DE PEDIDOS) -->
-          <div v-else class="modal-content-success animate-scale-in">
-            <div class="success-icon-wrapper shadow-lg shadow-green-100"><i class="fas fa-check"></i></div>
-            <h2 class="text-2xl font-black text-slate-800 mb-2 uppercase tracking-tighter">{{ modal.title }}</h2>
-            <p class="text-sm text-slate-500 mb-8 font-medium px-4">{{ modal.message }}</p>
-            <button @click="closeModal" class="btn-primary-action w-full py-4 bg-slate-900">Continuar</button>
-          </div>
+              <!-- Formulario agregar delegado -->
+              <Transition name="fade">
+                <div v-if="showAddDelegate" class="add-delegate-form">
+                  <div class="add-delegate-form-inner">
+                    <div class="field-group">
+                      <label class="field-label">Usuario Delegado</label>
+                      <div class="input-wrap">
+                        <i class="fas fa-user input-icon"></i>
+                        <input v-model="newDelegate.username" type="text" class="field-input" placeholder="ej. juan.perez">
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label class="field-label">Contraseña Temporal</label>
+                      <div class="input-wrap">
+                        <i class="fas fa-lock input-icon"></i>
+                        <input v-model="newDelegate.password" type="password" class="field-input" placeholder="••••••••">
+                      </div>
+                    </div>
+                    <div class="add-delegate-actions">
+                      <button @click="addDelegate" class="btn-primary btn-primary--purple btn-sm">
+                        <i class="fas fa-user-plus"></i> Crear Cuenta
+                      </button>
+                      <button @click="showAddDelegate = false" class="btn-ghost btn-sm">
+                        <i class="fas fa-times"></i> Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </Transition>
 
+              <!-- Lista vacía -->
+              <div v-if="delegates.length === 0" class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-user-shield"></i></div>
+                <p class="empty-state-text">No hay cuentas de delegados autorizadas</p>
+                <p class="empty-state-sub">Agrega un delegado usando el botón superior</p>
+              </div>
+
+              <!-- Tabla de delegados -->
+              <div v-else class="delegates-table-wrap">
+                <table class="delegates-table">
+                  <thead>
+                    <tr>
+                      <th>Delegado</th>
+                      <th>Rol</th>
+                      <th class="text-center">Estado</th>
+                      <th class="text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="delegate in delegates" :key="delegate.id">
+                      <td>
+                        <div class="delegate-cell">
+                          <div class="delegate-avatar">{{ delegate.name.charAt(0).toUpperCase() }}</div>
+                          <div>
+                            <p class="delegate-name">{{ delegate.name }}</p>
+                            <p class="delegate-id">ID #{{ String(delegate.id).padStart(4, '0') }}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="role-badge">Delegado Autorizado</span></td>
+                      <td class="text-center"><span class="status-dot"><i class="fas fa-circle"></i> Activo</span></td>
+                      <td class="text-right">
+                        <button @click="confirmRemoveDelegate(delegate)" class="btn-revoke">
+                          <i class="fas fa-user-slash"></i> Revocar
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </section>
+        </Transition>
+
+      </main>
+    </div>
+
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="modal.visible" class="modal-overlay" @click.self="closeModal">
+          <div class="modal-box" :class="`modal-box--${modal.type}`">
+
+            <!-- Éxito -->
+            <div v-if="modal.type === 'success'" class="modal-success">
+              <div class="modal-success-icon"><i class="fas fa-check"></i></div>
+              <h3 class="modal-title">{{ modal.title }}</h3>
+              <p class="modal-msg">{{ modal.message }}</p>
+              <button @click="closeModal" class="btn-primary mt-6">Continuar</button>
+            </div>
+
+            <!-- Confirmación / Error / Warning -->
+            <div v-else class="modal-confirm">
+              <div class="modal-confirm-icon" :class="`modal-confirm-icon--${modal.type}`">
+                <i class="fas" :class="modal.type === 'danger' ? 'fa-exclamation-triangle' : modal.type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle'"></i>
+              </div>
+              <h3 class="modal-title">{{ modal.title }}</h3>
+              <p class="modal-msg">{{ modal.message }}</p>
+              <div class="modal-actions">
+                <button v-if="modal.confirm" @click="closeModal" class="btn-ghost">Cancelar</button>
+                <button @click="handleModalConfirm" class="btn-primary" :class="modal.type === 'danger' ? 'btn-primary--danger' : ''">
+                  {{ modal.confirm ? 'Confirmar' : 'Aceptar' }}
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
       </Transition>
     </Teleport>
 
-    <!-- TOAST RÁPIDO -->
     <Transition name="toast">
-      <div v-if="toast.visible" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999]">
-        <div class="bg-slate-900 text-white px-10 py-4 rounded-full shadow-2xl flex items-center gap-4 border border-slate-700 backdrop-blur-md">
-          <i class="fas fa-check-circle text-green-400 text-xl"></i>
-          <span class="font-bold tracking-tight">{{ toast.message }}</span>
-        </div>
+      <div v-if="toast.visible" class="toast">
+        <i class="fas fa-check-circle toast-icon"></i>
+        <span>{{ toast.message }}</span>
       </div>
     </Transition>
+
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted } from 'vue'
 import axios from '../../axios'
 
-const router = useRouter()
 const loading = ref(false)
 const loadingData = ref(true)
 const activeSection = ref('personal')
 const showAddDelegate = ref(false)
+const showPwd = ref([false, false, false])
+
+const navItems = [
+  { key: 'personal',  label: 'Datos Personales',       icon: 'fas fa-user-edit' },
+  { key: 'tools',     label: 'Herramientas de Trabajo', icon: 'fas fa-tools' },
+  { key: 'security',  label: 'Seguridad',               icon: 'fas fa-shield-alt' },
+  { key: 'delegates', label: 'Gestionar Delegados',     icon: 'fas fa-users-cog' },
+]
 
 const user = ref({
-    name: '',
-    full_name: '',
-    rfc: '',
-    email: '',
-    phone: '',
-    personal_phone: '',
-    position: '',
-    employee_id: '',
-    state_id: '',
-    city: '',
-    address: '',
-    car_plates: '',
-    tag_number: '',
-    insurance_policy: '',
-    phone_model: '',
-    tablet_model: '',
-    computer_model: '',
-    business_card: '',
+  name: '', full_name: '', rfc: '', email: '', phone: '',
+  personal_phone: '', position: '', employee_id: '', state_id: '',
+  city: '', address: '', car_plates: '', tag_number: '',
+  insurance_policy: '', phone_model: '', tablet_model: '',
+  computer_model: '', business_card: '',
 })
 const estados = ref([])
 const delegates = ref([])
@@ -335,22 +526,31 @@ const newDelegate = reactive({ username: '', password: '' })
 const modal = reactive({ visible: false, title: '', message: '', type: 'info', confirm: null })
 const toast = reactive({ visible: false, message: '' })
 
+const initials = computed(() => {
+  const name = user.value.full_name || user.value.name || ''
+  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() || 'U'
+})
+
+const currentSection = computed(() => navItems.find(n => n.key === activeSection.value) || navItems[0])
+
+const today = computed(() =>
+  new Date().toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+)
+
+/* ── Toast ── */
 const showToast = (msg) => {
-  toast.message = msg; toast.visible = true;
-  setTimeout(() => toast.visible = false, 4000)
+  toast.message = msg; toast.visible = true
+  setTimeout(() => toast.visible = false, 3500)
 }
 
-const openModal = (title, message, type = 'info', confirmCallback = null) => {
-  modal.title = title; modal.message = message; modal.type = type; modal.confirm = confirmCallback; modal.visible = true;
+/* ── Modal ── */
+const openModal = (title, message, type = 'info', confirmCb = null) => {
+  Object.assign(modal, { visible: true, title, message, type, confirm: confirmCb })
 }
-
 const closeModal = () => { modal.visible = false }
+const handleModalConfirm = () => { if (modal.confirm) modal.confirm(); else closeModal() }
 
-const handleModalConfirm = () => {
-  if (modal.confirm) modal.confirm()
-  else closeModal()
-}
-
+/* ── Fetch ── */
 const fetchInitialData = async () => {
   loadingData.value = true
   try {
@@ -359,161 +559,99 @@ const fetchInitialData = async () => {
       axios.get('profile/myprofile')
     ])
     estados.value = estadosRes.data
-    
-    const dbData = profileRes.data.user || profileRes.data
-    
-    // HIDRATACIÓN: Muestra el nombre real si existe.
+    const d = profileRes.data.user || profileRes.data
     user.value = {
-        name: dbData.name || '',
-        full_name: dbData.full_name || '', 
-        email: dbData.email || '',
-        rfc: dbData.rfc || '',
-        phone: dbData.phone || '',
-        personal_phone: dbData.personal_phone || '',
-        position: dbData.position || '',
-        employee_id: dbData.employee_id || '',
-        state_id: dbData.state_id || '',
-        city: dbData.city || '',
-        address: dbData.address || '',
-        car_plates: dbData.car_plates || '',
-        tag_number: dbData.tag_number || '',
-        insurance_policy: dbData.insurance_policy || '',
-        phone_model: dbData.phone_model || '',
-        tablet_model: dbData.tablet_model || '',
-        computer_model: dbData.computer_model || '',
-        business_card: dbData.business_card || '',
+      name: d.name || '', full_name: d.full_name || '', email: d.email || '',
+      rfc: d.rfc || '', phone: d.phone || '', personal_phone: d.personal_phone || '',
+      position: d.position || '', employee_id: d.employee_id || '', state_id: d.state_id || '',
+      city: d.city || '', address: d.address || '', car_plates: d.car_plates || '',
+      tag_number: d.tag_number || '', insurance_policy: d.insurance_policy || '',
+      phone_model: d.phone_model || '', tablet_model: d.tablet_model || '',
+      computer_model: d.computer_model || '', business_card: d.business_card || '',
     }
-    
-    delegates.value = dbData.delegates || []
-    
-  } catch (e) {
-    openModal('Sincronización Interrumpida', 'No se pudieron recuperar los datos de tu perfil profesional.', 'danger')
+    delegates.value = d.delegates || []
+  } catch {
+    openModal('Error de Sincronización', 'No se pudo recuperar el perfil.', 'danger')
   } finally {
     loadingData.value = false
   }
 }
 
-/* ------------------ ACCIONES CON MODALES DE CONFIRMACIÓN ------------------ */
-
-const confirmUpdateProfile = () => {
-  openModal(
-    'Confirmar Actualización',
-    '¿Deseas guardar los cambios realizados en tu identidad y ubicación personal?',
-    'info',
-    updateProfile
-  )
-}
+/* ── Acciones ── */
+const confirmUpdateProfile = () =>
+  openModal('Confirmar Actualización', '¿Guardar los cambios de identidad y ubicación?', 'info', updateProfile)
 
 const updateProfile = async () => {
-  loading.value = true
-  closeModal()
+  loading.value = true; closeModal()
   try {
-    // ⚠️ RECUERDA: El modelo User.php en Laravel DEBE tener 'full_name' en el arreglo $fillable
-    const payload = {
-        full_name:      user.value.full_name,
-        email:          user.value.email,
-        rfc:            user.value.rfc,
-        phone:          user.value.phone,
-        personal_phone: user.value.personal_phone,
-        state_id:       user.value.state_id || null,
-        city:           user.value.city,
-        address:        user.value.address,
-    };
-
-    await axios.put('profile', payload)
-    openModal('¡Perfil Actualizado!', 'Tu información profesional se ha guardado con éxito en el sistema.', 'success')
+    await axios.put('profile', {
+      full_name: user.value.full_name, email: user.value.email, rfc: user.value.rfc,
+      phone: user.value.phone, personal_phone: user.value.personal_phone,
+      state_id: user.value.state_id || null, city: user.value.city, address: user.value.address,
+    })
+    openModal('¡Perfil Actualizado!', 'Tu información se guardó con éxito.', 'success')
     await fetchInitialData()
   } catch (e) {
     if (e.response?.status === 422) {
-        const firstError = Object.values(e.response.data.errors)[0][0];
-        openModal('Validación Fallida', firstError, 'warning');
+      openModal('Validación', Object.values(e.response.data.errors)[0][0], 'warning')
     } else {
-        openModal('Error de Guardado', 'El servidor rechazó la solicitud. Verifica tu conexión.', 'danger')
+      openModal('Error', 'El servidor rechazó la solicitud.', 'danger')
     }
-  } finally {
-    loading.value = false
-  }
+  } finally { loading.value = false }
 }
 
-const confirmUpdateTools = () => {
-  openModal(
-    'Sincronizar Inventario',
-    '¿Los datos de las herramientas y activos asignados son correctos?',
-    'info',
-    updateTools
-  )
-}
+const confirmUpdateTools = () =>
+  openModal('Sincronizar Inventario', '¿Los datos de herramientas son correctos?', 'info', updateTools)
 
 const updateTools = async () => {
-  loading.value = true
-  closeModal()
+  loading.value = true; closeModal()
   try {
-    const payload = {
-        car_plates:       user.value.car_plates,
-        tag_number:       user.value.tag_number,
-        insurance_policy: user.value.insurance_policy,
-        phone_model:      user.value.phone_model,
-        tablet_model:     user.value.tablet_model,
-        computer_model:   user.value.computer_model,
-        business_card:    user.value.business_card,
-    };
-    await axios.put('profile/tools', payload)
-    openModal('¡Inventario Guardado!', 'Los datos de tus herramientas de trabajo se han actualizado.', 'success')
+    await axios.put('profile/tools', {
+      car_plates: user.value.car_plates, tag_number: user.value.tag_number,
+      insurance_policy: user.value.insurance_policy, phone_model: user.value.phone_model,
+      tablet_model: user.value.tablet_model, computer_model: user.value.computer_model,
+      business_card: user.value.business_card,
+    })
+    openModal('¡Inventario Guardado!', 'Los activos se actualizaron correctamente.', 'success')
     await fetchInitialData()
-  } catch (e) { 
-    openModal('Error de Herramientas', 'No se pudieron guardar los datos del inventario.', 'danger') 
-  } finally { 
-    loading.value = false 
-  }
+  } catch { openModal('Error', 'No se pudo guardar el inventario.', 'danger') }
+  finally { loading.value = false }
 }
 
 const confirmUpdatePassword = () => {
-  if (!security.current_password || !security.password) {
-    return openModal('Faltan Datos', 'Debes completar los campos de contraseña obligatorios.', 'warning')
-  }
-  openModal(
-    'Cambio de Seguridad',
-    'Deberás usar tus nuevas credenciales en el próximo inicio de sesión. ¿Confirmar?',
-    'warning',
-    updatePassword
-  )
+  if (!security.current_password || !security.password)
+    return openModal('Campos Requeridos', 'Completa todos los campos de contraseña.', 'warning')
+  openModal('Cambio de Credenciales', '¿Confirmas el cambio de contraseña? Deberás usarla en el próximo login.', 'warning', updatePassword)
 }
 
 const updatePassword = async () => {
-  if (security.password !== security.password_confirmation) {
-    return openModal('Validación', 'La confirmación de la nueva contraseña no coincide.', 'warning')
-  }
-  loading.value = true
-  closeModal()
+  if (security.password !== security.password_confirmation)
+    return openModal('Error', 'Las contraseñas no coinciden.', 'warning')
+  loading.value = true; closeModal()
   try {
     await axios.put('profile/password', security)
-    openModal('¡Acceso Seguro!', 'Tu contraseña ha sido modificada correctamente.', 'success')
-    security.current_password = security.password = security.password_confirmation = ''
-  } catch (e) { 
-    openModal('Error de Contraseña', 'La contraseña actual ingresada es incorrecta.', 'danger') 
-  } finally { 
-    loading.value = false 
-  }
+    openModal('¡Contraseña Cambiada!', 'Tus credenciales fueron actualizadas.', 'success')
+    Object.assign(security, { current_password: '', password: '', password_confirmation: '' })
+  } catch { openModal('Error', 'La contraseña actual es incorrecta.', 'danger') }
+  finally { loading.value = false }
 }
 
 const addDelegate = async () => {
-  if (!newDelegate.username || !newDelegate.password) return openModal('Datos Incompletos', 'Escribe un usuario y contraseña para el delegado.', 'warning')
+  if (!newDelegate.username || !newDelegate.password)
+    return openModal('Datos Incompletos', 'Escribe usuario y contraseña.', 'warning')
   loading.value = true
   try {
     const res = await axios.post('profile/delegates', newDelegate)
     delegates.value.push(res.data.delegate)
-    newDelegate.username = ''; newDelegate.password = ''; showAddDelegate.value = false
-    openModal('¡Delegado Autorizado!', 'La cuenta secundaria ha sido creada y vinculada.', 'success')
-  } catch (e) { 
-    openModal('Error de Cuenta', 'No se pudo generar la cuenta delegada. El usuario podría ya existir.', 'danger') 
-  } finally { 
-    loading.value = false 
-  }
+    newDelegate.username = ''; newDelegate.password = ''
+    showAddDelegate.value = false
+    openModal('¡Delegado Creado!', 'La cuenta fue vinculada con éxito.', 'success')
+  } catch { openModal('Error', 'No se pudo crear la cuenta delegada.', 'danger') }
+  finally { loading.value = false }
 }
 
-const confirmRemoveDelegate = (delegate) => {
-  openModal('¿Revocar Acceso?', `Estás por eliminar el permiso para "${delegate.name}". ¿Deseas continuar?`, 'danger', () => removeDelegate(delegate.id))
-}
+const confirmRemoveDelegate = (d) =>
+  openModal('¿Revocar Acceso?', `Se eliminará el acceso de "${d.name}". ¿Continuar?`, 'danger', () => removeDelegate(d.id))
 
 const removeDelegate = async (id) => {
   closeModal()
@@ -521,163 +659,370 @@ const removeDelegate = async (id) => {
     await axios.delete(`profile/delegates/${id}`)
     delegates.value = delegates.value.filter(d => d.id !== id)
     showToast('Acceso revocado correctamente')
-  } catch (e) { 
-    openModal('Error de Revocación', 'Hubo un fallo al intentar eliminar el acceso.', 'danger') 
-  }
+  } catch { openModal('Error', 'No se pudo revocar el acceso.', 'danger') }
 }
 
 onMounted(fetchInitialData)
 </script>
 
 <style scoped>
-.profile-page-wrapper { background: radial-gradient(circle at top right, #fff1f2 0%, #f8fafc 40%); }
-.inner-nav-card { background: white; border-radius: 30px; overflow: hidden; border: 1px solid #f1f5f9; }
-.inner-nav-item { width: 100%; display: flex; align-items: center; gap: 16px; padding: 16px 24px; border-radius: 20px; font-size: 0.9rem; font-weight: 700; color: #64748b; border: none; background: transparent; text-align: left; cursor: pointer; transition: 0.3s ease; }
-.inner-nav-item:hover { background: #fdf2f2; color: #a93339; }
-.inner-nav-item.active { background: #edb6b9; color: white; box-shadow: 0 10px 20px -5px rgba(169, 51, 57, 0.3); }
-
-.form-card { background: white; border-radius: 40px; padding: 40px; border: 1px solid #f1f5f9; }
-.form-title { font-size: 1.5rem; font-weight: 900; color: #1e293b; border-left: 6px solid #a93339; padding-left: 20px; text-transform: uppercase; letter-spacing: -0.025em; }
-
-.form-group label { display: block; font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px; letter-spacing: 0.1em; }
-.form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.9rem; }
-.form-input:focus { border-color: #a93339; background: white; outline: none; box-shadow: 0 0 0 4px rgba(169, 51, 57, 0.05); }
-
-.btn-primary-action1 { background: linear-gradient(135deg, #a93339 0%, #881337 100%); color: white; padding: 16px 45px; border-radius: 18px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
-.btn-primary-action1:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
-
-.btn-primary-action { background: linear-gradient(135deg, #33a941 0%, #138838 100%); color: white; padding: 16px 45px; border-radius: 18px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
-.btn-primary-action:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
-
-
-.btn-save-profile { background: #1e293b; color: white; padding: 12px 24px; border-radius: 14px; font-weight: 800; border: none; cursor: pointer; }
-.btn-add-circle { width: 45px; height: 45px; background: #a93339; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; transition: transform 0.2s; }
-.btn-add-circle:hover { transform: scale(1.1) rotate(90deg); }
-
-.btn-exit-profile { background: white; border: 2px solid #f1f5f9; color: #64748b; padding: 10px 20px; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 0.8rem; }
-
-.shadow-premium { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
-
-/* --- ESTILOS PARA EL OVERLAY DEL MODAL (SOLUCIÓN) --- */
-.modal-overlay-wrapper {
-    position: fixed;
-    inset: 0;
-    z-index: 99999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-    background-color: rgba(15, 23, 42, 0.8);
-    backdrop-filter: blur(4px);
-    overflow: hidden;
+/* ── Root ── */
+.profile-root {
+  min-height: 100vh;
+  background:  hsl(357, 54%, 43%, 10%); 
+  font-family: 'DM Sans', 'Outfit', system-ui, sans-serif;
+  position: relative;
+  overflow: hidden;
 }
 
-/* SUCCESS MODAL SPECIFIC (COMO PEDIDOS) */
-.modal-content-success { background: white; padding: 45px; border-radius: 40px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4); border: 1px solid #f1f5f9; }
-.success-icon-wrapper { width: 75px; height: 75px; background: #dcfce7; color: #166534; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 25px; border: 4px solid white; }
+/* ── Orbs de fondo ── */
+.bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.06; }
+.orb-1 { width: 500px; height: 500px; background: #c0152b; top: -150px; right: -100px; }
+.orb-2 { width: 400px; height: 400px; background: #1a56db; bottom: -100px; left: -100px; }
+.orb-3 { width: 300px; height: 300px; background: #7c3aed; top: 50%; left: 40%; }
 
-.animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-@keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+/* ── Loader ── */
+.loader-screen {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: #f4f6f8;
+}
+.loader-ring {
+  width: 48px; height: 48px;
+  border: 3px solid #f1f5f9;
+  border-top-color: var(--crimson);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.loader-text { margin-top: 16px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; color: #94a3b8; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.animate-slide-up { animation: slideUp 0.5s ease-out; }
-@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+/* ── Layout ── */
+.profile-layout {
+  position: relative; z-index: 1;
+  max-width: 1280px; margin: 0 auto;
+  padding: 40px 24px;
+  display: flex; gap: 28px;
+  min-height: 100vh;
+}
 
-.modal-pop-enter-active, .modal-pop-leave-active { transition: all 0.3s ease; }
-.modal-pop-enter-from, .modal-pop-leave-to { opacity: 0; }
+.sidebar {
+  width: 280px; flex-shrink: 0;
+  background: white;
+  border-radius: 24px;
+  border: 1px solid #eef2f7;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+  display: flex; flex-direction: column;
+  position: sticky; top: 24px; align-self: flex-start;
+  overflow: hidden;
+}
 
-.toast-enter-active, .toast-leave-active { transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translate(-50%, 100%); }
+/* Avatar / Identidad */
+.identity-block {
+  padding: 28px 24px 20px;
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(135deg, #fff 60%, #fef1f2);
+  border-bottom: 1px solid #f5f7fa;
+}
+.avatar-ring {
+  position: relative; width: 54px; height: 54px; flex-shrink: 0;
+}
+.avatar-inner {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, var(--crimson), #881337);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(192,21,43,0.3);
+}
+.avatar-initials { color: white; font-size: 1.1rem; font-weight: 900; letter-spacing: -0.02em; }
+.avatar-status {
+  position: absolute; bottom: 2px; right: 2px;
+  width: 12px; height: 12px; background: #22c55e;
+  border-radius: 50%; border: 2px solid white;
+}
+.identity-name { font-size: 0.88rem; font-weight: 800; color: var(--slate-900); line-height: 1.2; }
+.identity-role { font-size: 0.65rem; text-transform: uppercase; font-weight: 700; color: var(--crimson); letter-spacing: .06em; }
 
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
+/* Nav label */
+.nav-label {
+  font-size: 0.58rem; font-weight: 900; text-transform: uppercase;
+  letter-spacing: .14em; color: #b0bec5;
+  padding: 16px 24px 8px;
+}
+
+/* Nav items */
+.sidebar-nav { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 4px; }
+.nav-item {
+  width: 100%; display: flex; align-items: center; gap: 12px;
+  padding: 11px 16px; border-radius: 14px;
+  font-size: 0.83rem; font-weight: 700; color: var(--slate-500);
+  background: none; border: none; text-align: left; cursor: pointer;
+  transition: all 0.18s ease; position: relative;
+}
+.nav-item:hover { background: #f8fafc; color: var(--slate-700); }
+.nav-item--active { background: #fef1f2 !important; color: var(--crimson) !important; }
+.nav-icon { width: 30px; height: 30px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: background 0.18s; }
+.nav-item--active .nav-icon { background: rgba(192,21,43,0.1); color: var(--crimson); }
+.nav-label-text { flex: 1; }
+.nav-pip { width: 6px; height: 6px; background: var(--crimson); border-radius: 50%; }
+
+/* Footer sidebar */
+.sidebar-footer { margin-top: auto; padding: 16px 20px; border-top: 1px solid #f1f5f9; }
+.sidebar-footer-inner { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; font-weight: 700; color: #94a3b8; }
+
+.content-area { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+
+/* Header */
+.content-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 4px 0 8px;
+}
+.section-eyebrow { font-size: 0.62rem; text-transform: uppercase; font-weight: 800; letter-spacing: .1em; color: var(--crimson); margin-bottom: 4px; }
+.section-title { font-size: 1.6rem; font-weight: 900; color: var(--slate-900); letter-spacing: -0.02em; line-height: 1; }
+.header-date { font-size: 0.75rem; font-weight: 700; color: var(--slate-500); background: white; border: 1px solid #eef2f7; padding: 8px 14px; border-radius: 10px; display: flex; align-items: center; gap: 6px; }
+
+/* ── Section Card ── */
+.section-card {
+  background: white;
+  border-radius: 24px;
+  border: 1px solid #eef2f7;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+.card-strip { height: 4px; }
+.card-strip--crimson { background: linear-gradient(90deg, var(--crimson), #f43f5e); }
+.card-strip--blue    { background: linear-gradient(90deg, var(--blue), #60a5fa); }
+.card-strip--amber   { background: linear-gradient(90deg, var(--amber), #fbbf24); }
+.card-strip--purple  { background: linear-gradient(90deg, var(--purple), #a78bfa); }
+
+.card-body { padding: 32px 36px 36px; }
+
+/* Card Intro */
+.card-intro { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+.card-intro-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: var(--crimson-light); color: var(--crimson);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+}
+.card-intro-icon--blue   { background: var(--blue-light);   color: var(--blue); }
+.card-intro-icon--amber  { background: var(--amber-light);  color: var(--amber); }
+.card-intro-icon--purple { background: var(--purple-light); color: var(--purple); }
+.card-heading { font-size: 1.1rem; font-weight: 900; color: var(--slate-900); }
+.card-subheading { font-size: 0.72rem; color: var(--slate-500); margin-top: 2px; font-weight: 500; }
+
+/* ── Fields ── */
+.fields-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 24px; }
+.field-group { display: flex; flex-direction: column; gap: 7px; }
+.field-full { grid-column: 1 / -1; }
+.field-divider { grid-column: 1 / -1; height: 1px; background: #f1f5f9; }
+
+.field-label { font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; }
+.req { color: var(--crimson); }
+
+.input-wrap { position: relative; display: flex; align-items: center; }
+.input-icon { position: absolute; left: 14px; color: #b0bec5; font-size: 0.8rem; pointer-events: none; }
+
+.field-input {
+  width: 100%; padding: 12px 16px 12px 38px;
+  border: 2px solid #eef2f7; border-radius: 12px;
+  font-size: 0.88rem; font-weight: 600; color: var(--slate-700);
+  background: #fdfdfe;
+  transition: all 0.18s ease;
+  appearance: none;
+}
+.field-input:focus { border-color: var(--crimson); background: white; outline: none; box-shadow: 0 0 0 4px rgba(192,21,43,0.06); }
+.field-readonly { background: #f8fafc !important; color: #b0bec5 !important; cursor: not-allowed; }
+.field-mono { font-family: 'DM Mono', 'Courier New', monospace; letter-spacing: .05em; }
+.field-upper { text-transform: uppercase; }
+.field-hint { font-size: 0.65rem; color: #e87b8b; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+
+/* Toggle contraseña */
+.pwd-toggle { position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #b0bec5; font-size: 0.8rem; transition: color 0.15s; }
+.pwd-toggle:hover { color: var(--slate-700); }
+
+/* Password requirements */
+.pwd-requirements { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; padding: 14px 18px; background: #f8fafc; border-radius: 12px; }
+.pwd-req { font-size: 0.68rem; font-weight: 700; color: #b0bec5; display: flex; align-items: center; gap: 6px; transition: color 0.2s; }
+.pwd-req--met { color: #22c55e; }
+
+/* Security meter */
+.security-meter { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; margin-bottom: 24px; }
+.security-meter-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #92400e; flex-shrink: 0; }
+.security-bars { display: flex; gap: 4px; }
+.security-bar { width: 24px; height: 6px; border-radius: 3px; background: #f3f4f6; }
+.security-bar--filled { background: var(--amber); }
+.security-level-text { font-size: 0.7rem; font-weight: 800; color: var(--amber); }
+
+/* Tools blocks */
+.tools-block { margin-bottom: 28px; }
+.tools-block-label { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; letter-spacing: .1em; color: var(--blue); display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #e8f0fe; }
+
+/* Form footer */
+.form-footer { display: flex; justify-content: flex-end; padding-top: 24px; border-top: 1px solid #f1f5f9; margin-top: 28px; }
+
+/* ── Delegates ── */
+.delegates-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.add-delegate-form { background: #fef8f8; border: 1px dashed #fca5a5; border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+.add-delegate-form-inner { display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; }
+.add-delegate-actions { display: flex; gap: 8px; }
+
+/* Tabla delegados */
+.delegates-table-wrap { overflow: hidden; border: 1px solid #f1f5f9; border-radius: 16px; }
+.delegates-table { width: 100%; border-collapse: collapse; }
+.delegates-table thead tr { background: #f8fafc; }
+.delegates-table th { padding: 12px 20px; font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; text-align: left; }
+.delegates-table tbody tr { border-top: 1px solid #f8fafc; transition: background 0.15s; }
+.delegates-table tbody tr:hover { background: #fafbfc; }
+.delegates-table td { padding: 14px 20px; vertical-align: middle; }
+.delegate-cell { display: flex; align-items: center; gap: 12px; }
+.delegate-avatar { width: 36px; height: 36px; border-radius: 10px; background: #f1f5f9; color: var(--slate-700); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 900; flex-shrink: 0; }
+.delegate-name { font-size: 0.85rem; font-weight: 800; color: var(--slate-700); }
+.delegate-id { font-size: 0.62rem; color: #94a3b8; font-weight: 700; margin-top: 2px; }
+.role-badge { font-size: 0.62rem; font-weight: 800; background: var(--purple-light); color: var(--purple); padding: 4px 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: .06em; }
+.status-dot { font-size: 0.68rem; font-weight: 800; color: #166534; display: inline-flex; align-items: center; gap: 5px; }
+.status-dot i { font-size: 0.45rem; color: #22c55e; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 60px 20px; border: 2px dashed #e2e8f0; border-radius: 16px; }
+.empty-state-icon { font-size: 2.5rem; color: #e2e8f0; margin-bottom: 12px; }
+.empty-state-text { font-size: 0.88rem; font-weight: 700; color: #94a3b8; }
+.empty-state-sub { font-size: 0.72rem; color: #b0bec5; margin-top: 4px; }
+
+/* ── Buttons ── */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, var(--crimson), #9f1239);
+  color: white; padding: 13px 28px; border-radius: 13px;
+  font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+  border: none; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(192,21,43,0.25);
+  transition: all 0.18s ease;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(192,21,43,0.35); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.btn-primary--blue   { background: linear-gradient(135deg, var(--blue), #1e40af); box-shadow: 0 4px 16px rgba(26,86,219,0.25); }
+.btn-primary--blue:hover { box-shadow: 0 8px 24px rgba(26,86,219,0.35); }
+.btn-primary--amber  { background: linear-gradient(135deg, var(--amber), #92400e); box-shadow: 0 4px 16px rgba(217,119,6,0.25); }
+.btn-primary--amber:hover { box-shadow: 0 8px 24px rgba(217,119,6,0.35); }
+.btn-primary--purple { background: linear-gradient(135deg, var(--purple), #5b21b6); box-shadow: 0 4px 16px rgba(124,58,237,0.25); }
+.btn-primary--danger { background: linear-gradient(135deg, #dc2626, #991b1b); box-shadow: 0 4px 16px rgba(220,38,38,0.3); }
+
+.btn-sm { padding: 10px 18px; font-size: 0.72rem; border-radius: 10px; }
+
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: none; border: 2px solid #e2e8f0; color: var(--slate-500);
+  padding: 11px 20px; border-radius: 13px; font-size: 0.78rem; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-ghost:hover { border-color: #b0bec5; color: var(--slate-700); background: #f8fafc; }
+
+.btn-add {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--purple-light); color: var(--purple);
+  border: 1px solid #ddd6fe; padding: 10px 18px; border-radius: 12px;
+  font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: all 0.15s;
+}
+.btn-add:hover { background: #ede9fe; }
+
+.btn-revoke {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; color: #b0bec5;
+  font-size: 0.72rem; font-weight: 800; cursor: pointer; padding: 6px 10px; border-radius: 8px;
+  text-transform: uppercase; letter-spacing: .06em; transition: all 0.15s;
+}
+.btn-revoke:hover { color: #dc2626; background: #fef2f2; }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(15,23,42,0.75); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+}
+.modal-box {
+  background: white; border-radius: 28px; padding: 40px; width: 100%; max-width: 420px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.3); border: 1px solid #f1f5f9;
+}
+.modal-success { text-align: center; }
+.modal-success-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: #dcfce7; color: #166534;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; margin: 0 auto 20px;
+  box-shadow: 0 0 0 8px rgba(34,197,94,0.1);
+}
+.modal-confirm { text-align: center; }
+.modal-confirm-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; margin: 0 auto 20px;
+}
+.modal-confirm-icon--danger { background: #fef2f2; color: var(--crimson); box-shadow: 0 0 0 8px rgba(192,21,43,0.06); }
+.modal-confirm-icon--warning { background: #fffbeb; color: var(--amber); box-shadow: 0 0 0 8px rgba(217,119,6,0.06); }
+.modal-confirm-icon--info { background: #eff6ff; color: var(--blue); box-shadow: 0 0 0 8px rgba(26,86,219,0.06); }
+.modal-title { font-size: 1.2rem; font-weight: 900; color: var(--slate-900); margin-bottom: 8px; }
+.modal-msg { font-size: 0.83rem; color: var(--slate-500); line-height: 1.5; }
+.modal-actions { display: flex; justify-content: center; gap: 10px; margin-top: 28px; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+  background: var(--slate-900); color: white;
+  padding: 14px 24px; border-radius: 999px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 0.83rem; font-weight: 700;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  z-index: 10000; white-space: nowrap;
+}
+.toast-icon { color: #4ade80; font-size: 1rem; }
+
+/* ── Transitions ── */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.section-slide-enter-active, .section-slide-leave-active { transition: all 0.22s ease; }
+.section-slide-enter-from { opacity: 0; transform: translateY(12px); }
+.section-slide-leave-to { opacity: 0; transform: translateY(-6px); }
+
+.modal-enter-active, .modal-leave-active { transition: all 0.25s ease; }
+.modal-enter-from, .modal-leave-to { opacity: 0; }
+.modal-enter-from .modal-box, .modal-leave-to .modal-box { transform: scale(0.95) translateY(8px); }
+
+.toast-enter-active, .toast-leave-active { transition: all 0.4s cubic-bezier(0.68,-0.55,0.27,1.55); }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateX(-50%) translateY(20px); }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .profile-layout { flex-direction: column; padding: 20px 16px; }
+  .sidebar { width: 100%; position: static; }
+  .sidebar-nav { flex-direction: row; flex-wrap: wrap; }
+  .nav-item { flex: 1; min-width: 140px; justify-content: center; }
+  .nav-pip { display: none; }
+  .fields-grid { grid-template-columns: 1fr; }
+  .field-full { grid-column: auto; }
+  .add-delegate-form-inner { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .card-body { padding: 20px; }
+  .content-header { flex-direction: column; gap: 10px; }
+  .delegates-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+}
+
+.btn-primary { background: linear-gradient(135deg, #e4989c 0%, #d46a8a 100%); color: white; border-radius: 20px; font-weight: 900; cursor: pointer; border: none; box-shadow: 0 10px 25px rgba(169, 51, 57, 0.2); transition: all 0.2s; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(169, 51, 57, 0.3); }
+
+.btn-secondary {
+    padding: 8px 15px;
     background: white;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-/* Cabeceras */
-.table-header {
-    padding: 14px 16px;
-    font-size: 0.7rem;
-    font-weight: 800;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
     color: #64748b;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-}
-
-/* Celdas */
-.table-cell {
-    padding: 12px 16px;
-    vertical-align: middle;
-}
-
-/* Badge de Estatus Sutil */
-.status-badge-sm {
-    font-size: 9px;
-    font-weight: 800;
-    color: #1e293b;
-    display: inline-flex;
-    align-items: center;
-}
-
-/* Botón de Eliminación */
-.btn-delete-delegate {
-    background: none;
-    border: none;
-    color: #cbd5e1; /* Slate-300 */
-    font-size: 11px;
+    font-size: 0.7rem;
     font-weight: 800;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.2s ease;
-    padding: 8px 12px;
 }
-
-.btn-delete-delegate:hover {
-    color: #dc2626; /* Red-600 */
-    background-color: #fef2f2;
-    border-radius: 10px;
-}
-
-/* Estilos de botones de acción superior (asumiendo que ya tienes algunos) */
-.btn-add-circle {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background: #b91c1c;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s;
-}
-
-.btn-add-circle:hover {
-    transform: rotate(90deg);
-}
-
-.form-input {
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px solid #f1f5f9;
-    border-radius: 12px;
-    transition: all 0.3s;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: #f87171;
-    background: white;
-}
-
-.table-shadow-lg {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-}
-
-.text-right { text-align: right; }
-.text-center { text-align: center; }
 </style>

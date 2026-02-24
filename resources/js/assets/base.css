@@ -1067,6 +1067,61 @@ background-color: #bb9bca;
    
 }
 
+@media (max-width: 768px) {
+ 
+
+    /* Títulos más pequeños para que no ocupen 3 líneas */
+    .module-header h1 {
+        font-size: 1.3rem !important;
+        line-height: 1.2;
+    }
+
+    .module-header p {
+        font-size: 0.75rem !important;
+        margin-top: 4px;
+    }
+
+    /* Ajuste de los inputs para que no se vean gigantes */
+    .form-input {
+        padding: 10px 14px !important;
+        font-size: 0.85rem !important;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .module-page {
+        /* 1. Reset de Dimensiones: Forzamos que el ancho sea el del dispositivo */
+        width: 100% !important;
+        
+        /* 2. Tamaño Específico: El max-width asegura que no crezca más que la pantalla */
+        max-width: 100% !important; 
+        
+        /* 3. Modelo de Caja: El padding de 5px se queda DENTRO del 100%, no se suma */
+        box-sizing: border-box !important;
+        
+        /* 4. Seguridad: Corta cualquier contenido que intente estirar la tarjeta */
+        overflow: hidden !important; 
+        
+        /* 5. Espaciado solicitado */
+        padding: 5px !important; 
+        margin-bottom: 20px;
+        border-radius: 20px;
+        
+        /* 6. Centrado preventivo */
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Regla Crítica: El contenedor padre NO debe tener anchos fijos */
+    .content-wrapper {
+        padding: 8px !important; /* Margen externo para que la tarjeta no toque el borde del cel */
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+    }
+}
+
 /* --- OPTIMIZACIÓN DE TABLAS (Extra) --- */
 /* Para que las tablas no rompan el layout si decides no usar el modo "Card" */
 .table-container-scroll {
