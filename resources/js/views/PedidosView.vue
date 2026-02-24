@@ -1,27 +1,21 @@
 <template>
-    <div class="content-wrapper p-2 md:p-6 bg-slate-50 min-h-screen">
+    <div class="content-wrapper p-2 md:p-6 bg-slate-50">
         <div class="module-page max-w-7xl mx-auto">
             <!-- Encabezado -->
             <div class="module-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h1 class="text-xl md:text-2xl font-black text-black uppercase tracking-tighter">Edición de Pedido #{{ pedidoFolio }}</h1>
-                    <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest mt-1">Gestión logística y auditoría de cambios del expediente.</p>
+                    <h1 class="text-xl md:text-2xl font-black text-black uppercase tracking-tighter">Ingreso de Pedidos</h1>
+                    <p class="text-xs md:text-sm text-red-600 font-bold uppercase tracking-widest mt-1">Gestión logística avanzada vinculada a la ficha del cliente.</p>
                 </div>
                 <button @click="router.push('/pedidos')" class="btn-secondary shadow-sm shrink-0 w-full sm:w-auto uppercase font-black">
-                    <i class="fas fa-arrow-left mr-2"></i> Cancelar y Volver
+                    <i class="fas fa-arrow-left mr-2"></i> Volver al Historial
                 </button>
             </div>
-
-            <!-- Loader Inicial -->
-            <div v-if="loadingInitial" class="py-20 text-center animate-pulse">
-                <i class="fas fa-circle-notch fa-spin text-5xl text-red-600 mb-4"></i>
-                <p class="text-slate-400 font-black uppercase tracking-widest text-[10px]">Recuperando información técnica del servidor...</p>
-            </div>
             
-            <form v-else @submit.prevent="submitUpdate" class="space-y-6 animate-fade-in pb-20">
+            <form @submit.prevent="submitOrder" class="space-y-6">
 
                 <!-- 1. INFORMACIÓN DEL CLIENTE -->
-                <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
+                <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible" :class="{'border-red-500 ring-1 ring-red-100': errors.clientId}">
                     <div class="section-title text-black">
                         <i class="fas fa-user-circle text-red-700"></i> 1. Información del Cliente
                     </div>
@@ -31,7 +25,8 @@
                             <div class="relative">
                                 <input 
                                     type="text" 
-                                    class="form-input pl-10 font-bold uppercase lbb"  
+                                    class="form-input pl-10 font-bold lbb uppercase"  
+                                    :class="{'border-red-600 bg-red-50': errors.clientId}"
                                     placeholder="BUSCAR POR NOMBRE..." 
                                     v-model="orderForm.clientName"
                                     @input="searchClients"
@@ -49,7 +44,7 @@
                         </div>
                         <div class="form-group">
                             <label class="label-style">Prioridad de Atención:</label>
-                            <select v-model="orderForm.prioridad" class="form-input font-bold text-red-700 uppercase lbb">
+                            <select v-model="orderForm.prioridad" class="form-input font-bold text-red-700 uppercase">
                                 <option value="baja">Baja</option>
                                 <option value="media">Media</option>
                                 <option value="alta">Alta</option>
@@ -76,7 +71,7 @@
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'recoleccion'}">
                                     <input type="radio" value="recoleccion" v-model="orderForm.logistics.deliveryOption" class="hidden">
                                     <i class="fas fa-warehouse"></i>
-                                    <span>Recolección en Almacén</span>
+                                    <span>Recolección</span>
                                 </label>
                                 <label class="shipping-card" :class="{'active': orderForm.logistics.deliveryOption === 'entrega'}">
                                     <input type="radio" value="entrega" v-model="orderForm.logistics.deliveryOption" class="hidden">
@@ -87,12 +82,12 @@
 
                             <div class="mt-6 space-y-4 animate-fade-in">
                                 <div v-if="orderForm.logistics.deliveryOption === 'paqueteria'">
-                                    <label class="label-mini">Empresa de Paquetería sugerida:</label>
-                                    <input v-model="orderForm.logistics.paqueteria_nombre" type="text" required minlength="3" class="form-input border-red-200 text-red-700 font-bold uppercase lbb" placeholder="DHL, FEDEX, ETC.">
+                                    <label class="label-mini">Empresa de Paquetería sugerida por el cliente:</label>
+                                    <input v-model="orderForm.logistics.paqueteria_nombre" type="text" required minlength="3" class="form-input border-red-200 text-red-700 font-bold uppercase" placeholder="DHL, FEDEX, ETC.">
                                 </div>
                                 <div v-if="['recoleccion', 'entrega'].includes(orderForm.logistics.deliveryOption)">
                                     <label class="label-mini">Instrucciones Logísticas:</label>
-                                    <textarea v-model="orderForm.logistics.comentarios_logistica" minlength="10" class="form-input text-red-600 font-medium uppercase lbb" rows="2" required placeholder="NOTAS PARA ALMACÉN..."></textarea>
+                                    <textarea v-model="orderForm.logistics.comentarios_logistica" minlength="10" class="form-input text-red-600 font-medium uppercase" rows="2" required placeholder="NOTAS PARA ALMACÉN..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -108,7 +103,7 @@
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="existente" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
-                                    <span class="text-[11px] font-black text-red-700 uppercase">Buscar</span>
+                                    <span class="text-[11px] font-black text-red-700 uppercase">Mis Receptores</span>
                                 </label>
                                 <label class="flex items-center gap-2 cursor-pointer group">
                                     <input type="radio" value="nuevo" v-model="orderForm.receiverType" class="w-4 h-4 accent-red-600">
@@ -120,11 +115,11 @@
                         <!-- 2.A: BUSCAR RECEPTOR PROPIO -->
                         <div v-if="orderForm.receiverType === 'existente'" class="animate-fade-in space-y-4">
                             <div class="form-group relative">
-                                <label class="label-style">Buscar (Nombre, RFC o Teléfono)</label>
+                                <label class="label-style">Buscar en mi agenda personal (Nombre, RFC o Teléfono)</label>
                                 <div class="relative">
                                     <input 
                                         type="text" 
-                                        class="form-input pl-10 font-bold uppercase border-red-200 lbb" 
+                                        class="form-input pl-10 font-bold uppercase border-red-200" 
                                         v-model="searchReceiverQuery" 
                                         @input="searchExistingReceivers"
                                         placeholder="SOLO REGISTROS PROPIOS..."
@@ -138,20 +133,23 @@
                                         <div class="text-xs font-black text-slate-800 uppercase">{{ rec.nombre }}</div>
                                         <div class="flex gap-4 mt-1">
                                             <span class="text-[8px] font-bold text-red-500 uppercase">RFC: {{ rec.rfc }}</span>
+                                            <span class="text-[8px] font-bold text-slate-400 uppercase">TEL: {{ rec.telefono }}</span>
                                         </div>
                                     </li>
                                 </ul>
+                                <p v-if="searchReceiverQuery.length >= 3 && !receiverSuggestions.length && !searchingExisting" class="text-[9px] font-bold text-slate-400 mt-2 italic">
+                                    * Si el receptor no aparece, es porque pertenece a otro representante.
+                                </p>
                             </div>
                         </div>
 
                         <!-- 2.B: FICHA RESUMEN -->
                         <div v-if="['cliente', 'existente'].includes(orderForm.receiverType)" class="animate-fade-in">
                             <div v-if="activeReceiverDisplay" class="receiver-summary-card shadow-sm border border-red-100 rounded-[2.5rem] p-8 bg-white relative overflow-hidden group">
-                                
                                 <div class="relative z-10 space-y-1">
-                                    <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i>Nombre del Destinatario: <span class="text-black font-black">{{ activeReceiverDisplay.name || activeReceiverDisplay.nombre || activeReceiverDisplay.contacto || activeReceiverDisplay.name }}</span></p>
-                                       
-                                     
+                                    <p class="text-[10px] font-black text-red-400 uppercase tracking-[0.2em] mb-3">Información de Destino Seleccionada</p>
+                                    <h4 class="text-2xl font-black text-black leading-none mb-3 uppercase tracking-tighter">{{ activeReceiverDisplay.nombre || activeReceiverDisplay.contacto || activeReceiverDisplay.name }}</h4>
+                                    
                                     <div class="flex flex-wrap gap-x-8 gap-y-2">
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-id-card mr-2 text-red-300"></i> RFC: <span class="text-black font-black">{{ activeReceiverDisplay.rfc }}</span></p>
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-file-invoice mr-2 text-red-300"></i> Régimen: <span class="text-black font-black">{{ activeReceiverDisplay.regimen_fiscal || activeReceiverDisplay.receiver_regimen_fiscal || 'SIN RÉGIMEN' }}</span></p>
@@ -159,9 +157,9 @@
                                     
                                     <div class="flex flex-wrap gap-x-8 gap-y-2 mt-2">
                                         <p class="text-xs font-bold text-red-600" style="text-transform: none !important;">
-                                            <i class="fas fa-envelope mr-2 text-red-300"></i> Correo Electrónico: <span class="text-black font-black">{{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}</span>
+                                            <i class="fas fa-envelope mr-2 text-red-300"></i> Correo: <span class="text-black font-black">{{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}</span>
                                         </p>
-                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-phone mr-2 text-red-300"></i> Telefono: <span class="text-black font-black">{{ activeReceiverDisplay.telefono || activeReceiverDisplay.phone }}</span></p>
+                                        <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-phone mr-2 text-red-300"></i> Tel: <span class="text-black font-black">{{ activeReceiverDisplay.telefono || activeReceiverDisplay.phone }}</span></p>
                                     </div>
 
                                     <p class="text-xs font-bold text-red-600 uppercase mt-4">
@@ -170,32 +168,11 @@
                                 </div>
                                 <i class="fas fa-user-check absolute -right-6 -bottom-6 text-[10rem] text-red-50/50"></i>
                             </div>
-                            <p v-if="searchReceiverQuery.length >= 3 && !receiverSuggestions.length && !searchingExisting" class="text-[9px] font-bold text-slate-400 mt-2 italic">
-                                    * Si el receptor no aparece, es porque pertenece a otro representante.
-                                </p>
                         </div>
 
                         <!-- 2.C: FORMULARIO MANUAL CON VALIDACIÓN INMEDIATA -->
                         <div v-if="orderForm.receiverType === 'nuevo'" class="animate-fade-in space-y-6 bg-white border border-red-100 p-8 rounded-[3rem] shadow-sm">
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                 <div class="form-group relative">
-                                    <label class="label-style">Nombre de Destinatario *</label>
-                                    <div class="relative">
-                                        <input 
-                                            v-model="orderForm.receiver.persona_recibe" 
-                                            @blur="validateUniqueness('persona_recibe')" 
-                                            @change="validateUniqueness('persona_recibe')"
-                                            type="text" 
-                                            class="form-input font-bold uppercase lbb"
-                                            :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : ''"
-                                            placeholder="NOMBRE COMPLETO" required minlength="5"
-                                        >
-                                        <i v-if="validatingFields.persona_recibe" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
-                                    </div>
-                                    <p v-if="fieldValidation.persona_recibe.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
-                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.persona_recibe.message }}
-                                    </p>
-                                </div>
                                 <div class="form-group relative">
                                     <label class="label-style">RFC *</label>
                                     <div class="relative">
@@ -214,14 +191,32 @@
                                         <i class="fas fa-times-circle"></i> {{ fieldValidation.rfc.message }}
                                     </p>
                                 </div>
-                               
+                                <div class="form-group relative">
+                                    <label class="label-style">Destinatario *</label>
+                                    <div class="relative">
+                                        <input 
+                                            v-model="orderForm.receiver.persona_recibe" 
+                                            @blur="validateUniqueness('persona_recibe')" 
+                                            @change="validateUniqueness('persona_recibe')"
+                                            type="text" 
+                                            class="form-input font-bold uppercase lbb"
+                                            :class="fieldValidation.persona_recibe.error ? 'border-red-600 bg-red-50 text-red-700 ring-2 ring-red-400 ring-offset-1' : ''"
+                                            placeholder="NOMBRE COMPLETO" required minlength="5"
+                                        >
+                                        <i v-if="validatingFields.persona_recibe" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
+                                    </div>
+                                    <p v-if="fieldValidation.persona_recibe.error" class="text-[9px] text-red-600 font-black mt-1 uppercase animate-pulse">
+                                        <i class="fas fa-times-circle"></i> {{ fieldValidation.persona_recibe.message }}
+                                    </p>
+                                </div>
                                 <div class="form-group">
                                     <label class="label-style">Régimen Fiscal *</label>
-                                    <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs text-red-700 uppercase lbb">
+                                    <!-- APLICADO: required para nuevos registros -->
+                                    <select v-model="orderForm.receiver.regimen_fiscal" required class="form-input font-bold text-xs text-red-700 lbb uppercase">
                                         <option value="">SELECCIONAR...</option>
-                                        <option value="601 - GENERAL DE LEY PERSONAS MORALES">601 - GENERAL MORALES</option>
-                                        <option value="612 - PERSONAS FÍSICAS CON ACTIVIDADES EMPRESARIALES Y PROFESIONALES">612 - PF ACT. EMPRESARIAL</option>
-                                        <option value="626 - RÉGIMEN SIMPLIFICADO DE CONFIANZA">626 - RESICO</option>
+                                        <option value="601 - GENERAL MORALES">601 - GENERAL MORALES</option>
+                                        <option value="612 - PF ACT. EMPRESARIAL">612 - PF ACT. EMPRESARIAL</option>
+                                        <option value="626 - RESICO">626 - RESICO</option>
                                     </select>
                                 </div>
                             </div>
@@ -291,78 +286,73 @@
                 </div>
 
                 <!-- 3. SELECCIÓN DE MATERIAL -->
-                <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black">
+                <div class="form-section !overflow-visible shadow-premium border-t-4 border-t-black" :class="{'border-red-500 ring-1 ring-red-100': errors.items}">
                     <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 3. Selección de Material</div>
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end bg-red-50/20 p-6 rounded-[2.5rem] border border-red-100">
                         <div class="md:col-span-2"><label class="label-mini">Tipo</label><select v-model="currentOrderItem.tipo_material" class="form-input font-black uppercase text-[10px] text-red-700 lbb"><option value="promocion">PROMO</option><option value="venta">VENTA</option></select></div>
                         <div class="md:col-span-3 relative">
                             <label class="label-mini">Buscar Libro</label>
-                            <input type="text" class="form-input pr-10 font-bold text-black uppercase lbb" v-model="currentOrderItem.bookName" placeholder="TÍTULO..." @input="searchBooks" autocomplete="off">
+                            <div class="relative">
+                                <input type="text" class="form-input pr-10 font-bold text-black uppercase lbb" v-model="currentOrderItem.bookName" placeholder="TÍTULO..." @input="searchBooks" autocomplete="off">
+                                <i v-if="searchingLibros" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-600"></i>
+                            </div>
                             <ul v-if="currentOrderItem.bookSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
                                 <li v-for="book in currentOrderItem.bookSuggestions" :key="book.id" @click="selectBook(book)" class="p-3 border-b last:border-0 hover:bg-red-50 transition-colors cursor-pointer text-xs font-black uppercase text-black">{{ book.titulo }}</li>
                             </ul>
                         </div>
                         <div class="md:col-span-3"><label class="label-mini">Formato</label><select class="form-input font-bold text-red-700 uppercase text-xs lbb" v-model="currentOrderItem.sub_type" :disabled="!currentOrderItem.bookId"><option value="" disabled>SELECCIONAR...</option><option v-for="opt in availableSubTypes" :key="opt" :value="opt">{{ opt }}</option></select></div>
-                        <div class="md:col-span-1"><label class="label-mini">Cantidad</label><input type="number" min="1" class="form-input font-bold text-red-700 text-center lbb" v-model.number="currentOrderItem.quantity"></div>
-                        <div class="md:col-span-2"><label class="label-mini">Precio Unitario ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700 lbb" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
-                        <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95 lbb"><i class="fas fa-cart-plus"></i>Añadir</button></div>
+                        <div class="md:col-span-1"><label class="label-mini">Cant.</label><input type="number" min="1" class="form-input font-bold text-red-700 lbb" v-model.number="currentOrderItem.quantity"></div>
+                        <div class="md:col-span-2"><label class="label-mini">P. Unitario ($)</label><input type="number" step="0.01" class="form-input font-black text-red-700 disabled:text-slate-400 disabled:bg-slate-100 lbb" v-model.number="currentOrderItem.price" :disabled="currentOrderItem.tipo_material === 'promocion'"></div>
+                        <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95 lbb"><i class="fas fa-cart-plus mr-1"></i>Añadir</button></div>
                     </div>
 
+                    <!-- TABLA DE CARRITO -->
                     <div class="mt-8 overflow-hidden rounded-[2.5rem] border border-red-100 bg-white shadow-premium">
-                        <table class="w-full divide-y divide-red-200">
-                            <thead class="bg-black text-white text-[9px] font-black uppercase tracking-widest">
-                                <tr><th class="px-6 py-5 text-left">Título</th><th class="px-6 py-5 text-center">Tipo</th><th class="px-6 py-5 text-center">Cant.</th><th class="px-6 py-5 text-center">Precio Unitario</th><th class="px-6 py-5 text-right">SubTotal</th><th class="px-6 py-5 w-20"></th></tr>
-                            </thead>
-                            <tbody class="divide-y divide-red-50">
-                                <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-red-50/50 transition-colors group">
-                                    <td class="table-cell">
-                                        <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
-                                        <div class="text-[9px] text-red-500 uppercase font-black mt-1">{{ item.sub_type }}</div>
-                                    </td>
-                                    <td class="table-cell text-center"><span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">{{ item.tipo_material.toUpperCase() }}</span></td>
-                                    <td class="table-cell text-center font-black text-red-800 text-lg">{{ item.quantity }}</td>
-                                    <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
-                                    <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
-                                    <td class="table-cell text-center">
-                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
-                                                </td>
-                                </tr>
-                                <tr v-if="!orderForm.orderItems.length"><td colspan="5" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales seleccionados</td></tr>
-                            </tbody>
-                            <tfoot v-if="orderForm.orderItems.length" class="bg-red-50/30 border-t-2 border-red-100">
-                                <tr>
-                                    <td colspan="2" class="px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">Inversión Total:</td>
-                                    <td class="px-6 py-8 text-center font-black text-red-700 text-2xl border-x border-red-100/50">{{ totalUnits }}</td>
-                                    <td class="px-6 py-8 text-right font-black text-3xl text-red-700 tracking-tighter leading-none">{{ formatCurrency(orderTotal) }}</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- 4. NOTAS ADICIONALES -->
-                <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                    <div class="section-title text-black">
-                        <i class="fas fa-history text-red-700"></i> 4. Comentarios Generales en Pedido (Opcional):
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="form-group">
-                            <textarea v-model="orderForm.comments" class="form-input text-red-600 font-medium uppercase text-xs lbb" rows="3" placeholder="COMENTARIOS PARA ALMACÉN..."></textarea>
+                        <div class="table-responsive border-none">
+                            <table class="min-width-full divide-y divide-red-200">
+                                <thead class="bg-black text-white text-[9px] font-black uppercase tracking-widest">
+                                    <tr><th class="px-6 py-5 text-left">Título</th><th class="px-6 py-5 text-center">Tipo</th><th class="px-6 py-5 text-center">Cant.</th><th class="px-6 py-5 text-right">Total</th><th class="px-6 py-5"></th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-red-50">
+                                    <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-red-50/50 transition-colors group">
+                                        <td class="table-cell">
+                                            <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
+                                            <div class="text-[9px] text-red-500 uppercase font-black tracking-widest mt-1">{{ item.sub_type }}</div>
+                                        </td>
+                                        <td class="table-cell text-center"><span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">{{ item.tipo_material.toUpperCase() }}</span></td>
+                                        <td class="table-cell text-center font-black text-red-800 text-lg">{{ item.quantity }}</td>
+                                        <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
+                                        <td class="table-cell text-center"><button type="button" @click="orderForm.orderItems.splice(index, 1)" class="btn-delete-item lbb"><i class="fas fa-trash-alt mr-1"></i> BORRAR</button></td>
+                                    </tr>
+                                    <tr v-if="!orderForm.orderItems.length"><td colspan="5" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales en la orden</td></tr>
+                                </tbody>
+                                <tfoot v-if="orderForm.orderItems.length" class="bg-red-50/30 border-t-2 border-red-100">
+                                    <tr>
+                                        <td colspan="2" class="px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">Inversión Total:</td>
+                                        <td class="px-6 py-8 text-center font-black text-red-700 text-2xl border-x border-red-100/50">{{ totalUnits }}</td>
+                                        <td class="px-6 py-8 text-right font-black text-3xl text-red-700 tracking-tighter leading-none">{{ formatCurrency(orderTotal) }}</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
                 </div>
 
-             
+                 <div class="form-section shadow-premium border-t-4 border-t-black !overflow-visible">
+                    <div class="section-title text-black"><i class="fas fa-book-open text-red-700"></i> 4. Comentarios Generales del Pedido:</div>
+                    <div class="form-group">
+                        <textarea v-model="orderForm.comments" required minlength="10" class="form-input text-red-600 font-medium uppercase lbb" rows="3" placeholder="NOTAS ADICIONALES PARA ALMACÉN..."></textarea>
+                    </div>
+                </div>
 
                 <div class="mt-12 flex justify-end">
                     <button type="submit" class="btn-primary px-20 py-6 text-lg font-black tracking-widest shadow-2xl transition-all active:scale-95 disabled:opacity-50 disabled:grayscale lbb" :disabled="loading || isFormBlockedByDuplicates">
-                        <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-save mr-3'"></i> GUARDAR ACTUALIZACIÓN
+                        <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-paper-plane mr-3'"></i> GENERAR PEDIDO
                     </button>
                 </div>
             </form>
         </div>
-
 
         <!-- MODALES DE SISTEMA -->
         <Teleport to="body">

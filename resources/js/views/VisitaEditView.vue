@@ -220,7 +220,7 @@
                                                     </select>
                                                 </td>
                                                 <td class="table-cell text-center">
-                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
+                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
                                                 </td>
                                             </tr>
                                         </tbody>

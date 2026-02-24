@@ -324,7 +324,7 @@
                                     <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
                                     <td class="table-cell text-right font-black text-red-700 text-sm">{{ formatCurrency(item.totalCost) }}</td>
                                     <td class="table-cell text-center">
-                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
+                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
                                                 </td>
                                 </tr>
                                 <tr v-if="!orderForm.orderItems.length"><td colspan="5" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales seleccionados</td></tr>
