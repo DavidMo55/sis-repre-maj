@@ -127,6 +127,7 @@
                                                     <th class="px-4 md:px-6 py-5 text-center w-40">Comprobante</th>
                                                     <th class="px-4 md:px-6 py-5 text-right w-32">Monto</th>
                                                     <th class="px-4 md:px-6 py-5 text-center w-32">Facturado</th>
+                                                        <th class="px-4 md:px-6 py-5 text-center w-20"></th>
                                                 </tr>
                                             </thead>
 
@@ -194,6 +195,17 @@
                                                             <option :value="false">S/F</option>
                                                         </select>
                                                     </td>
+
+                                                    <td class="table-cell text-center">
+                                                        <button 
+                                                            type="button" 
+                                                            @click="confirmDeleteConcept(item.localId)" 
+                                                            class="btn-secondary mx-auto flex items-center gap-1 !py-2 !px-3" 
+                                                        >
+                                                            <i class="fas fa-trash-alt text-[10px]"></i>
+                                                            <span class="text-[9px]">QUITAR</span>
+                                                        </button>
+                                                    </td>
                                                 </tr>
 
                                                 <tr v-if="subExpenses.length === 0">
@@ -210,8 +222,11 @@
                                                         </div>
                                                     </td>
                                                     <td></td>
+
+                                                    
                                                 </tr>
                                             </tfoot>
+                                             
                                         </table>
                                     </div>
                                 </div>

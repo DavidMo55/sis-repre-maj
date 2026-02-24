@@ -104,6 +104,7 @@
                                     <th class="table-header-dark text-center">Comprobante</th>
                                     <th class="table-header-dark text-center">Facturado</th>
                                     <th class="table-header-dark text-right">Monto</th>
+                                    <th class="table-header-dark text-center"></th>
                                 </tr>
                             </thead>
 
@@ -143,7 +144,12 @@
                                     <td class="table-cell block md:table-cell text-left md:text-right font-black text-red-700 text-lg md:text-base">
                                         ${{ item.monto.toFixed(2) }}
                                     </td>
-
+                                         <td class="table-cell block md:table-cell text-center absolute top-5 right-5 md:static">
+                                        <button type="button" @click="removeSubExpense(index)" 
+                                            class="btn-delete-action">
+                                            <i class="fas fa-trash-alt"></i> <span class="hidden md:inline ml-1">Borrar</span>
+                                        </button>
+                                    </td>
                                     
                                 </tr>
 
