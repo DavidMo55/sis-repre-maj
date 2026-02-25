@@ -152,35 +152,6 @@
                     </div>
                 </div>
 
-                <!-- Historial de Ajustes -->
-                <div v-if="gasto.logs && gasto.logs.length > 0" class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden mt-16 animate-fade-in">
-                    <div class="p-8 border-b border-slate-50 flex items-center justify-between">
-                        <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">Bitácora de Ajustes Técnicos</h2>
-                        <span class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">{{ gasto.logs.length }} MODIFICACIONES</span>
-                    </div>
-                    <div class="p-8 pt-0">
-                        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden bg-white">
-                            <table class="min-width-full divide-y divide-gray-200">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="table-header text-center w-24">ID</th>
-                                        <th class="table-header">Motivo</th>
-                                        <th class="table-header w-56">Responsable</th>
-                                        <th class="table-header text-right w-48">Sincronización</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    <tr v-for="(log, index) in gasto.logs" :key="log.id">
-                                        <td class="table-cell text-center font-black text-slate-300">{{ gasto.logs.length - index }}</td>
-                                        <td class="table-cell text-[11px] font-bold text-slate-700 italic uppercase">"{{ log.motivo_cambio }}"</td>
-                                        <td class="table-cell text-[11px] font-black uppercase">{{ log.user?.name }}</td>
-                                        <td class="table-cell text-right font-black text-[11px] uppercase">{{ formatDateOnly(log.created_at) }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- 3. OBSERVACIONES ORIGINALES -->

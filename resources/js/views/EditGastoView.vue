@@ -94,7 +94,7 @@
                                     </div>
                                     <br/><br/>
                                     <div class="sm:col-span-6 lg:col-span-4">
-                                        <label class="label-mini uppercase text-red-600">Comprobante *</label>
+                                        <label class="label-mini uppercase text-red-600">Subir Comprobante *</label>
                                         <div class="relative">
                                             <br/><br/>
                                             <input type="file" ref="lineFileInput" @change="handleLineFileSelect" class="hidden" accept=".jpg,.jpeg,.png,.pdf">
@@ -111,130 +111,109 @@
 
                                     <br/><br/>
                                     <button type="button" @click="addSubExpense" class="btn-primary w-full sm:w-auto py-3.5 px-10 rounded-2xl flex items-center justify-center gap-2 text-xs uppercase font-black tracking-widest shadow-lg" :disabled="!isLineValid">
-                                        <i class="fas fa-plus"></i> Añadir Gasto
+                                        <i class="fas fa-plus"></i> Añadir al Paquete
                                     </button>
                                 </div>
                             </div>
                             <br/><br/>
-                            <!-- TABLA DE REVISIÓN Y EDICIÓN -->
+                           <!-- TABLA DE REVISIÓN CORREGIDA (RESPONSIVA) -->
                             <div class="mt-8 overflow-hidden rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-200 bg-white shadow-premium">
-                                <div class="overflow-x-auto scrollbar-thin">
-                                    <div class="w-full">
-                                        <table class="w-full text-sm border-collapse">
-                                            <thead class="bg-slate-900 text-white">
-                                                <tr class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                                    <th class="px-4 md:px-6 py-5 text-left">N</th>
-                                                    <th class="px-4 md:px-6 py-5 text-left">Concepto/Descripción</th>
-                                                    <th class="px-4 md:px-6 py-5 text-center w-40">Comprobante</th>
-                                                    <th class="px-4 md:px-6 py-5 text-right w-32">Monto</th>
-                                                    <th class="px-4 md:px-6 py-5 text-center w-32">Facturado</th>
-                                                        <th class="px-4 md:px-6 py-5 text-center w-20"></th>
-                                                </tr>
-                                            </thead>
+                                <div class="table-responsive">
+                                    <table class="w-full text-sm border-collapse responsive-table">
+                                        <thead class="bg-slate-900 text-white hidden md:table-header-group">
+                                            <tr class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                                <th class="px-6 py-5 text-left w-16">N</th>
+                                                <th class="px-6 py-5 text-left">Concepto / Descripción</th>
+                                                <th class="px-6 py-5 text-center w-40">Comprobante</th>
+                                                <th class="px-6 py-5 text-right w-32">Monto</th>
+                                                <th class="px-6 py-5 text-center w-32">Factura</th>
+                                                <th class="px-6 py-5 w-16"></th>
+                                            </tr>
+                                        </thead>
 
-                                            <tbody class="bg-white divide-y divide-gray-100">
-                                                <tr v-for="(item, index) in subExpenses" :key="item.localId" 
-                                                    class="hover:bg-slate-50/50 transition-colors group animate-fade-in">
-                                                    <td class="table-cell">
-                                                         <div class="hidden md:flex w-7 h-7 bg-slate-100 text-slate-500 rounded-lg items-center justify-center font-black text-[9px] shrink-0">
-                                                                {{ index + 1 }}
-                                                            </div>
-                                                    </td>
-                                                    <td class="table-cell">
-                                                        <div class="flex items-center gap-3">
-                                                           
-                                                            <div class="min-w-0 flex-1 space-y-1.5">
-                                                                <select v-model="item.concepto" class="status-select-mini form-input !text-[10px] !py-1.5 w-full uppercase border-none focus:ring-0">
-                                                                    <option value="Gasolina">Gasolina</option>
-                                                                    <option value="Peaje">Peaje</option>
-                                                                    <option value="Alimentación">Alimentación</option>
-                                                                    <option value="Hospedaje">Hospedaje</option>
-                                                                    <option value="Mantenimiento">Mantenimiento</option>
-                                                                    <option value="Papelería ">Papelería</option>
-                                                                    <option value="Otros">Otros</option>
-                                                                </select>
-                                                                <br/>
-                                                                <input 
-                                                                    v-model="item.descripcion_otros" 
-                                                                    type="text" 
-                                                                    class="edit-inline-input form-input text-[10px]" 
-                                                                    placeholder="Descripción..."
-                                                                    required minlength="10" 
-                                                                >
-                                                            </div>
-                                                        </div>
-                                                    </td>
+                                        <tbody class="divide-y divide-gray-100 block md:table-row-group">
+                                            <tr v-for="(item, index) in subExpenses" :key="item.localId" 
+                                                class="hover:bg-slate-50/50 transition-colors group animate-fade-in block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                                                
+                                                <td class="table-cell hidden md:table-cell text-center">
+                                                    <div class="flex w-7 h-7 bg-slate-100 text-slate-500 rounded-lg items-center justify-center mx-auto font-black text-[9px] shrink-0">
+                                                        {{ index + 1 }}
+                                                    </div>
+                                                </td>
 
-                                                    <td class="table-cell text-center">
-                                                        <div class="flex flex-col items-center gap-1.5">
-                                                            <!-- MEJORA VISUAL DE DOCUMENTO -->
-                                                            <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl max-w-[140px] border-2 transition-all" 
-                                                                :class="[
-                                                                    item.file ? 'border-green-400 bg-green-50 text-green-700' : 
-                                                                    (item.hasCloudFile ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-red-500 bg-red-50 text-red-600 animate-pulse')
-                                                                ]">
-                                                                <i v-if="item.file" class="fas fa-check-circle text-[10px]"></i>
-                                                                <i v-else-if="item.hasCloudFile" class="fas fa-cloud text-slate-400 text-[10px]"></i>
-                                                                <i v-else class="fas fa-exclamation-circle text-[10px]"></i>
-                                                                
-                                                                <span class="text-[9px] font-black truncate uppercase tracking-tighter">
-                                                                    {{ item.file ? 'ADJUNTO' : (item.hasCloudFile ? 'Documento Adjunto' : 'FALTANTE') }}
-                                                                    {{ item.file ? '' : (item.hasCloudFile ? '' : '- Requerido') }}
-                                                                </span>
-                                                            </div>  
-                                                       
-                                                       </div>
-                                                    </td>
-                                                    <td class="table-cell text-right font-black text-red-700">
-                                                        <div class="flex items-center justify-end">
-                                                            <span class="text-[10px] mr-1 opacity-50">$</span>
-                                                            <input v-model.number="item.monto" type="number" step="0.01" class="edit-inline-input form-input w-24 text-right pr-0 border-b-slate-100">
-                                                        </div>
-                                                    </td>
-
-                                                    <td class="table-cell text-center">
-                                                        <select v-model="item.es_facturado" class="status-select-mini form-input !text-[9px]" :class="item.es_facturado ? 'text-green-700 font-black' : 'text-slate-400'">
-                                                            <option :value="true">FACTURADO</option>
-                                                            <option :value="false">S/F</option>
+                                                <td class="table-cell  block md:table-cell" data-label="CONCEPTO / DESCRIPCIÓN">
+                                                    <div class="space-y-1.5 ">
+                                                        <select v-model="item.concepto" class="status-select-mini form-input  w-full uppercase lbb !bg-white md:!bg-slate-50">
+                                                            <option value="Gasolina">Gasolina</option>
+                                                            <option value="Peaje">Peaje</option>
+                                                            <option value="Alimentación">Alimentación</option>
+                                                            <option value="Hospedaje">Hospedaje</option>
+                                                            <option value="Mantenimiento">Mantenimiento</option>
+                                                            <option value="Papelería">Papelería</option>
+                                                            <option value="Otros">Otros</option>
                                                         </select>
-                                                    </td>
+                                                        <br>
+                                                        <input v-model="item.descripcion_otros" type="text" class="edit-inline-input form-input  w-full" placeholder="Descripción obligatoria..." required minlength="10">
+                                                    </div>
+                                                </td>
 
-                                                    <td class="table-cell text-center">
-                                                        <button 
-                                                            type="button" 
-                                                            @click="confirmDeleteConcept(item.localId)" 
-                                                            class="btn-secondary mx-auto flex items-center gap-1 !py-2 !px-3" 
-                                                        >
-                                                            <i class="fas fa-trash-alt text-[10px]"></i>
-                                                            <span class="text-[9px]">QUITAR</span>
-                                                        </button>
-                                                    </td>
-                                                </tr>
+                                                <td class="table-cell block md:table-cell text-left md:text-center" data-label="ESTADO COMPROBANTE">
+                                                    <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all w-full md:w-auto" 
+                                                        :class="[
+                                                            item.file ? 'border-green-400 bg-green-50 text-green-700' : 
+                                                            (item.hasCloudFile ? 'border-slate-200 bg-slate-50 text-slate-500' : 'border-red-500 bg-red-50 text-red-600 animate-pulse')
+                                                        ]">
+                                                        <i v-if="item.file" class="fas fa-check-circle"></i>
+                                                        <i v-else-if="item.hasCloudFile" class="fas fa-cloud"></i>
+                                                        <i v-else class="fas fa-exclamation-circle"></i>
+                                                        <span class="text-[9px] font-black truncate uppercase tracking-tighter">
+                                                            {{ item.file ? 'DOCUMENTO ADJUNTO' : (item.hasCloudFile ? 'DOCUMENTO ADJUNTO' : 'FALTANTE') }}
+                                                        </span>
+                                                    </div>  
+                                                </td>
 
-                                                <tr v-if="subExpenses.length === 0">
-                                                    <td colspan="5" class="px-6 py-16 text-center italic font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">Sin conceptos registrados</td>
-                                                </tr>
-                                            </tbody>
+                                                <td class="table-cell block md:table-cell text-left md:text-right" data-label="MONTO ($)">
+                                                    <div class="flex items-center justify-start md:justify-end">
+                                                        <span class="text-[10px] mr-1 opacity-50 font-black md:hidden">$</span>
+                                                        <input v-model.number="item.monto" type="number" step="0.01" class="edit-inline-input form-input  w-full md:w-24 text-left md:text-right font-black !text-red-700 md:!text-slate-800">
+                                                    </div>
+                                                </td>
 
-                                            <tfoot v-if="subExpenses.length > 0" class="bg-slate-900 text-white">
-                                                <tr>
-                                                    <td colspan="3" class="px-6 py-6 text-right uppercase font-black text-slate-500 text-[10px] tracking-[0.2em]">Total Actualizado:</td>
-                                                    <td class="px-6 py-6 text-right">
-                                                        <div class="text-xl font-black text-red-400 leading-none">
-                                                            <span class="text-xs opacity-60">$</span>{{ totalMonto.toFixed(2) }}
-                                                        </div>
-                                                    </td>
-                                                    <td></td>
+                                                <td class="table-cell block md:table-cell text-left md:text-center" data-label="¿FISCAL?">
+                                                    <select v-model="item.es_facturado" class="status-select-mini form-input  !text-[9px] w-full md:w-auto" :class="item.es_facturado ? 'text-green-700 font-black' : 'text-slate-400'">
+                                                        <option :value="true">FACTURADO</option>
+                                                        <option :value="false">SIN FACTURA</option>
+                                                    </select>
+                                                </td>
 
-                                                    
-                                                </tr>
-                                            </tfoot>
-                                             
-                                        </table>
-                                    </div>
+                                                <td class="table-cell block md:table-cell text-center absolute top-5 right-5 md:static">
+                                                    <button type="button" @click="confirmDeleteConcept(item.localId)" class="btn-secondary">
+                                                        <i class="fas fa-trash-alt"></i>Quitar
+                                                    </button>
+                                                </td>
+                                            </tr>
+
+                                            <tr v-if="subExpenses.length === 0">
+                                                <td colspan="6" class="px-6 py-16 text-center italic font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">Sin conceptos registrados</td>
+                                            </tr>
+                                        </tbody>
+
+                                        <tfoot v-if="subExpenses.length > 0" class="bg-slate-900 text-white block md:table-footer-group">
+                                            <tr class="flex flex-col md:table-row p-6 md:p-0">
+                                                <td colspan="3" class="hidden md:table-cell px-6 py-6 text-right uppercase font-black text-slate-500 text-[10px] tracking-[0.2em]">Total:</td>
+                                                <td class="px-6 py-6 text-center md:text-right border-x border-white/5">
+                                                    <div class="text-3xl md:text-xl font-black text-red-400 leading-none">
+                                                        <span class="text-xs opacity-60">$</span>{{ totalMonto.toFixed(2) }}
+                                                    </div>
+                                                </td>
+                                                <td class="hidden md:table-cell" colspan="2"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
                                 </div>
                             </div>
                         </div>
+                    
                     </div>
 
                     <div class="form-section shadow-premium lg:sticky lg:top-28 bg-slate-900 text-white border-none p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem]">
@@ -266,13 +245,13 @@
                                 </div>
 
                                 <div class="space-y-4">
-                                    <button type="button" @click="handleFinalSubmit('FINALIZADO')" class="btn-primary w-full py-5 rounded-[2rem] text-sm font-black tracking-widest uppercase shadow-2xl transition-all flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0 || !allFilesPresent">
+                                    <button type="button" @click="handleFinalSubmit('FINALIZADO')" class="btn-secondary w-full py-5 rounded-[2rem] text-sm font-black tracking-widest uppercase shadow-2xl transition-all flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0 || !allFilesPresent">
                                         <i v-if="loading && form.status === 'FINALIZADO'" class="fas fa-spinner fa-spin"></i>
                                         <i v-else class="fas fa-check-double"></i>
                                         {{ (loading && form.status === 'FINALIZADO') ? 'ENVIANDO...' : 'Finalizar' }}
                                     </button>
 
-                                    <button type="button" @click="handleFinalSubmit('BORRADOR')" class="w-full btn-secondary py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase transition-all bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0 || !allFilesPresent">
+                                    <button type="button" @click="handleFinalSubmit('BORRADOR')" class="w-full btn-primary py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase transition-all bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0 || !allFilesPresent">
                                         <i v-if="loading && form.status === 'BORRADOR'" class="fas fa-spinner fa-spin"></i>
                                         <i v-else class="fas fa-save"></i>
                                         {{ (loading && form.status === 'BORRADOR') ? 'GUARDANDO...' : 'Borrador' }}
@@ -652,5 +631,35 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 
 .bgcolor { background: #fef2f2; border: 1px solid #fee2e2; padding: 16px; }
 
+@media (max-width: 768px) {
+    .responsive-table { display: block; border: none; }
+    .responsive-table thead { display: none; } 
+    .responsive-table tbody { display: block; }
+    .responsive-table tr { 
+        display: block; 
+        margin-bottom: 1.5rem; 
+        border: 1px solid #f1f5f9; 
+        border-radius: 20px; 
+        padding: 15px;
+        background: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .responsive-table td { 
+        display: flex; 
+        flex-direction: column; 
+        padding: 8px 0; 
+        border: none;
+        text-align: left !important;
+    }
+    .responsive-table td::before {
+        content: attr(data-label);
+        font-size: 8px;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #94a3b8;
+        margin-bottom: 4px;
+        letter-spacing: 0.1em;
+    }
+}
 
 </style>

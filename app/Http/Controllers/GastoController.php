@@ -188,7 +188,7 @@ class GastoController extends Controller
     }
 
     /**
-     * Actualización con Regla de Única Modificación y Validación Condicional.
+     * Actualización con Regla de Auditoría Selectiva.
      */
     public function update(Request $request, $id)
     {
@@ -208,11 +208,10 @@ class GastoController extends Controller
 
         /**
          * REGLA DE ORO: 
-         * El motivo solo se exige si el usuario intenta FINALIZAR un paquete
-         * que ya tenía el estatus de FINALIZADO anteriormente.
-         * Si se guarda como BORRADOR, no es obligatorio.
+         * Solo se exige el motivo si el paquete ACTUALMENTE en la DB es FINALIZADO.
+         * Si es un BORRADOR, no importa a qué estado pase, no requiere motivo.
          */
-        if ($request->status === 'FINALIZADO' && $gasto->status === 'FINALIZADO') {
+        if ($gasto->status === 'FINALIZADO') {
             $rules['motivo_cambio'] = 'required|string|min:10';
         } else {
             $rules['motivo_cambio'] = 'nullable|string';
@@ -221,6 +220,7 @@ class GastoController extends Controller
         $request->validate($rules);
 
         try {
+            // Bloqueo de seguridad: si ya se modificó una vez después de finalizar, no permitir más.
             if ($gasto->status === 'FINALIZADO' && $gasto->modificaciones_finalizadas >= 1) {
                 return response()->json([
                     'message' => 'Este expediente ya cuenta con un ajuste único posterior a su cierre y se encuentra bloqueado.'
@@ -230,21 +230,24 @@ class GastoController extends Controller
             return DB::transaction(function () use ($gasto, $request) {
                 $oldDetails = $gasto->detalles;
 
-                // Solo incrementamos contador si el paquete ya estaba finalizado y se vuelve a finalizar
-                if ($gasto->status === 'FINALIZADO' && $request->status === 'FINALIZADO') {
+                /**
+                 * REGLA: Solo generar LOG si el paquete ya estaba FINALIZADO.
+                 * Si es borrador, se sobreescribe sin generar auditoría de cambio.
+                 */
+                if ($gasto->status === 'FINALIZADO') {
+                    GastoLog::create([
+                        'gasto_id' => $gasto->id,
+                        'user_id' => Auth::id(),
+                        'snapshot_anterior' => [
+                            'cabecera' => $gasto->makeHidden(['detalles', 'comprobantes', 'logs'])->toArray(),
+                            'detalles' => $oldDetails
+                        ],
+                        'motivo_cambio' => strtoupper($request->motivo_cambio)
+                    ]);
+
+                    // Incrementamos el contador de modificaciones de paquetes cerrados
                     $gasto->modificaciones_finalizadas += 1;
                 }
-
-                // Registro de Log de Auditoría
-                GastoLog::create([
-                    'gasto_id' => $gasto->id,
-                    'user_id' => Auth::id(),
-                    'snapshot_anterior' => [
-                        'cabecera' => $gasto->makeHidden(['detalles', 'comprobantes', 'logs'])->toArray(),
-                        'detalles' => $oldDetails
-                    ],
-                    'motivo_cambio' => $request->motivo_cambio ? strtoupper($request->motivo_cambio) : 'CAMBIO GUARDADO COMO BORRADOR'
-                ]);
 
                 $tieneFactura = collect($request->conceptos)->contains('es_facturado', true);
 
@@ -258,7 +261,7 @@ class GastoController extends Controller
                     'modificaciones_finalizadas' => $gasto->modificaciones_finalizadas
                 ]);
 
-                return response()->json(['message' => 'Expediente actualizado y auditado correctamente.', 'gasto' => $gasto]);
+                return response()->json(['message' => 'Expediente actualizado correctamente.', 'gasto' => $gasto]);
             });
         } catch (\Exception $e) {
             Log::error('Error al actualizar gasto:', ['error' => $e->getMessage()]);
@@ -278,6 +281,7 @@ class GastoController extends Controller
             $gasto = Gasto::with('comprobantes')->where('id', $id)->where('user_id', $ownerId)->firstOrFail();
 
             return DB::transaction(function () use ($gasto, $request) {
+                // Registro de eliminación siempre genera log (opcional, según tu política)
                 GastoLog::create([
                     'gasto_id' => $gasto->id,
                     'user_id' => Auth::id(),

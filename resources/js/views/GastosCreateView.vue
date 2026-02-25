@@ -207,15 +207,15 @@
                             </div>
 
                                 <div class="space-y-4">
-                                    <button type="button" @click="handleFinalSubmit('BORRADOR')" class="w-full btn-secondary py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase transition-all bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
+                                    <button type="button" @click="handleFinalSubmit('BORRADOR')" class="w-full btn-primary py-4 rounded-2xl text-[11px] font-black tracking-[0.2em] uppercase transition-all bg-white/10 hover:bg-white/20 text-white border border-white/10 flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
                                         <i v-if="loading && form.status === 'BORRADOR'" class="fas fa-spinner fa-spin"></i>
                                         <i v-else class="fas fa-save"></i>
-                                        {{ (loading && form.status === 'BORRADOR') ? 'Guardando...' : 'Guardar como Borrador' }}
+                                        {{ (loading && form.status === 'BORRADOR') ? 'Guardando...' : 'Borrador' }}
                                     </button>
-                                    <button type="button" @click="handleFinalSubmit('FINALIZADO')" class="btn-primary w-full py-5 rounded-[2rem] text-sm font-black tracking-widest uppercase shadow-2xl transition-all flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
+                                    <button type="button" @click="handleFinalSubmit('FINALIZADO')" class="btn-secondary w-full py-5 rounded-[2rem] text-sm font-black tracking-widest uppercase shadow-2xl transition-all flex items-center justify-center gap-3" :disabled="loading || subExpenses.length === 0">
                                         <i v-if="loading && form.status === 'FINALIZADO'" class="fas fa-spinner fa-spin"></i>
                                         <i v-else class="fas fa-paper-plane"></i>
-                                        {{ (loading && form.status === 'FINALIZADO') ? 'Enviando...' : 'Finalizar y Postear' }}
+                                        {{ (loading && form.status === 'FINALIZADO') ? 'Enviando...' : 'Finalizar' }}
                                     </button>
 
                                     
