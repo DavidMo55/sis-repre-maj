@@ -32,9 +32,8 @@
                     
                     <!-- BLOQUE 1: DATOS DEL PLANTEL (IDENTIDAD) -->
                     <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                        <div class="section-title text-black">
-                            <i class="fas fa-school text-red-700"></i> 1. Identidad del Plantel
-                            <span v-if="selectedCliente" class="ml-auto text-[8px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-black uppercase tracking-widest">Expediente Protegido</span>
+                        <div class="section-title label-large text-black">
+                            <i class="fas fa-school text-red-700"></i> 1. DATOS DEL PLANTEL
                         </div>
                         
                         <!-- BUSCADOR (Solo si no viene de una precarga) -->
@@ -60,82 +59,29 @@
                                 <label class="label-style">Nombre del Plantel</label>
                                 <input v-model="form.plantel.name" type="text" class="form-input font-black bg-slate-50 border-slate-100 uppercase" disabled>
                             </div>
-                            
-                            <div class="form-group">
-                                <label class="label-style">RFC del Plantel</label>
-                                <input v-model="form.plantel.rfc" type="text" class="form-input font-mono font-black bg-slate-50 border-slate-100 uppercase" disabled>
-                            </div>
 
-                            <div class="form-group">
-                                <label class="label-style">Estado / Región</label>
-                                <select v-model="form.plantel.estado_id" class="form-input font-bold bg-slate-50 border-slate-100 uppercase" disabled>
+                        </div>
+  
+                        <div class="form-group mb-6">
+                            <label class="label-style">Dirección Completa</label>
+                            <select v-model="form.plantel.estado_id" class="form-input font-bold bg-slate-50 border-slate-100 uppercase" disabled>
                                     <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
                                 </select>
-                            </div>
-                        </div>
-
-                       <!-- GPS REQUERIDO -->
-                        <div class="p-6 rounded-[2rem] border transition-all duration-300 mb-6 shadow-sm"
-                             :class="{
-                                 'border-red-600 bg-red-50 ring-4 ring-red-100': attemptedSubmit && !form.plantel.latitud,
-                                 'border-blue-100 bg-blue-50/20': !attemptedSubmit || form.plantel.latitud
-                             }">
-                            <div class="flex items-center justify-between mb-4">
-                                <label class="text-[10px] font-black uppercase tracking-[0.2em]" 
-                                       :class="attemptedSubmit && !form.plantel.latitud ? 'text-red-700' : 'text-blue-800'">
-                                    <i class="fas fa-map-marker-alt mr-1"></i> Ubicación Geográfica*
-                                </label>
-                                <span v-if="form.plantel.latitud" class="text-[9px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-black uppercase shadow-sm">✓ Coordenadas Capturadas</span>
-                                <span v-else-if="attemptedSubmit" class="text-[9px] bg-red-600 text-white px-3 py-1 rounded-full font-black uppercase animate-bounce">Requerido</span>
-                            </div>
-                            <br>
-                        
-                        </div>
-
-
-                        <!-- NIVELES: SÓLO LECTURA -->
-                        <div class="form-group mb-6">
-                            <label class="label-style">Niveles Educativos Registrados</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <label v-for="nivel in nivelesCatalog" :key="nivel.id" 
-                                    class="flex items-center gap-3 p-3 border-2 rounded-2xl transition-all shadow-sm"
-                                    :class="form.plantel.niveles.includes(nivel.id) ? 'border-red-600 bg-red-50/30' : 'border-slate-50 bg-slate-50/30 opacity-60'"
-                                >
-                                    <input type="checkbox" :value="nivel.id" v-model="form.plantel.niveles" class="w-4 h-4 accent-red-600" disabled>
-                                    <span class="text-[10px] font-black uppercase text-slate-700 leading-none">{{ nivel.nombre }}</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="form-group mb-6">
-                            <label class="label-style">Dirección Registrada</label>
                             <textarea v-model="form.plantel.direccion" class="form-input font-medium bg-slate-50 border-slate-100 uppercase lbb" rows="2" disabled></textarea>
+                            
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div class="form-group">
-                                <label class="label-style">Teléfono</label>
-                                <input v-model="form.plantel.telefono" type="text" class="form-input font-bold bg-slate-50 border-slate-100" disabled>
-                            </div>
-                            <div class="form-group">
-                                <label class="label-style">Correo Electrónico</label>
-                                <input v-model="form.plantel.email" type="text" class="form-input font-bold bg-slate-50 border-slate-100" style="text-transform: lowercase !important;" disabled>
-                            </div>
-                        </div>
-
                         <!-- CAMPO EDITABLE: DIRECTOR / COORDINADOR -->
                         <div class="form-group mt-6 p-6 bg-red-50/30 rounded-[2rem] border-2 border-red-100">
-                            <label class="label-style !text-red-700">Director / Coordinador General *</label>
-                            <input v-model="form.plantel.director" type="text" class="form-input font-black uppercase lbb" placeholder="NOMBRE DEL TITULAR" required minlength="3" :disabled="loading">
-                            <p class="text-[8px] text-red-400 mt-2 italic font-bold tracking-widest uppercase">* ESTE CAMPO ES EL ÚNICO MODIFICABLE DE LA IDENTIDAD.</p>
-                        </div>
+                            <label class="label-style !text-red-700">Nombre del Director / Coordinador *</label>
+                            <input v-model="form.plantel.director" type="text" class="form-input font-black uppercase lbb" placeholder="NOMBRE DEL TITULAR" disabled>
+                       </div>
                     </div>
 
                     <!-- BLOQUE 2: DETALLES DE LA NUEVA VISITA -->
                     <div class="space-y-8">
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                            <div class="section-title text-black">
-                                <i class="fas fa-calendar-plus text-slate-800"></i> 2. Detalles de la Interacción
+                            <div class="section-title  label-large text-black">
+                                <i class="fas fa-calendar-plus  text-slate-800"></i> 2. Detalles de la Interacción
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -150,7 +96,7 @@
                             </div>
 
                             <div class="form-group mb-6">
-                                <label class="label-style">Cargo / Puesto de la Persona *</label>
+                                <label class="label-style">Cargo / Puesto *</label>
                                 <select v-model="form.visita.cargo" class="form-input font-bold uppercase lbb" required :disabled="loading">
                                     <option value="Director/Coordinador">Director/Coordinador</option>
                                     <option value="Subdirector">Subdirector</option>
@@ -169,10 +115,10 @@
                         <!-- APARTADO A: LIBROS DE INTERÉS (OPCIONAL) -->
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative lbb" style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter uppercase">
-                                    <i class="fas fa-eye mr-1 text-blue-500"></i> Libros de Interés
+                                <label class="label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
+                                    <i class="fas fa-eye mr-1 text-blue-500"></i> 3.  Libros de Interés
                                 </label>
-                                
+                                <label class="label-mini uppercase lbb">Buscar Libros de Interes</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 lbb">
                                     <div class="form-group">
                                         <select v-model="selectedSerieIdA" class="form-input font-bold text-xs lbb" @change="handleSerieChange('interest')">
@@ -234,8 +180,9 @@
                         <!-- APARTADO B: PROMOCIÓN (OPCIONAL) -->
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative lbb" style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-red-800 font-black tracking-tighter uppercase"><i class="fas fa-box-open mr-1"></i> Muestras Entregadas (Opcional)</label>
-                                
+                                <label class="label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
+                                    <i class="fas fa-eye mr-1 text-blue-500"></i> 4.  MUESTRAS DE PROMOCIÓN ENTREGADAS,
+                                </label>
                                 <div class="form-group relative mb-4 lbb">
                                     <label class="label-mini uppercase lbb">Buscar Muestra de promocion</label>
                                     <div class="relative lbb">
@@ -266,6 +213,9 @@
                                                         <div class="text-[8px] font-black text-red-400 uppercase mt-1 lbb">{{ item.serie_nombre }}</div>
                                                     </td>
                                                     <td class="table-cell text-center lbb"><input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center lbb" /></td>
+                                                    <td class="table-cell text-center">
+                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-icon-delete-simple"><i class="fas fa-trash-alt"></i></button>
+                                                    </td>
                                                  </tr>
                                             </tbody>
                                         </table>
@@ -640,6 +590,7 @@ onMounted(async () => {
 
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.label-large { display: block; font-size: 0.79rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 
 select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
 

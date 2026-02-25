@@ -155,9 +155,11 @@
                                     </div>
                                     
                                     <div class="flex flex-wrap gap-x-8 gap-y-2 mt-2">
-                                        <p class="text-xs font-bold text-red-600" style="text-transform: none !important;">
-                                            <i class="fas fa-envelope mr-2 text-red-300"></i> CORREO ElECTRONICO: <span class="text-black font-black">{{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}</span>
-                                        </p>
+                                     
+                                        <label class="label-mini label-large text-red-600">Correo Electrónico</label>
+                                <p class="text-xs font-bold text-slate-800 value-text truncate lowercase" style="text-transform: none !important;">
+                                    <i class="fas fa-envelope mr-1 text-red-300"></i>
+                               {{ (activeReceiverDisplay.correo || activeReceiverDisplay.email || '').toLowerCase() }}  </p>
                                         <p class="text-xs font-bold text-red-600 uppercase"><i class="fas fa-phone mr-2 text-red-300"></i> Telefono: <span class="text-black font-black">{{ activeReceiverDisplay.telefono || activeReceiverDisplay.phone }}</span></p>
                                     </div>
 
@@ -525,6 +527,9 @@ const selectExistingReceiver = (rec) => {
     searchReceiverQuery.value = rec.nombre;
 };
 
+const props = defineProps({
+    activeReceiverDisplay: Object
+});
 /**
  * VALIDACIÓN GLOBAL DE UNICIDAD PROACTIVA
  */

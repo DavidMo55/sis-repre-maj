@@ -123,15 +123,19 @@
                             <i class="fas fa-box-open text-red-700"></i> 3. Estatus de envio
                         </div>
                         <div class="space-y-6">
-                            <div>
-                                <label class="label-mini label-large">Estatus del pedido</label>
+                            <div class="bg-red-50/30 p-4 rounded-2xl border border-red-100">
+                                    <label class="label-mini label-large">Método de Envío</label>
+                                    <span class="text-xs font-black text-red-700 value-text uppercase block">{{ getDeliveryOption(pedido.delivery_option) }}</span>
+                                </div>
+                            
+
+                            <div class="grid grid-cols-1 gap-4">
+                               <div>
+                                <label class="label-mini label-large">Estado de la Orden</label>
                                 <span :class="getStatusClass(pedido.status)" class="status-badge w-full text-center value-text py-2.5 shadow-sm rounded-xl">
                                     {{ pedido.status }}
                                 </span>
                             </div>
-
-                            <div class="grid grid-cols-1 gap-4">
-                               
                                 
                                 <div v-if="pedido.delivery_option === 'paqueteria'" class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                     <label class="label-mini label-large">Paquetería</label>
@@ -288,7 +292,7 @@
                             <table class="min-width-full divide-y divide-gray-200">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="table-header text-center w-24">Ajuste</th>
+                                        <th class="table-header text-center w-24">N</th>
                                         <th class="table-header">Motivo de la Modificación</th>
                                         <th class="table-header w-56">Responsable</th>
                                         <th class="table-header text-right w-48">Sincronización</th>
@@ -301,7 +305,7 @@
                                             <div class="flex justify-center">
                                                 <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
                                                     :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
-                                                    N.{{ pedido.logs.length - index }}
+                                                    {{ pedido.logs.length - index }}
                                                 </span>
                                             </div>
                                         </td>
