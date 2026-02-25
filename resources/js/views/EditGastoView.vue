@@ -216,11 +216,12 @@
                     
                     </div>
 
-                    <div class="form-section shadow-premium lg:sticky lg:top-28 bg-slate-900 text-white border-none p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem]">
-                         
-                        <!-- REGLA: El campo de motivo siempre aparece si el paquete ya está FINALIZADO -->
-                                <div v-if="form.status === 'FINALIZADO'" class="bg-white/5 p-5 rounded-3xl border border-white/5 animate-fade-in">
-                                    <div class="section-title !text-white !border-white/20">
+                        
+                        <!-- REGLA: El campo de motivo siempre aparece si el paquete ya está FINALIZADO -->        
+                        <div v-if="form.status === 'FINALIZADO'" class="bg-white/5 p-5 rounded-3xl border border-white/5 animate-fade-in">
+                            <div class="form-section shadow-premium lg:sticky lg:top-28 bg-slate-900 text-white border-none p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem]">
+                            
+                            <div class="section-title !text-white !border-white/20">
                                 <i class="fas fa-save"></i> 3. MOTIVO DE LA MODIFICACIÓN
                             </div>
                                     <textarea v-model="form.motivo_cambio" class="form-input !bg-slate-800 !border-slate-700 !text-white text-xs" rows="3" placeholder="EXPLIQUE POR QUÉ SE MODIFICA EL PAQUETE..."></textarea>
@@ -231,7 +232,7 @@
                     <div class="lg:col-span-1 min-w-0">
                         <div class="form-section shadow-premium lg:sticky lg:top-28 bg-slate-900 text-white border-none p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem]">
                             <div class="section-title !text-white !border-white/20">
-                                <i class="fas fa-save"></i> 4. Guardar Paquete de Gastos
+                                <i class="fas fa-save"></i>  Guardar Paquete de Gastos
                             </div>
                             
                             <div class="space-y-6 mt-6">
