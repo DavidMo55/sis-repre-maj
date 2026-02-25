@@ -140,7 +140,7 @@
                                 <div class="flex items-center gap-6 w-full md:w-auto">
                                     <div class="min-w-0">
                                         <p class="text-[8px] label-large font-black uppercase tracking-[0.2em] mb-1" :class="h.es_primera_visita ? 'text-blue-600' : 'text-purple-600'">
-                                            Fecha de visitas
+                                            Fecha de la visita
                                         </p>
                                         <h4 class="text-xl font-black text-black uppercase tracking-tight truncate max-w-[200px] md:max-w-none">
                                             {{ formatDate(h.fecha) }}
@@ -192,13 +192,14 @@
                                     
                                     <!-- SECCIÓN DE MATERIALES: VISIBILIDAD CONDICIONAL -->
                                     <div v-if="parseMateriales(h.libros_interes).interes.length || parseMateriales(h.libros_interes).entregado.length">
-                                        <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
-                                            <i class="fas fa-book-open text-red-700"></i> Libros de interes
-                                        </h5>
+                                        
                                         
                                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                             <!-- TABLA A: INTERÉS (Solo si tiene datos) -->
                                             <div v-if="parseMateriales(h.libros_interes).interes.length" class="table-container">
+                                                <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
+                                            <i class="fas fa-book-open text-red-700"></i> Libros de interes
+                                        </h5>
                                                 <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
                                                     <table class="min-width-full divide-y divide-gray-200">
                                                         <thead class="bg-gray-100">

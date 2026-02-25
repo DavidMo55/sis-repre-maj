@@ -42,8 +42,8 @@
                     
                     <!-- BLOQUE 1: DATOS DEL PLANTEL -->
                     <div class="form-section shadow-premium border-t-8 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                        <div class="section-title text-black">
-                            <i class="fas fa-school text-red-700"></i> Datos del Plantel
+                        <div class="section-title label-large text-black">
+                            <i class="fas fa-school text-red-700"></i>1. Datos del Plantel
                             <span v-if="!visita.es_primera_visita" class="ml-auto text-[8px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-black">PROTEGIDO</span>
                         </div>
                         
@@ -95,7 +95,7 @@
                         </div>
 
                         <div class="form-group mb-6">
-                            <label class="label-style">Estado / Región *</label>
+                            <label class="label-style">Estado*</label>
                             <select v-model="form.plantel.estado_id" class="form-input font-bold" required :disabled="!visita.es_primera_visita">
                                 <option v-for="e in estados" :key="e.id" :value="e.id">{{ e.estado }}</option>
                             </select>
@@ -142,8 +142,8 @@
                     <!-- BLOQUE 2: DETALLES DE LA VISITA -->
                     <div class="space-y-8">
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                            <div class="section-title text-black">
-                                <i class="fas fa-handshake text-slate-800"></i> Detalles de la Visita
+                            <div class="section-title  label-large text-black">
+                                <i class="fas fa-handshake text-slate-800"></i> 2. Detalles de la Visita
                             </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -158,7 +158,7 @@
                             </div>
 
                             <div class="form-group mb-6">
-                                <label class="label-style">Cargo / Puesto de la Persona *</label>
+                                <label class="label-style">Cargo / Puesto*</label>
                                 <input v-model="form.visita.cargo" type="text" class="form-input font-bold uppercase" required>
                             </div>
                         </div>
@@ -170,8 +170,8 @@
                             <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" 
                                  :class="{'border-red-300 ring-2 ring-red-50': visita?.es_primera_visita && selectedInterestBooks.length === 0}"
                                  style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-slate-600 font-black tracking-tighter uppercase">
-                                    <i class="fas fa-eye mr-1 text-blue-500"></i> Libros de Interés del Plantel 
+                                <label class="label-mini label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
+                                    <i class="fas fa-eye mr-1  text-blue-500"></i> 3. Libros de Interés 
                                     <span v-if="visita?.es_primera_visita" class="text-red-600 ml-1">* REQUERIDO</span>
                                 </label>
                                 
@@ -200,7 +200,7 @@
                                     <table class="w-full divide-y divide-gray-200">
                                         <thead class="bg-slate-900 text-white">
                                             <tr class="text-[9px] uppercase tracking-widest font-black">
-                                                <th class="px-4 py-3 text-left">Material / Serie</th>
+                                                <th class="px-4 py-3 text-left">Libro</th>
                                                 <th class="px-4 py-3 text-center w-36">Formato</th>
                                                 <th class="px-4 py-3 w-12"></th>
                                             </tr>
@@ -230,7 +230,7 @@
                             </div>
                             <div class="mt-6 form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
-                                <label class="label-mini mb-4 text-red-800 font-black tracking-tighter uppercase"><i class="fas fa-box-open mr-1"></i> Muestras Entregadas </label>
+                                <label class="label-mini label-large mb-4 text-red-800 font-black tracking-tighter uppercase"><i class="fas fa-box-open mr-1"></i> 4. MUESTRAS DE PROMOCIÓN ENTREGADAS </label>
                                 
                                 <div class="form-group relative mb-4">
                                     <div class="relative">
@@ -248,7 +248,7 @@
                                     <table class="w-full divide-y divide-red-50">
                                         <thead class="bg-red-900 text-white text-[9px] uppercase tracking-widest font-black">
                                             <tr>
-                                                <th class="px-4 py-3 text-left">Muestra</th>
+                                                <th class="px-4 py-3 text-left">Libro</th>
                                                 <th class="px-4 py-3 text-center w-32">Cantidad</th>
                                                 <th class="px-4 py-3 w-16"></th>
                                             </tr>
@@ -271,20 +271,26 @@
                             </div>
                         </div>
 
- <!-- RESULTADO Y MOTIVO -->
+                     <!-- RESULTADO Y MOTIVO -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="form-group mb-6">
-                                <label class="label-style">Resultado de la Visita</label>
+                                <label class="label-large">5. RESULTADO Y COMENTARIOS DE LA SESIÓN</label>
                                 <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700 lbb" required>
                                     <option value="seguimiento">CONTINUAR SEGUIMIENTO</option>
                                     <option value="compra">DECISIÓN DE COMPRA</option>
                                     <option value="rechazo">RECHAZADO / CERRADO</option>
                                 </select>
                             </div>
-
-                            <!-- CAMPO DE PRÓXIMA ACCIÓN AGENDADA (NUEVO REQUISITO) -->
+                            <div class="form-group mb-6">
+                                <label class="label-style">Comentarios Generales *</label>
+                                <textarea v-model="form.visita.comentarios" class="form-input font-medium uppercase text-xs lbb" rows="4" required minlength="20"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                          
+                                <!-- CAMPO DE PRÓXIMA ACCIÓN AGENDADA (NUEVO REQUISITO) -->
                             <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in lbb">
-                                <label class="text-orange-800 font-black uppercase text-[9px] mb-3 block tracking-widest">Próxima Acción Agendada *</label>
+                               <label class="label-large">6. PROXIMO COMPROMISO</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lbb">
                                     <div>
                                         <label class="text-[8px] font-black text-orange-600 uppercase mb-1 block">Fecha estimada</label>
@@ -299,14 +305,12 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="form-group mb-6">
-                                <label class="label-style">Comentarios Generales *</label>
-                                <textarea v-model="form.visita.comentarios" class="form-input font-medium uppercase text-xs lbb" rows="4" required minlength="20"></textarea>
-                            </div>
-
-                            <div class="form-group p-6 bg-red-50 rounded-[2.5rem] border-2 border-red-100 shadow-inner lbb">
-                                <label class="label-style !text-red-800">Motivo del Ajuste (Log de Auditoría) *</label>
+                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                         
+                             <div class="form-group p-6 bg-red-50 rounded-[2.5rem] border-2 border-red-100 shadow-inner lbb">
+                                 <label class="label-large">7. MOTIVO DE LA MODIFICACIÓN</label>
                                 <textarea v-model="form.motivo_cambio" class="form-input border-red-200 font-bold uppercase text-xs lbb" rows="3" placeholder="EXPLIQUE POR QUÉ SE EDITA ESTE REGISTRO..." required minlength="10"></textarea>
                             </div>
                         </div>
@@ -644,6 +648,7 @@ onMounted(fetchInitialData);
 .shadow-premium { box-shadow: 0 20px 50px -20px rgba(0,0,0,0.08); }
 .form-section { background: white; border: 1px solid #f1f5f9; border-radius: 2rem; }
 .section-title { font-weight: 900; color: #a93339; margin-bottom: 25px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; }
+.label-large { display: block; font-size: 0.79rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 
 .form-input { width: 100%; padding: 14px 18px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.9rem; }
 .form-input:focus { border-color: #a93339; background: white; outline: none; }

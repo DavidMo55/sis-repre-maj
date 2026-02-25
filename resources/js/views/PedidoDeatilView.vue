@@ -123,19 +123,18 @@
                             <i class="fas fa-box-open text-red-700"></i> 3. Estatus de envio
                         </div>
                         <div class="space-y-6">
-                            <div class="bg-red-50/30 p-4 rounded-2xl border border-red-100">
-                                    <label class="label-mini label-large">Método de Envío</label>
-                                    <span class="text-xs font-black text-red-700 value-text uppercase block">{{ getDeliveryOption(pedido.delivery_option) }}</span>
-                                </div>
-                            
-
-                            <div class="grid grid-cols-1 gap-4">
-                               <div>
-                                <label class="label-mini label-large">Estado de la Orden</label>
+                            <div>
+                                <label class="label-mini label-large">Estado del Pedido</label>
                                 <span :class="getStatusClass(pedido.status)" class="status-badge w-full text-center value-text py-2.5 shadow-sm rounded-xl">
                                     {{ pedido.status }}
                                 </span>
                             </div>
+                            <div class="bg-red-50/30 p-4 rounded-2xl border border-red-100">
+                                    <label class="label-mini label-large">Método de Envío</label>
+                                    <span class="text-xs font-black text-red-700 value-text uppercase block">{{ getDeliveryOption(pedido.delivery_option) }}</span>
+                                </div>
+                            <div class="grid grid-cols-1 gap-4">
+                               
                                 
                                 <div v-if="pedido.delivery_option === 'paqueteria'" class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                     <label class="label-mini label-large">Paquetería</label>

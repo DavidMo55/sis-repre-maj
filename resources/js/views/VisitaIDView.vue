@@ -181,7 +181,7 @@
                         <div class="form-section shadow-premium border-t-4 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                             <div class="bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative lbb" style="overflow: visible !important;">
                                 <label class="label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
-                                    <i class="fas fa-eye mr-1 text-blue-500"></i> 4.  MUESTRAS DE PROMOCIÓN ENTREGADAS,
+                                    <i class="fas fa-eye mr-1 text-blue-500"></i> 4.  MUESTRAS DE PROMOCIÓN ENTREGADAS
                                 </label>
                                 <div class="form-group relative mb-4 lbb">
                                     <label class="label-mini uppercase lbb">Buscar Muestra de promocion</label>
@@ -226,6 +226,9 @@
 
                         <!-- RESULTADO Y AGENDA -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                            <label class="label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
+                                    <i class="fas fa-eye mr-1 text-blue-500"></i> 5.  RESULTADO Y COMENTARIOS DE LA SESIÓN
+                                </label>
                             <div class="form-group mb-6">
                                 <label class="label-style">Resolución Actual del Prospecto</label>
                                 <select v-model="form.visita.resultado_visita" class="form-input font-black uppercase tracking-widest text-slate-700 lbb" required :disabled="loading">
@@ -235,7 +238,20 @@
                                 </select>
                             </div>
 
+                    
+                            <div class="form-group lbb">
+                                <label class="label-style">Comentarios y Acuerdos de la Sesión *</label>
+                                <textarea v-model="form.visita.comentarios" class="form-input font-medium uppercase text-xs lbb" rows="4" placeholder="MÍNIMO 20 CARACTERES..." required minlength="20" :disabled="loading"></textarea>
+                            </div>
+                        </div>
+
+                        
                             <div v-if="form.visita.resultado_visita === 'seguimiento'" class="form-group mb-6 p-6 bg-orange-50 rounded-[2.5rem] border-2 border-orange-100 shadow-inner animate-fade-in lbb">
+                               <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+                         
+                                <label class="label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
+                                    <i class="fas fa-eye mr-1 text-blue-500"></i> 6.  PROXIMO COMPROMISO
+                                </label>
                                 <label class="text-orange-800 font-black uppercase text-[9px] mb-3 block tracking-widest lbb">Próxima Acción Agendada *</label>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lbb">
                                     <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold lbb" required :disabled="loading">
@@ -246,10 +262,6 @@
                                 </div>
                             </div>
 
-                            <div class="form-group lbb">
-                                <label class="label-style">Comentarios y Acuerdos de la Sesión *</label>
-                                <textarea v-model="form.visita.comentarios" class="form-input font-medium uppercase text-xs lbb" rows="4" placeholder="MÍNIMO 20 CARACTERES..." required minlength="20" :disabled="loading"></textarea>
-                            </div>
                         </div>
                     </div>
                 </div>
