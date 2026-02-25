@@ -158,8 +158,22 @@
                             </div>
 
                             <div class="form-group mb-6">
-                                <label class="label-style">Cargo / Puesto*</label>
-                                <input v-model="form.visita.cargo" type="text" class="form-input font-bold uppercase" required>
+       
+                                 <div class="form-group mb-6">
+                                <label class="label-style">Cargo / Puesto *</label>
+                                <select v-model="form.visita.cargo" class="form-input font-bold" required :disabled="loading">
+                                    <option value="Director/Coordinador">Director/Coordinador</option>
+                                    <option value="Subdirector">Subdirector</option>
+                                    <option value="Jefe de Departamento">Jefe de Departamento</option>
+                                    <option value="Profesor">Profesor</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <div v-if="form.visita.cargo === 'Otro'" class="form-group mb-6 animate-fade-in">
+                                <label class="label-style">Especifique el Cargo *</label>
+                                <input v-model="form.visita.cargo_especifico" type="text" minlength="10" required class="form-input font-bold border-red-100" placeholder="Escriba el puesto real..." :disabled="loading">
+                            </div>
                             </div>
                         </div>
 
@@ -220,7 +234,7 @@
                                                     </select>
                                                 </td>
                                                 <td class="table-cell text-center">
-                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
+                                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="text-red-300 btn-secondary hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -262,7 +276,7 @@
                                                     <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center" />
                                                 </td>
                                                 <td class="table-cell text-right">
-                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" class="text-red-300 hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
+                                                    <button type="button"  @click="selectedDeliveredBooks.splice(idx, 1)" class="text-red-300 btn-secondary hover:text-red-600 transition-colors"><i class="fas fa-trash-alt"></i>Quitar</button>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -412,6 +426,14 @@ const interestSuggestions = ref([]);
 const deliveredSuggestions = ref([]);
 const selectedSerieIdA = ref('');
 
+// 1. Catálogo de cargos para validación de "Otro"
+const cargosEstandar = [
+    'Director/Coordinador', 
+    'Subdirector', 
+    'Jefe de Departamento', 
+    'Profesor'
+];
+
 // Validación de unicidad global proactiva
 const fieldValidation = reactive({ 
     name: { error: false, message: '' },
@@ -421,7 +443,6 @@ const fieldValidation = reactive({
 });
 
 const isFormBlockedByDuplicates = computed(() => {
-    // Solo validamos duplicidad si estamos editando una Primera Visita (donde los datos del plantel son editables)
     if (!visita.value?.es_primera_visita) return false;
     return fieldValidation.name.error || fieldValidation.rfc.error || fieldValidation.email.error || fieldValidation.telefono.error;
 });
@@ -439,7 +460,16 @@ let bookTimer = null;
 
 const form = reactive({
     plantel: { name: '', rfc: '', niveles: [], direccion: '', estado_id: '', telefono: '', email: '', director: '', latitud: null, longitud: null },
-    visita: { fecha: '', persona_entrevistada: '', cargo: '', comentarios: '', resultado_visita: 'seguimiento', proxima_visita: '' },
+    visita: { 
+        fecha: '', 
+        persona_entrevistada: '', 
+        cargo: '', 
+        cargo_especifico: '', // Campo para la opción "Otro"
+        comentarios: '', 
+        resultado_visita: 'seguimiento', 
+        proxima_visita: '',
+        proxima_accion: 'visita'
+    },
     motivo_cambio: ''
 });
 
@@ -482,12 +512,22 @@ const fetchInitialData = async () => {
         // Hidratar Visita
         form.visita.fecha = visita.value.fecha?.split('T')[0] || '';
         form.visita.persona_entrevistada = (visita.value.persona_entrevistada || '').toUpperCase();
-        form.visita.cargo = (visita.value.cargo || '').toUpperCase();
         form.visita.comentarios = visita.value.comentarios || '';
         form.visita.resultado_visita = visita.value.resultado_visita || 'seguimiento';
-        // CONSUMO DE FECHA Y ACCIÓN DE SEGUIMIENTO (HIDRATACIÓN)
         form.visita.proxima_visita = visita.value.proxima_visita_estimada ? visita.value.proxima_visita_estimada.split('T')[0] : '';
         form.visita.proxima_accion = visita.value.proxima_accion || 'visita';
+
+        // 2. Lógica Unificada de Hidratación de Cargo
+        const dbCargo = visita.value.cargo || '';
+        const coincide = cargosEstandar.find(c => c.toUpperCase() === dbCargo.toUpperCase());
+
+        if (coincide) {
+            form.visita.cargo = coincide;
+            form.visita.cargo_especifico = '';
+        } else if (dbCargo !== '') {
+            form.visita.cargo = 'Otro';
+            form.visita.cargo_especifico = dbCargo;
+        }
 
         // Hidratar Materiales
         const materiales = parseMateriales(visita.value.libros_interes);
@@ -495,18 +535,15 @@ const fetchInitialData = async () => {
         selectedDeliveredBooks.value = materiales.entregado || [];
 
     } catch (e) {
-        console.error(e);
+        console.error("Error cargando expediente:", e);
+        router.push('/visitas');
     } finally {
         loadingInitial.value = false;
     }
 };
 
-/**
- * VALIDACIÓN GLOBAL DE UNICIDAD
- */
 const validateUniqueness = async (field) => {
     if (!visita.value?.es_primera_visita) return;
-
     let val = '';
     let queryParam = field; 
     if (field === 'name') { val = form.plantel.name?.trim(); queryParam = 'nombre'; }
@@ -522,9 +559,7 @@ const validateUniqueness = async (field) => {
 
     try {
         const res = await axios.get('/search/receptores/check-rfc', { params: { [queryParam]: val } });
-        
         if (res.data.status === 'conflict') {
-            // Regla Snapshot: Si el conflicto es con el mismo cliente vinculado a esta visita, no es error
             if (res.data.id && visita.value.cliente_id && res.data.cliente_id == visita.value.cliente_id) {
                 fieldValidation[field].error = false;
                 fieldValidation[field].message = '';
@@ -536,9 +571,7 @@ const validateUniqueness = async (field) => {
             fieldValidation[field].error = false;
             fieldValidation[field].message = '';
         }
-    } catch (e) { 
-        fieldValidation[field].error = false; 
-    }
+    } catch (e) { fieldValidation[field].error = false; }
 };
 
 const parseMateriales = (raw) => {
@@ -550,10 +583,8 @@ const parseMateriales = (raw) => {
 const searchBooks = (event, type) => {
     const val = event.target.value;
     if (val.length < 3) return type === 'interest' ? interestSuggestions.value = [] : deliveredSuggestions.value = [];
-    
     if (type === 'interest') searchingInterest.value = true; else searchingDelivered.value = true;
     if (bookTimer) clearTimeout(bookTimer);
-    
     const serieId = type === 'interest' ? (selectedSerieIdA.value === 'otro' ? null : selectedSerieIdA.value) : null; 
     bookTimer = setTimeout(async () => {
         try {
@@ -569,14 +600,7 @@ const addMaterial = (book, type) => {
     const serieNombre = serie ? (serie.nombre || serie.serie) : 'Sin Serie';
     if (type === 'interest') {
         if (!selectedInterestBooks.value.find(b => b.id === book.id)) {
-            selectedInterestBooks.value.push({ 
-                id: book.id, 
-                titulo: book.titulo, 
-                serie_nombre: serieNombre, 
-                original_type: book.type,
-                // REGLA: Forzamos digital si es digital
-                tipo: book.type === 'digital' ? 'digital' : 'fisico' 
-            });
+            selectedInterestBooks.value.push({ id: book.id, titulo: book.titulo, serie_nombre: serieNombre, original_type: book.type, tipo: book.type === 'digital' ? 'digital' : 'fisico' });
         }
         interestInput.titulo = ''; interestSuggestions.value = [];
     } else {
@@ -599,11 +623,10 @@ const getLocation = () => {
 
 const handleSubmit = async () => {
     errorMessage.value = null;
-
     if (isFormBlockedByDuplicates.value) return;
 
     if (visita.value.es_primera_visita && selectedInterestBooks.value.length === 0) {
-        errorMessage.value = "PARA REGISTRAR UNA APERTURA (1RA VISITA) SE REQUIERE AL MENOS UN MATERIAL DE INTERÉS.";
+        errorMessage.value = "PARA REGISTRAR UNA APERTURA SE REQUIERE AL MENOS UN MATERIAL DE INTERÉS.";
         return;
     }
 
@@ -614,8 +637,14 @@ const handleSubmit = async () => {
             .map(n => n.nombre)
             .join(', ');
 
+        // 3. Lógica Unificada para enviar el cargo correcto
+        const cargoFinal = form.visita.cargo === 'Otro' 
+               ? form.visita.cargo_especifico.toUpperCase() 
+               : form.visita.cargo.toUpperCase();
+
         const payload = {
             ...form.visita,
+            cargo: cargoFinal,
             motivo_cambio: form.motivo_cambio,
             plantel: { 
                 ...form.plantel, 
@@ -679,4 +708,16 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
 .bgcolor { background: #fef2f2; border: 1px solid #fee2e2; padding: 16px; border-radius: 12px; }
 .text-danger { color: #dc2626; }
 .border-danger { border-color: #dc2626; }
+
+.btn-secondary {
+    padding: 8px 15px;
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    color: #64748b;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+}
 </style>

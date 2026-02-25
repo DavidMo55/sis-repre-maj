@@ -327,7 +327,7 @@
                                                     </div>
                                                 </td>
                                                 <td class="table-cell text-right">
-                                                    <button @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary"><i class="fas fa-trash-alt"></i> Quitar</button>
+                                                    <button type="button" @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary"><i class="fas fa-trash-alt"></i> Quitar</button>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -350,7 +350,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="label-style">Detalles de la visita</label>
+                                <label class="label-style">COMENTARIOS Y ACUERDOS DE LA SESIÓN</label>
                                 <textarea v-model="form.visita.comentarios" class="form-input font-medium" rows="4" placeholder="Resumen detallado de la entrevista (Mínimo 20 caracteres)..." required minlength="20" :disabled="loading"></textarea>
                             </div>
                         </div>
