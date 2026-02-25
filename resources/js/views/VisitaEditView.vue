@@ -194,7 +194,7 @@
                                         <select v-model="selectedSerieIdA" class="form-input font-bold text-xs" @change="handleSerieChange('interest')">
                                             <option value="">Serie (Opcional)...</option>
                                             <option v-for="s in allSeries" :key="s.id" :value="s.id">{{ s.nombre }}</option>
-                                            <option value="otro">VER TODAS</option>
+                                            <option value="otro">VER TODAS LAS SERIES</option>
                                         </select>
                                     </div>
                                     <div class="form-group relative">

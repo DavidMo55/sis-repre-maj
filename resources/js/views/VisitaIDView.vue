@@ -124,7 +124,7 @@
                                         <select v-model="selectedSerieIdA" class="form-input font-bold text-xs lbb" @change="handleSerieChange('interest')">
                                             <option value="">Filtrar por Serie...</option>
                                             <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
-                                            <option value="otro">VER TODAS</option>
+                                            <option value="otro">VER TODAS LAS SERIES</option>
                                         </select>
                                     </div>
                                     <div class="form-group relative lbb">
@@ -164,8 +164,9 @@
                                                             <option value="paquete">PAQUETE</option>
                                                         </select>
                                                     </td>
-                                                    <td class="table-cell text-center lbb">
-                                                     </td>
+                                                    <td class="table-cell text-center">
+                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary">Quitar<i class="fas fa-trash-alt"></i></button>
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -214,7 +215,7 @@
                                                     </td>
                                                     <td class="table-cell text-center lbb"><input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center lbb" /></td>
                                                     <td class="table-cell text-center">
-                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-icon-delete-simple"><i class="fas fa-trash-alt"></i></button>
+                                                        <button type="button" @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary">Quitar<i class="fas fa-trash-alt"></i></button>
                                                     </td>
                                                  </tr>
                                             </tbody>
