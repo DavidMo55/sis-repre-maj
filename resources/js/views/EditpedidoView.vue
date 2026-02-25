@@ -378,7 +378,7 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="form-group">
-                            <textarea v-model="orderForm.comments" class="form-input text-red-600 font-medium uppercase text-xs lbb" rows="3" placeholder="COMENTARIOS PARA ALMACÉN..."></textarea>
+                            <textarea v-model="orderForm.comments" required minlength="10"  class="form-input text-red-600 font-medium uppercase text-xs lbb" rows="3" placeholder="COMENTARIOS PARA ALMACÉN..."></textarea>
                         </div>
                     </div>
                 </div>
