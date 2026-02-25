@@ -161,78 +161,98 @@
                          <div class="section-title !mb-6 p-8 pb-0">
                             <i class="fas fa-box-open text-red-700"></i> 4. Material
                         </div>
-                        <div class="table-container animate-fade-in p-8 pt-0">
-                            <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-                                <table class="min-width-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="table-header">Libro</th>
-                                            <th class="table-header text-center w-32">Tipo</th>
-                                            <th class="table-header text-center w-32">Formato</th>
-                                            <th class="table-header text-center w-24">Cantidad</th>
-                                            <th class="table-header text-right w-32">Precio Unitario</th>
-                                            <th class="table-header text-right w-32">Subtotal</th>
-                                        </tr>
-                                    </thead>
+                        <!-- 2. TABLA: DETALLE DE PEDIDO (RESPONSIVA) -->
+<div class="info-card shadow-premium !p-0 overflow-hidden border border-slate-200 rounded-[2.5rem] bg-white animate-fade-in">
+    <div class="p-6 md:p-8 border-b border-slate-50 flex items-center gap-3">
+        <div class="w-10 h-10 bg-red-50 text-red-600 rounded-xl flex items-center justify-center shadow-sm">
+            <i class="fas fa-box-open text-lg"></i>
+        </div>
+        <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">Detalle de Materiales del Pedido</h2>
+    </div>
 
-                                    <tbody class="bg-white divide-y divide-gray-100">
-                                        <tr v-for="detalle in pedido.detalles" :key="detalle.id" class="hover:bg-gray-50 transition-colors">
-                                            <td class="table-cell">
-                                                <p class="font-black text-slate-800 text-sm uppercase leading-tight">
-                                                    {{ detalle.libro?.titulo || 'Material no identificado' }}
-                                                </p>
-                                                <div class="mt-1.5 flex items-center gap-2">
-                                                    <span class="text-[9px] font-black text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase tracking-widest">
-                                                        ISBN: {{ detalle.libro?.ISBN || 'N/A' }}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td class="table-cell text-center">
-                                                <span class="status-badge bg-slate-100 text-slate-600 border border-slate-200">
-                                                    {{ (detalle.tipo_licencia || 'N/A').toUpperCase() }}
-                                                </span>
-                                            </td>
-                                            <td class="table-cell text-center">
-                                                <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
-                                                    {{ (detalle.tipo || 'VENTA').toUpperCase() }}
-                                                </span>
-                                            </td>
-                                            <td class="table-cell text-center font-black text-slate-700 text-lg">
-                                                {{ detalle.cantidad }}
-                                            </td>
-                                            <td class="table-cell text-right font-bold text-slate-500 text-xs">
-                                                {{ formatCurrency(detalle.precio_unitario) }}
-                                            </td>
-                                            <td class="table-cell text-right font-black text-red-800 text-base tracking-tighter">
-                                                {{ formatCurrency(detalle.costo_total) }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
+    <div class="table-container animate-fade-in p-4 md:p-8 pt-0">
+        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white mt-6">
+            <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                <thead class="bg-gray-100 hidden md:table-header-group">
+                    <tr>
+                        <th class="table-header">Libro</th>
+                        <th class="table-header text-center w-32">Tipo</th>
+                        <th class="table-header text-center w-32">Formato</th>
+                        <th class="table-header text-center w-24">Cantidad</th>
+                        <th class="table-header text-right w-32">Precio Unitario</th>
+                        <th class="table-header text-right w-32">Subtotal</th>
+                    </tr>
+                </thead>
 
-                                    <tfoot class="bg-slate-50 border-t-2 border-slate-100">
-                                        <!-- Fila de Unidades Totales -->
-                                        <tr class="border-b border-slate-100/50">
-                                            <td colspan="3" class="px-8 py-4 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
-                                                Volumen Total de Unidades:
-                                            </td>
-                                            <td class="px-4 py-4 text-center font-black text-xl text-slate-700">
-                                                {{ totalUnidades }}
-                                            </td>
-                                            <td colspan="2" class="bg-slate-50/30"></td>
-                                        </tr>
-                                        <!-- Fila de Monto Total -->
-                                        <tr>
-                                            <td colspan="5" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
-                                                Inversión Total del Expediente:
-                                            </td>
-                                            <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none tracking-tighter">
-                                                {{ formatCurrency(totalOrderCostNum) }}
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                    </table>
+                <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
+                    <tr v-for="detalle in pedido.detalles" :key="detalle.id" 
+                        class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                        
+                        <td class="table-cell block md:table-cell" data-label="LIBRO">
+                            <p class="font-black text-slate-800 text-sm uppercase leading-tight">
+                                {{ detalle.libro?.titulo || 'Material no identificado' }}
+                            </p>
+                            <div class="mt-1.5 flex items-center gap-2">
+                                <span class="text-[9px] font-black text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-100 uppercase tracking-widest">
+                                    ISBN: {{ detalle.libro?.ISBN || 'N/A' }}
+                                </span>
                             </div>
-                        </div>
+                        </td>
+
+                        <td class="table-cell text-left md:text-center block md:table-cell" data-label="TIPO">
+                            <span class="status-badge bg-slate-100 text-slate-600 border border-slate-200">
+                                {{ (detalle.tipo_licencia || 'N/A').toUpperCase() }}
+                            </span>
+                        </td>
+
+                        <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
+                            <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
+                                {{ (detalle.tipo || 'VENTA').toUpperCase() }}
+                            </span>
+                        </td>
+
+                        <td class="table-cell text-left md:text-center font-black text-slate-700 text-lg block md:table-cell" data-label="CANTIDAD">
+                            {{ detalle.cantidad }}
+                        </td>
+
+                        <td class="table-cell text-left md:text-right font-bold text-slate-500 text-xs block md:table-cell" data-label="P. UNITARIO">
+                            {{ formatCurrency(detalle.precio_unitario) }}
+                        </td>
+
+                        <td class="table-cell text-left md:text-right font-black text-red-800 text-base tracking-tighter block md:table-cell" data-label="SUBTOTAL">
+                            {{ formatCurrency(detalle.costo_total) }}
+                        </td>
+                    </tr>
+                </tbody>
+
+                <tfoot class="bg-slate-50 border-t-2 border-slate-100 block md:table-footer-group">
+                    <!-- Fila de Unidades Totales -->
+                    <tr class="border-b border-slate-100/50 flex flex-col md:table-row p-4 md:p-0">
+                        <td colspan="3" class="hidden md:table-cell px-8 py-4 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+                            Volumen Total de Unidades:
+                        </td>
+                        <td class="table-cell block md:table-cell text-center md:px-4 md:py-4 font-black text-xl text-slate-700">
+                            <span class="md:hidden block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Total Unidades</span>
+                            {{ totalUnidades }}
+                        </td>
+                        <td colspan="2" class="hidden md:table-cell bg-slate-50/30"></td>
+                    </tr>
+
+                    <!-- Fila de Monto Total -->
+                    <tr class="flex flex-col md:table-row p-4 md:p-0">
+                        <td colspan="5" class="hidden md:table-cell px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+                            Inversión Total del Expediente:
+                        </td>
+                        <td class="table-cell block md:table-cell text-center md:text-right md:px-6 md:py-6 font-black text-3xl md:text-2xl text-red-700 leading-none tracking-tighter">
+                            <span class="md:hidden block text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">Inversión Total</span>
+                            {{ formatCurrency(totalOrderCostNum) }}
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
                     </div>
                 </div>
                  <!-- 4. COMENTARIOS GENERALES -->
@@ -287,54 +307,69 @@
                     </div>
 
                     <div class="table-container mt-4 animate-fade-in p-8 pt-0">
-                        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-                            <table class="min-width-full divide-y divide-gray-200">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="table-header text-center w-24">N</th>
-                                        <th class="table-header">Motivo de la Modificación</th>
-                                        <th class="table-header w-56">Responsable</th>
-                                        <th class="table-header text-right w-48">Sincronización</th>
-                                    </tr>
-                                </thead>
-                                
-                                <tbody class="bg-white divide-y divide-gray-100">
-                                    <tr v-for="(log, index) in pedido.logs" :key="log.id" class="hover:bg-gray-50 transition-colors">
-                                        <td class="table-cell text-center">
-                                            <div class="flex justify-center">
-                                                <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
-                                                    :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
-                                                    {{ pedido.logs.length - index }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="table-cell">
-                                            <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
-                                                "{{ log.motivo_cambio || 'Sin justificación técnica' }}"
-                                            </p>
-                                        </td>
-                                        <td class="table-cell">
-                                            <div class="flex items-center gap-2">
-                                               
-                                                <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
-                                                    {{ log.user?.name || 'Sistema' }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="table-cell text-right">
-                                            <div class="flex flex-col items-end">
-                                                <span class="text-[11px] font-black text-slate-800 uppercase leading-none">
-                                                    {{ formatDateOnly(log.created_at) }}
-                                                </span>
-                                                <span class="text-[9px] font-bold text-slate-400 mt-1 uppercase italic">
-                                                    {{ formatTimeOnly(log.created_at) }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+        <label class="label-mini label-large mb-6 text-slate-800 font-black tracking-tighter uppercase">
+            <i class="fas fa-history mr-1 text-red-700"></i> 5. Bitácora de Ajustes Técnicos
+        </label>
+
+        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+            <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                <thead class="bg-gray-100 hidden md:table-header-group">
+                    <tr>
+                        <th class="table-header text-center w-24">N</th>
+                        <th class="table-header">Motivo de la Modificación</th>
+                        <th class="table-header w-56">Responsable</th>
+                        <th class="table-header text-right w-48">Sincronización</th>
+                    </tr>
+                </thead>
+                
+                <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
+                    <tr v-for="(log, index) in pedido.logs" :key="log.id" 
+                        class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                        
+                        <td class="table-cell block md:table-cell text-left md:text-center" data-label="N">
+                            <div class="flex justify-start md:justify-center">
+                                <span class="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border-2" 
+                                    :class="index === 0 ? 'bg-red-50 border-red-100 text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'">
+                                    {{ pedido.logs.length - index }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="table-cell block md:table-cell" data-label="MOTIVO">
+                            <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
+                                "{{ log.motivo_cambio || 'Sin justificación técnica' }}"
+                            </p>
+                        </td>
+
+                        <td class="table-cell block md:table-cell" data-label="RESPONSABLE">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
+                                    {{ log.user?.name || 'Sistema' }}
+                                </span>
+                            </div>
+                        </td>
+
+                        <td class="table-cell block md:table-cell text-left md:text-right" data-label="SINCRONIZACIÓN">
+                            <div class="flex flex-col items-start md:items-end">
+                                <span class="text-[11px] font-black text-slate-800 uppercase leading-none">
+                                    {{ formatDateOnly(log.created_at) }}
+                                </span>
+                                <span class="text-[9px] font-bold text-slate-400 mt-1 uppercase italic">
+                                    {{ formatTimeOnly(log.created_at) }}
+                                </span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr v-if="!pedido.logs || pedido.logs.length === 0" class="block md:table-row">
+                        <td colspan="4" class="px-6 py-10 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest block md:table-cell">
+                            No se han registrado modificaciones en este expediente
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+                         </div>
                     </div>
                 </div>
 

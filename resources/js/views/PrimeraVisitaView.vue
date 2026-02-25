@@ -205,136 +205,156 @@
                         </div>
 
                         <!-- LIBROS DE INTERÉS Y MUESTRAS -->
-                        <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
-                            <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
-                                <label class="label-mini label-large mb-4 text-slate-600 font-black tracking-tighter"><i class="fas fa-eye mr-1 text-blue-500"></i> 3. Libros de Interés </label>
-                                
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                                    <div class="form-group">
-                                        <label class="label-mini">Filtrar por Serie</label>
-                                        <select v-model="selectedSerieIdA" class="form-input font-bold text-xs" @change="handleSerieChange('interest')">
-                                            <option value="">Cualquier serie...</option>
-                                            <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
-                                            <option value="otro">VER TODAS LAS SERIES</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group relative">
-                                        <label class="label-mini">Buscar y Añadir Libro</label>
-                                        <div class="relative">
-                                            <input 
-                                                v-model="interestInput.titulo" 
-                                                type="text" 
-                                                class="form-input pr-10 font-bold" 
-                                                placeholder="Título o ISBN..." 
-                                                @input="searchBooks($event, 'interest')"
-                                                autocomplete="off"
-                                            >
-                                            <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                        </div>
-                                        <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
-                                            <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors">
-                                                <div class="flex justify-between items-center w-full">
-                                                    <span class="truncate uppercase">{{ b.titulo }}</span>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                
-                                <div v-if="selectedInterestBooks.length" class="table-container mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                    <div class="table-responsive">
-                                        <table class="w-full divide-y divide-gray-200">
-                                            <thead class="bg-slate-900">
-                                                <tr>
-                                                    <th class="table-header text-white">Libro</th>
-                                                    <th class="table-header text-center w-36 text-white">Formato</th>
-                                                    <th class="px-6 py-3 w-12 text-white"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="bg-white divide-y divide-gray-100">
-                                                <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" class="hover:bg-gray-50 transition-colors">
-                                                    <td class="table-cell">
-                                                        <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                                                        <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">{{ item.serie_nombre }}</div>
-                                                    </td>
-                                                    <td class="table-cell text-center">
-                                                        <select v-model="item.tipo" class="select-table">
-                                                            <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
-                                                            <template v-else>
-                                                                <option value="fisico">FÍSICO</option>
-                                                                <option value="paquete">PAQUETE</option>
-                                                                <option value="por_revisar">POR REVISAR</option>
-                                                            </template>
-                                                        </select>
-                                                    </td>
-                                                     <td class="table-cell text-center">
-                                                        <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary"><i class="fas fa-trash-alt"></i>Quitar</button>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                       <div class="space-y-10 animate-fade-in pb-20">
+    
+    <!-- 3. SECCIÓN: LIBROS DE INTERÉS -->
+    <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">
+        <div class="bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 mb-6 relative" style="overflow: visible !important;">
+            <label class="label-mini label-large mb-4 text-slate-600 font-black tracking-tighter uppercase">
+                <i class="fas fa-eye mr-1 text-blue-500"></i> 3. Libros de Interés
+            </label>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <div class="form-group">
+                    <label class="label-mini">Filtrar por Serie</label>
+                    <select v-model="selectedSerieIdA" class="form-input font-bold text-xs lbb" @change="handleSerieChange('interest')">
+                        <option value="">Cualquier serie...</option>
+                        <option v-for="s in seriesFiltradas" :key="s.id" :value="s.id">{{ s.nombre }}</option>
+                        <option value="otro">VER TODAS LAS SERIES</option>
+                    </select>
+                </div>
+                <div class="form-group relative">
+                    <label class="label-mini">Buscar y Añadir Libro</label>
+                    <div class="relative">
+                        <input 
+                            v-model="interestInput.titulo" 
+                            type="text" 
+                            class="form-input pr-10 font-bold lbb" 
+                            placeholder="Título o ISBN..." 
+                            @input="searchBooks($event, 'interest')"
+                            autocomplete="off"
+                        >
+                        <i v-if="searchingInterest" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    </div>
+                    <ul v-if="interestSuggestions.length" class="autocomplete-list shadow-2xl border border-slate-100">
+                        <li v-for="b in interestSuggestions" :key="b.id" @click="addMaterial(b, 'interest')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-blue-50 p-3 transition-colors">
+                            <div class="flex justify-between items-center w-full">
+                                <span class="truncate uppercase">{{ b.titulo }}</span>
                             </div>
-                        </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div v-if="selectedInterestBooks.length" class="table-container mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div class="table-responsive border-none">
+                    <table class="w-full divide-y divide-gray-200 responsive-table">
+                        <thead class="bg-slate-900 hidden md:table-header-group">
+                            <tr>
+                                <th class="table-header text-white">Libro</th>
+                                <th class="table-header text-center w-48 text-white">Formato</th>
+                                <th class="px-6 py-3 w-20 text-white"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
+                            <tr v-for="(item, idx) in selectedInterestBooks" :key="idx" 
+                                class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                                
+                                <td class="table-cell block md:table-cell" data-label="LIBRO">
+                                    <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
+                                    <div class="text-[9px] font-black text-slate-400 uppercase tracking-tighter mt-1">{{ item.serie_nombre }}</div>
+                                </td>
 
-                        <!-- MUESTRAS ENTREGADAS -->
-                        <div class="mt-6 form-section bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
-                            <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter"><i class="fas fa-box-open mr-1"></i> 4. MUESTRAS DE PROMOCIÓN ENTREGADAS</label>
+                                <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
+                                    <select v-model="item.tipo" class="select-table lbb md:max-w-[180px] md:mx-auto">
+                                        <option v-if="item.original_type === 'digital'" value="digital">DIGITAL</option>
+                                        <template v-else>
+                                            <option value="fisico">FÍSICO</option>
+                                            <option value="paquete">PAQUETE</option>
+                                            <option value="por_revisar">POR REVISAR</option>
+                                        </template>
+                                    </select>
+                                </td>
+
+                                <td class="table-cell text-right block md:table-cell">
+                                    <button type="button" @click="selectedInterestBooks.splice(idx, 1)" class="btn-secondary flex items-center justify-end gap-1 w-full text-[10px] font-black uppercase text-red-400 hover:text-red-600">
+                                        <i class="fas fa-trash-alt"></i> <span class="md:hidden">Quitar</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. SECCIÓN: MUESTRAS ENTREGADAS -->
+    <div class="mt-6 form-section bg-red-50/30 p-6 rounded-[2.5rem] border border-red-100 relative" style="overflow: visible !important;">
+        <label class="label-mini mb-4 text-red-800 label-large font-black tracking-tighter uppercase">
+            <i class="fas fa-box-open mr-1"></i> 4. MUESTRAS DE PROMOCIÓN ENTREGADAS
+        </label>
+        
+        <div class="form-group relative mb-4">
+            <label class="label-mini">Buscar Libro para Entrega Física</label>
+            <div class="relative">
+                <input 
+                    v-model="deliveredInput.titulo" 
+                    type="text" 
+                    class="form-input pr-10 font-bold border-red-100 shadow-sm lbb" 
+                    placeholder="Escribe título o ISBN..." 
+                    @input="searchBooks($event, 'delivered')"
+                    autocomplete="off"
+                >
+                <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
+            </div>
+            <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
+                <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
+                    <div class="flex justify-between items-center w-full">
+                        <span class="truncate uppercase">{{ b.titulo }}</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+        <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6 overflow-hidden rounded-2xl border border-red-100 bg-white shadow-sm">
+            <div class="table-responsive border-none">
+                <table class="w-full divide-y divide-gray-200 responsive-table">
+                    <thead class="bg-red-900 hidden md:table-header-group">
+                        <tr>
+                            <th class="table-header text-white">Libro</th>
+                            <th class="table-header text-center w-40 text-white">Cantidad</th>
+                            <th class="px-6 py-3 w-20 text-white"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-red-50 block md:table-row-group">
+                        <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
                             
-                            <div class="form-group relative mb-4">
-                                <label class="label-mini ">Buscar Libro para Entrega Física</label>
-                                <div class="relative">
-                                    <input 
-                                        v-model="deliveredInput.titulo" 
-                                        type="text" 
-                                        class="form-input pr-10 font-bold border-red-100 shadow-sm" 
-                                        placeholder="Escribe título o ISBN..." 
-                                        @input="searchBooks($event, 'delivered')"
-                                        autocomplete="off"
-                                    >
-                                    <i v-if="searchingDelivered" class="fas fa-spinner fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-red-400"></i>
+                            <td class="table-cell block md:table-cell" data-label="LIBRO">
+                                <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
+                            </td>
+
+                            <td class="table-cell text-left md:text-center block md:table-cell" data-label="CANTIDAD">
+                                <div class="flex justify-start md:justify-center">
+                                    <div class="quantity-control-wrapper w-full md:w-32">
+                                        <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center font-black lbb" />
+                                    </div>
                                 </div>
-                                <ul v-if="deliveredSuggestions.length" class="autocomplete-list shadow-2xl border border-red-100">
-                                    <li v-for="b in deliveredSuggestions" :key="b.id" @click="addMaterial(b, 'delivered')" class="text-[11px] font-black uppercase text-slate-700 hover:bg-red-50 p-3 transition-colors">
-                                        <div class="flex justify-between items-center w-full">
-                                            <span class="truncate uppercase">{{ b.titulo }}</span>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                            
-                            <div v-if="selectedDeliveredBooks.length" class="table-modern-wrapper mt-6 overflow-hidden rounded-2xl border border-red-100 bg-white shadow-sm">
-                                <div class="table-responsive">
-                                    <table class="w-full divide-y divide-gray-200">
-                                        <thead class="bg-red-900">
-                                            <tr>
-                                                <th class="table-header text-white">Libro</th>
-                                                <th class="table-header text-center w-32 text-white">Cantidad</th>
-                                                <th class="px-6 py-3 w-16 text-white"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="bg-white divide-y divide-red-50">
-                                            <tr v-for="(item, idx) in selectedDeliveredBooks" :key="idx" class="hover:bg-red-50/20 transition-colors">
-                                                <td class="table-cell">
-                                                    <div class="text-xs font-black text-slate-800 uppercase leading-tight">{{ item.titulo }}</div>
-                                                </td>
-                                                <td class="table-cell text-center">
-                                                    <div class="flex justify-center">
-                                                        <div class="quantity-control-wrapper">
-                                                            <input v-model.number="item.cantidad" type="number" min="1" class="input-table text-center" />
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="table-cell text-right">
-                                                    <button type="button" @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary"><i class="fas fa-trash-alt"></i> Quitar</button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                            </td>
+
+                            <td class="table-cell text-right block md:table-cell">
+                                <button type="button" @click="selectedDeliveredBooks.splice(idx, 1)" class="btn-secondary flex items-center justify-end gap-1 w-full text-[10px] font-black uppercase text-red-400 hover:text-red-600">
+                                    <i class="fas fa-trash-alt"></i> <span class="md:hidden">Quitar</span>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
 
                         <!-- RESULTADO Y AGENDA -->
                         <div class="form-section shadow-premium border-t-8 border-t-slate-800 bg-white p-8 rounded-[2.5rem] border border-slate-100">

@@ -96,59 +96,63 @@
                 <p class="text-gray-500 font-medium">No se encontraron visitas que coincidan con los filtros aplicados.</p>
             </div>
             
-            <div v-else class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm">
-                <table class="min-width-full divide-y divide-gray-200">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="table-header">Fecha</th>
-                            <th class="table-header">Plantel</th>
-                            <th class="table-header">Entrevistado</th>
-                            <th class="table-header text-center">Estado</th>
-                            <th class="table-header">Próxima visita</th>
-                            <th class="px-6 py-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-100">
-                        <tr v-for="visita in visitas" :key="visita.id" class="hover:bg-gray-50 transition-colors">
-                            <td class="table-cell table-cell-bold text-gray-700">{{ formatDate(visita.fecha) }}</td>
-                            
-                            <td class="table-cell">
-                                <div class="text-red-900 font-bold uppercase text-xs text-truncate max-w-plantel" 
-                                    :title="visita.cliente?.name"> {{ visita.cliente?.name || 'Plantel no disponible' }}
-                                </div>
-                            </td>
+            <div v-else class="table-responsive table-shadow-lg mt-8 border rounded-xl overflow-hidden shadow-sm bg-white animate-fade-in">
+    <table class="min-width-full divide-y divide-gray-200 responsive-table">
+        <thead class="bg-gray-100 hidden md:table-header-group">
+            <tr>
+                <th class="table-header">Fecha</th>
+                <th class="table-header">Plantel</th>
+                <th class="table-header">Entrevistado</th>
+                <th class="table-header text-center">Estado</th>
+                <th class="table-header">Próxima visita</th>
+                <th class="px-6 py-3 w-28"></th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
+            <tr v-for="visita in visitas" :key="visita.id" 
+                class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                
+                <td class="table-cell table-cell-bold text-gray-700 block md:table-cell" data-label="FECHA">
+                    {{ formatDate(visita.fecha) }}
+                </td>
+                
+                <td class="table-cell block md:table-cell" data-label="PLANTEL">
+                    <div class="text-red-900 font-bold uppercase text-xs text-truncate max-w-plantel" 
+                        :title="visita.cliente?.name"> {{ visita.cliente?.name || 'Plantel no disponible' }}
+                    </div>
+                </td>
 
-                            <td class="table-cell">
-                                <div class="text-sm font-medium text-gray-800 text-truncate max-w-entrevistado" 
-                                    :title="visita.persona_entrevistada">
-                                    {{ visita.persona_entrevistada }}
-                                </div>
-                            </td>
-                            
-                            <td class="table-cell text-center">
-                                <span class="status-badge" :class="getOutcomeClass(visita.resultado_visita)">
-                                    <i :class="getOutcomeIcon(visita.resultado_visita)" class="mr-1"></i>
-                                    {{ (visita.resultado_visita || 'seguimiento').toUpperCase() }}
-                                </span>
-                            </td>
+                <td class="table-cell block md:table-cell" data-label="ENTREVISTADO">
+                    <div class="text-sm font-medium text-gray-800 text-truncate max-w-entrevistado" 
+                        :title="visita.persona_entrevistada">
+                        {{ visita.persona_entrevistada }}
+                    </div>
+                </td>
+                
+                <td class="table-cell text-left md:text-center block md:table-cell" data-label="ESTADO">
+                    <span class="status-badge" :class="getOutcomeClass(visita.resultado_visita)">
+                        <i :class="getOutcomeIcon(visita.resultado_visita)" class="mr-1"></i>
+                        {{ (visita.resultado_visita || 'seguimiento').toUpperCase() }}
+                    </span>
+                </td>
 
-                            <td class="table-cell">
-                                <div v-if="visita.proxima_visita_estimada" class="text-green-700 font-bold text-sm">
-                                    <i class="far fa-calendar-alt mr-1"></i>
-                                    {{ formatDate(visita.proxima_visita_estimada) }}
-                                </div>
-                                <div v-else class="text-gray-300 text-[10px] italic">No agendada</div>
-                            </td>
+                <td class="table-cell block md:table-cell" data-label="PRÓXIMA VISITA">
+                    <div v-if="visita.proxima_visita_estimada" class="text-green-700 font-bold text-sm">
+                        <i class="far fa-calendar-alt mr-1"></i>
+                        {{ formatDate(visita.proxima_visita_estimada) }}
+                    </div>
+                    <div v-else class="text-gray-300 text-[10px] italic">No agendada</div>
+                </td>
 
-                            <td class="table-cell-action text-right">
-                                <button @click="viewDetails(visita)" class="text-red-link font-bold text-sm">
-                                    <i class="fas fa-eye"></i> Ver Detalle
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                <td class="table-cell-action text-right block md:table-cell">
+                    <button @click="viewDetails(visita)" class="text-red-link font-bold text-sm flex items-center justify-end gap-1 w-full">
+                        <i class="fas fa-eye"></i> Ver Detalle
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
         </div>
     </div>
 </template>

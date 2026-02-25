@@ -80,59 +80,66 @@
             </div>
 
             <div v-else class="table-container mt-8">
-                <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm">
-                    <table class="min-width-full divide-y divide-gray-200">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="table-header w-32"># Pedido</th>
-                                <th class="table-header">Nombre del Cliente</th>
-                                <th class="table-header text-center">Prioridad</th>
-                                <th class="table-header">Fecha en que se creó el pedido</th>
-                                <th class="table-header text-center">Ítems</th>
-                                <th class="table-header">Estado</th>
-                                <th class="px-6 py-3">Detalles</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white bk divide-y divide-gray-100">
-                            <tr v-for="pedido in filteredPedidos" :key="pedido.id" class="hover:bg-gray-50 transition-colors">
-                                <td class="table-cell font-bold bld text-red-800">
-                                    {{ pedido.display_id || pedido.numero_referencia || ('PED-' + pedido.id) }}
-                                </td>
-                                <td class="table-cell">
-                                    <div class="text-sm font-bold text-gray-800 text-truncate max-w-cliente" :title="pedido.cliente?.name">
-                                        {{ pedido.cliente?.name || 'No asignado' }}
-                                    </div>
-                                    <div class="text-[10px] text-gray-400 uppercase tracking-tighter">
-                                        {{ pedido.cliente?.tipo || 'N/A' }}
-                                    </div>
-                                </td>
-                               
-                                <td class="table-cell text-center">
-                                    <span class="priority-badge bld " :class="getPriorityBadgeClass(pedido.prioridad)">
-                                        {{ (pedido.prioridad || 'media').toUpperCase() }}
-                                    </span>
-                                </td>
-                                <td class="table-cell text-gray-500 text-xs italic">
-                                    {{ formatDate(pedido.created_at) }}
-                                </td>
-                                <td class="table-cell text-center bld font-bold text-gray-700">
-                                    {{ calculateTotalItems(pedido.detalles) }}
-                                </td>
-                                <td class="table-cell">
-                                    <span class="status-badge " :class="getStatusClass(pedido.status)">
-                                        <i class="fas fa-circle text-[6px] mr-2"></i>
-                                        {{ pedido.status.toUpperCase() }}
-                                    </span>
-                                </td>
-                                <td class="table-cell text-right">
-                                    <router-link :to="{ name: 'DetallePedido', params: { id: pedido.id } }" class="text-red-link">
-                                        DETALLES <i class="fas fa-chevron-right ml-1"></i>
-                                    </router-link>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white animate-fade-in">
+    <table class="min-width-full divide-y divide-gray-200 responsive-table">
+        <thead class="bg-gray-100 hidden md:table-header-group">
+            <tr>
+                <th class="table-header w-32">N</th>
+                <th class="table-header">Nombre del Cliente</th>
+                <th class="table-header text-center w-32">Prioridad</th>
+                <th class="table-header">Fecha de creación</th>
+                <th class="table-header text-center w-24">Ítems</th>
+                <th class="table-header w-40">Estado</th>
+                <th class="px-6 py-3 w-28">Detalles</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white bk divide-y divide-gray-100 block md:table-row-group">
+            <tr v-for="pedido in filteredPedidos" :key="pedido.id" 
+                class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                
+                <td class="table-cell font-bold bld text-red-800 block md:table-cell" data-label="N">
+                    {{ pedido.display_id || pedido.numero_referencia || ('PED-' + pedido.id) }}
+                </td>
+
+                <td class="table-cell block md:table-cell" data-label="NOMBRE DELCLIENTE">
+                    <div class="text-sm font-bold text-gray-800 text-truncate max-w-cliente" :title="pedido.cliente?.name">
+                        {{ pedido.cliente?.name || 'No asignado' }}
+                    </div>
+                    <div class="text-[10px] text-gray-400 uppercase tracking-tighter mt-1">
+                        {{ pedido.cliente?.tipo || 'N/A' }}
+                    </div>
+                </td>
+               
+                <td class="table-cell text-left md:text-center block md:table-cell" data-label="PRIORIDAD">
+                    <span class="priority-badge bld" :class="getPriorityBadgeClass(pedido.prioridad)">
+                        {{ (pedido.prioridad || 'media').toUpperCase() }}
+                    </span>
+                </td>
+
+                <td class="table-cell text-slate-500 text-xs italic block md:table-cell" data-label="FECHA DE CREACION">
+                    {{ formatDate(pedido.created_at) }}
+                </td>
+
+                <td class="table-cell text-left md:text-center bld font-bold text-gray-700 block md:table-cell" data-label="ÍTEMS">
+                    {{ calculateTotalItems(pedido.detalles) }}
+                </td>
+
+                <td class="table-cell block md:table-cell" data-label="ESTADO">
+                    <span class="status-badge" :class="getStatusClass(pedido.status)">
+                        <i class="fas fa-circle text-[6px] mr-2"></i>
+                        {{ pedido.status.toUpperCase() }}
+                    </span>
+                </td>
+
+                <td class="table-cell text-right block md:table-cell">
+                    <router-link :to="{ name: 'DetallePedido', params: { id: pedido.id } }" class="text-red-link flex items-center justify-end gap-1 w-full font-bold text-sm">
+                        DETALLES <i class="fas fa-chevron-right ml-1 text-[10px]"></i>
+                    </router-link>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
             </div>
         </div>
     </div>

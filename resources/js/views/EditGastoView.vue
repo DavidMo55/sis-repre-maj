@@ -157,7 +157,7 @@
                                                     </div>
                                                 </td>
 
-                                                <td class="table-cell block md:table-cell text-left md:text-center" data-label="ESTADO COMPROBANTE">
+                                                <td class="table-cell block md:table-cell text-left md:text-center" data-label="COMPROBANTE">
                                                     <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all w-full md:w-auto" 
                                                         :class="[
                                                             item.file ? 'border-green-400 bg-green-50 text-green-700' : 
@@ -175,12 +175,12 @@
                                                 <td class="table-cell block md:table-cell text-left md:text-right" data-label="MONTO ($)">
                                                     <div class="flex items-center justify-start md:justify-end">
                                                         <span class="text-[10px] mr-1 opacity-50 font-black md:hidden">$</span>
-                                                        <input v-model.number="item.monto" type="number" step="0.01" class="edit-inline-input form-input  w-full md:w-24 text-left md:text-right font-black !text-red-700 md:!text-slate-800">
+                                                        <input v-model.number="item.monto" type="number" step="0.01" class="edit-inline-input form-input  w-full md:w-24 text-left md:text-right font-black !text-red-700 md:!text-red-400">
                                                     </div>
                                                 </td>
 
-                                                <td class="table-cell block md:table-cell text-left md:text-center" data-label="¿FISCAL?">
-                                                    <select v-model="item.es_facturado" class="status-select-mini form-input  !text-[9px] w-full md:w-auto" :class="item.es_facturado ? 'text-green-700 font-black' : 'text-slate-400'">
+                                                <td class="table-cell block md:table-cell text-left md:text-center " data-label="¿Cuenta con Factura fiscal?">
+                                                    <select v-model="item.es_facturado" class="status-select-mini form-input  !text-[9px] w-full md:w-auto" :class="item.es_facturado ? 'text-green-700 font-black' : 'text-red-400'">
                                                         <option :value="true">FACTURADO</option>
                                                         <option :value="false">SIN FACTURA</option>
                                                     </select>
@@ -657,7 +657,7 @@ select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.o
         font-size: 8px;
         font-weight: 900;
         text-transform: uppercase;
-        color: #94a3b8;
+        color: #d56b6b;
         margin-bottom: 4px;
         letter-spacing: 0.1em;
     }

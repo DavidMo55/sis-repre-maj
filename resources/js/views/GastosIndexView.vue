@@ -71,55 +71,53 @@
                 <p class="text-slate-500 font-bold uppercase text-[10px] tracking-widest">No se encontraron gastos con estos criterios.</p>
             </div>
 
-            <div v-else class="table-responsive table-shadow-lg mt-8 border rounded-[2rem] overflow-hidden shadow-sm bg-white animate-fade-in">
-                <table class="min-width-full divide-y divide-slate-100">
-                    <thead class="bg-slate-900">
-                        <tr>
-                            <th class="table-header w-32 text-white">Fecha</th>
-                            <th class="table-header text-white">Paquete de gastos</th>
-                            <th class="table-header text-center w-36 text-white">Estado</th>
-                            <th class="table-header text-right w-36 text-white">Monto</th>
-                            <th class="px-6 py-3 w-28"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-slate-100">
-                        <tr v-for="gasto in filteredGastos" :key="gasto.id" 
-                            class="hover:bg-slate-50/50 transition-colors"
-                            :class="{'bg-amber-50/10': gasto.status === 'BORRADOR'}">
-                            
-                            <td class="table-cell table-cell-bold text-slate-700">
-                                {{ formatDate(gasto.fecha) }}
-                            </td>
+           <div v-else class="table-responsive table-shadow-lg mt-8 border rounded-[2rem] overflow-hidden shadow-sm bg-white animate-fade-in">
+    <table class="min-width-full divide-y divide-slate-100 responsive-table">
+        <thead class="bg-slate-900 hidden md:table-header-group">
+            <tr>
+                <th class="table-header w-32 text-white">Fecha</th>
+                <th class="table-header text-white">Paquete de gastos</th>
+                <th class="table-header text-center w-36 text-white">Estado</th>
+                <th class="table-header text-right w-36 text-white">Monto</th>
+                <th class="px-6 py-3 w-28"></th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-slate-100 block md:table-row-group">
+            <tr v-for="gasto in filteredGastos" :key="gasto.id" 
+                class="hover:bg-slate-50/50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none"
+                :class="{'bg-amber-50/10': gasto.status === 'BORRADOR'}">
+                
+                <td class="table-cell table-cell-bold text-slate-700 block md:table-cell" data-label="FECHA">
+                    {{ formatDate(gasto.fecha) }}
+                </td>
 
-                            <td class="table-cell">
-                                <div class="text-sm font-black  uppercase leading-tight text-truncate max-w-concepto" :title="gasto.concepto">
-                                      <i class="fas text-slate-700 sl7 fa-map-marker-alt mr-1 opacity-50"></i> {{ gasto.estado_nombre }}
-                                </div>
-                               
-                            </td>
+                <td class="table-cell block md:table-cell" data-label="PAQUETE DE GASTOS">
+                    <div class="text-sm font-black uppercase leading-tight text-truncate max-w-concepto" :title="gasto.concepto">
+                          <i class="fas text-slate-700 sl7 fa-map-marker-alt mr-1 opacity-50"></i> {{ gasto.estado_nombre }}
+                    </div>
+                </td>
 
-                            <td class="table-cell text-center">
-                                <span class="status-badge" 
-                                      :class="gasto.status === 'BORRADOR' ? 'badge-draft' : 'badge-final'">
-                                    <i :class="gasto.status === 'BORRADOR' ? 'fas fa-edit' : 'fas fa-lock'" class="mr-1.5 opacity-60"></i>
-                                    {{ gasto.status }}
-                                </span>
-                            </td>
+                <td class="table-cell text-left md:text-center block md:table-cell" data-label="ESTADO">
+                    <span class="status-badge" 
+                          :class="gasto.status === 'BORRADOR' ? 'badge-draft' : 'badge-final'">
+                        <i :class="gasto.status === 'BORRADOR' ? 'fas fa-edit' : 'fas fa-lock'" class="mr-1.5 opacity-60"></i>
+                        {{ gasto.status }}
+                    </span>
+                </td>
 
-                            <td class="table-cell table-cell-bold text-right text-red-700 text-lg">
-                                {{ formatCurrency(gasto.monto) }}
-                            </td>
+                <td class="table-cell table-cell-bold text-left md:text-right text-red-700 text-lg block md:table-cell" data-label="MONTO">
+                    {{ formatCurrency(gasto.monto) }}
+                </td>
 
-
-                            <td class="table-cell text-right">
-                                <button @click="viewDetails(gasto)" class="text-red-link flex items-center justify-end gap-1 w-full">
-                                    <i class="fas fa-eye"></i> Detalles
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                <td class="table-cell text-right block md:table-cell">
+                    <button @click="viewDetails(gasto)" class="text-red-link flex items-center justify-end gap-1 w-full">
+                        <i class="fas fa-eye"></i> Detalles
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
             
         </div>
     </div>

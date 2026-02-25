@@ -195,68 +195,75 @@
                                         
                                         
                                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                            <!-- TABLA A: INTERÉS (Solo si tiene datos) -->
-                                            <div v-if="parseMateriales(h.libros_interes).interes.length" class="table-container">
-                                                <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
-                                            <i class="fas fa-book-open text-red-700"></i> Libros de interes
-                                        </h5>
-                                                <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-                                                    <table class="min-width-full divide-y divide-gray-200">
-                                                        <thead class="bg-gray-100">
-                                                            <tr>
-                                                                <th class="table-header">Libros</th>
-                                                                <th class="table-header text-right">Formato</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="bg-white bk divide-y divide-gray-100">
-                                                            <tr v-for="(item, i) in parseMateriales(h.libros_interes).interes" :key="i" class="hover:bg-gray-50 transition-colors">
-                                                                <td class="table-cell">
-                                                                    <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
-                                                                        {{ item.titulo }}
-                                                                    </div>
-                                                                </td>
-                                                                <td class="table-cell text-right">
-                                                                    <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
-                                                                        {{ (item.tipo || 'Físico').toUpperCase() }}
-                                                                    </span>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
+                                         <div class="space-y-8 animate-fade-in">
+    <!-- TABLA A: INTERÉS (Solo si tiene datos) -->
+    <div v-if="parseMateriales(h.libros_interes).interes.length" class="table-container">
+        <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
+            <i class="fas fa-book-open text-red-700"></i> Libros de interés
+        </h5>
+        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
+            <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                <thead class="bg-gray-100 hidden md:table-header-group">
+                    <tr>
+                        <th class="table-header">Libros</th>
+                        <th class="table-header text-right w-40">Formato</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white bk divide-y divide-gray-100 block md:table-row-group">
+                    <tr v-for="(item, i) in parseMateriales(h.libros_interes).interes" :key="i" 
+                        class="hover:bg-gray-50 transition-colors block md:table-row relative p-4 md:p-0 border-b md:border-none">
+                        
+                        <td class="table-cell block md:table-cell" data-label="LIBROS">
+                            <div class="text-sm font-bold text-gray-800 uppercase leading-tight">
+                                {{ item.titulo }}
+                            </div>
+                        </td>
+                        
+                        <td class="table-cell text-left md:text-right block md:table-cell" data-label="FORMATO">
+                            <span class="status-badge bg-blue-50 text-blue-700 border border-blue-100">
+                                {{ (item.tipo || 'Físico').toUpperCase() }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-                                            <!-- TABLA B: MUESTRAS (Solo si tiene datos) -->
-                                            <div v-if="parseMateriales(h.libros_interes).entregado.length" class="table-container">
-                                                <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white border-red-100">
-                                                    <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
-                                            <i class="fas fa-book-open text-red-700"></i> Muestra de promocion entregadas
-                                        </h5>
-                                                    <table class="min-width-full divide-y divide-gray-200">
-                                                        <thead class="bg-red-50">
-                                                            
-                                                            <tr>
-                                                                <th class="table-header !text-red-800">Libro</th>
-                                                                <th class="table-header text-right !text-red-800">Cantidad</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="bg-white bk divide-y divide-red-50">
-                                                            <tr v-for="(item, i) in parseMateriales(h.libros_interes).entregado" :key="i" class="hover:bg-red-50/30 transition-colors">
-                                                                <td class="table-cell">
-                                                                    <div class="text-sm font-bold text-red-900 uppercase leading-tight">
-                                                                        {{ item.titulo }}
-                                                                    </div>
-                                                                </td>
-                                                                <td class="table-cell text-right">
-                                                                    <span class="text-sm font-black text-red-600 bg-red-100 px-3 py-1 rounded-lg border border-red-200">
-                                                                        {{ item.cantidad }}
-                                                                    </span>
-                                                                </td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
+    <!-- TABLA B: MUESTRAS (Solo si tiene datos) -->
+    <div v-if="parseMateriales(h.libros_interes).entregado.length" class="table-container">
+        <h5 class="text-black font-black label-large uppercase text-[11px] tracking-[0.2em] mb-6 flex items-center gap-2">
+            <i class="fas fa-box-open text-red-700"></i> Muestras de promoción entregadas
+        </h5>
+        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white border-red-100">
+            <table class="min-width-full divide-y divide-gray-200 responsive-table">
+                <thead class="bg-red-50 hidden md:table-header-group">
+                    <tr>
+                        <th class="table-header !text-red-800">Libro</th>
+                        <th class="table-header text-right w-32 !text-red-800">Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white bk divide-y divide-red-50 block md:table-row-group">
+                    <tr v-for="(item, i) in parseMateriales(h.libros_interes).entregado" :key="i" 
+                        class="hover:bg-red-50/30 transition-colors block md:table-row relative p-4 md:p-0 border-b md:border-none">
+                        
+                        <td class="table-cell block md:table-cell" data-label="LIBRO">
+                            <div class="text-sm font-bold text-red-900 uppercase leading-tight">
+                                {{ item.titulo }}
+                            </div>
+                        </td>
+                        
+                        <td class="table-cell text-left md:text-right block md:table-cell" data-label="CANTIDAD">
+                            <span class="text-sm font-black text-red-600 bg-red-100 px-3 py-1 rounded-lg border border-red-200">
+                                {{ item.cantidad }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
                                         </div>
                                     </div>
 
@@ -320,56 +327,66 @@
                     </div>
 
                     <div class="table-container mt-4 animate-fade-in">
-                        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
-                            <table class="min-width-full divide-y divide-gray-200">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="table-header w-64">Visita</th>
-                                        <th class="table-header">Motivo de la Modificación</th>
-                                        <th class="table-header w-56">Responsable</th>
-                                        <th class="table-header text-right w-48">Sincronización</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white bk divide-y divide-gray-100">
-                                    <tr v-for="(log, index) in allLogs" :key="log.id" class="hover:bg-gray-50 transition-colors">
-                                        <td class="table-cell">
-                                            <div class="flex flex-col">
-                                                <span class="text-[10px] font-black text-red-800 uppercase tracking-tighter">
-                                                    {{ log.visit_type === 'primera' ? 'Primera Visita' : 'Seguimiento' }}
-                                                </span>
-                                                <br>
-                                                <span class="text-[10px] font-bold text-gray-400 uppercase mt-1 italic">
-                                                    {{ formatDateShort(log.visit_date) }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="table-cell">
-                                            <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
-                                                "{{ log.motivo_cambio || 'SIN JUSTIFICACIÓN TÉCNICA' }}"
-                                            </p>
-                                        </td>
-                                        <td class="table-cell">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[11px] font-black text-gray-800 uppercase tracking-tight">
-                                                    {{ log.user?.name || 'Representante' }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td class="table-cell text-right">
-                                            <div class="flex flex-col items-end">
-                                                <span class="text-[11px] font-black text-gray-800 uppercase">
-                                                    {{ formatDateOnly(log.created_at) }}
-                                                </span>
-                                                <br>
-                                                <span class="text-[9px] font-bold text-gray-400 mt-0.5 tracking-tighter uppercase">
-                                                    {{ formatTimeOnly(log.created_at) }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white animate-fade-in">
+    <table class="min-width-full divide-y divide-gray-200 responsive-table">
+        <thead class="bg-gray-100 hidden md:table-header-group">
+            <tr>
+                <th class="table-header w-64">Visita</th>
+                <th class="table-header">Motivo de la Modificación</th>
+                <th class="table-header w-56">Responsable</th>
+                <th class="table-header text-right w-48">Sincronización</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white bk divide-y divide-gray-100 block md:table-row-group">
+            <tr v-for="(log, index) in allLogs" :key="log.id" 
+                class="hover:bg-gray-50 transition-colors block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                
+                <td class="table-cell block md:table-cell" data-label="VISITA">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-black text-red-800 uppercase tracking-tighter">
+                            {{ log.visit_type === 'primera' ? 'Primera Visita' : 'Seguimiento' }}
+                        </span>
+                        <br>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase mt-1 italic">
+                            {{ formatDateShort(log.visit_date) }}
+                        </span>
+                    </div>
+                </td>
+
+                <td class="table-cell block md:table-cell" data-label="MOTIVO DE LA MODIFICACIÓN">
+                    <p class="text-[11px] font-bold text-slate-700 italic leading-relaxed uppercase">
+                        "{{ log.motivo_cambio || 'SIN JUSTIFICACIÓN TÉCNICA' }}"
+                    </p>
+                </td>
+
+                <td class="table-cell block md:table-cell" data-label="RESPONSABLE">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-black text-gray-800 uppercase tracking-tight">
+                            {{ log.user?.name || 'Representante' }}
+                        </span>
+                    </div>
+                </td>
+
+                <td class="table-cell block md:table-cell text-left md:text-right" data-label="SINCRONIZACIÓN">
+                    <div class="flex flex-col items-start md:items-end">
+                        <span class="text-[11px] font-black text-gray-800 uppercase leading-none">
+                            {{ formatDateOnly(log.created_at) }}
+                        </span>
+                        <br>
+                        <span class="text-[9px] font-bold text-gray-400 mt-1 tracking-tighter uppercase">
+                            {{ formatTimeOnly(log.created_at) }}
+                        </span>
+                    </div>
+                </td>
+            </tr>
+            <tr v-if="!allLogs || allLogs.length === 0" class="block md:table-row">
+                <td colspan="4" class="px-6 py-12 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest block md:table-cell">
+                    No se han registrado movimientos en la bitácora
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
                     </div>
                 </div>
             </div>
@@ -553,4 +570,41 @@ onMounted(fetchVisitaDetail);
 .table-shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02); }
 
 .badge-red-outline { @apply bg-red-50 text-red-700 text-[9px] font-black uppercase px-2 py-0.5 rounded-lg border border-red-100; }
+.table-header { padding: 14px 16px; font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; text-align: left; }
+.table-cell { padding: 16px; font-size: 0.9rem; }
+
+@media (max-width: 768px) {
+    .responsive-table { display: block; border: none; }
+    .responsive-table thead { display: none; } 
+    .responsive-table tbody { display: block; }
+    .responsive-table tr { 
+        display: block; 
+        margin-bottom: 1.5rem; 
+        border: 1px solid #f1f5f9; 
+        border-radius: 20px; 
+        padding: 20px;
+        background: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .responsive-table td { 
+        display: flex; 
+        flex-direction: column; 
+        padding: 10px 0; 
+        border: none;
+        text-align: left !important;
+    }
+    /* Inyecta el título dinámico desde el atributo data-label */
+    .responsive-table td::before {
+        content: attr(data-label);
+        font-size: 8px;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #94a3b8;
+        margin-bottom: 4px;
+        letter-spacing: 0.15em;
+    }
+}
+
+.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>

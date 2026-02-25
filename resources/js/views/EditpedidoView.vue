@@ -309,66 +309,82 @@
                         <div class="md:col-span-1"><button type="button" @click="addItemToCart" class="btn-primary w-full py-4 rounded-2xl shadow-xl transition-all active:scale-95 lbb"><i class="fas fa-cart-plus"></i>Añadir</button></div>
                     </div>
 
-                    <div class="mt-8 overflow-hidden rounded-[2.5rem] border border-red-100 bg-white shadow-premium">
-                        <table class="min-width-full divide-y divide-red-200">
-                                <thead class="bg-black text-white text-[9px] font-black uppercase tracking-widest">
-                                    <tr>
-                                        <th class="px-6 py-5 text-left">Libro</th>
-                                        <th class="px-6 py-5 text-center w-24">Tipo</th>
-                                        <th class="px-6 py-5 text-center w-32">Formato</th>
-                                        <th class="px-6 py-5 text-center w-20">Cantidad</th>
-                                        <th class="px-6 py-5 text-right w-28">Precio Unitario</th>
-                                        <th class="px-6 py-5 text-right w-32">Subtotal</th>
-                                        <th class="px-6 py-5 w-20"></th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-red-50">
-                                    <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-red-50/50 transition-colors group">
-                                        <td class="table-cell">
-                                            <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
-                                        </td>
-                                        <td class="table-cell text-center">
-                                            <span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">
-                                                {{ item.tipo_material.toUpperCase() }}
-                                            </span>
-                                        </td>
-                                        <td class="table-cell text-center">
-                                            <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-[9px] font-black uppercase tracking-tighter">
-                                                {{ item.sub_type }}
-                                            </span>
-                                        </td>
-                                        <td class="table-cell text-center font-black text-slate-700 text-lg">
-                                            {{ item.quantity }}
-                                        </td>
-                                        <td class="table-cell text-right font-bold text-slate-500 text-xs">
-                                            {{ formatCurrency(item.price) }}
-                                        </td>
-                                        <td class="table-cell text-right font-black text-red-700 text-sm">
-                                            {{ formatCurrency(item.totalCost) }}
-                                        </td>
-                                        <td class="table-cell text-center">
-                                            <button type="button" @click="orderForm.orderItems.splice(index, 1)" class="btn-secondary hover:text-red-600 transition-colors">
-                                                <i class="fas fa-trash-alt mr-1"></i> Borrar
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="!orderForm.orderItems.length">
-                                        <td colspan="6" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest">Sin materiales en la orden</td>
-                                    </tr>
-                                </tbody>
-                                <tfoot v-if="orderForm.orderItems.length" class="bg-red-50/30 border-t-2 border-red-100">
-                                    <tr>
-                                        <td colspan="3" class="px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">Resumen de Orden:</td>
-                                        <td class="px-4 py-8 text-center font-black text-red-700 text-2xl border-x border-red-100/50">{{ totalUnits }}</td>
-                                        <td></td>
-                                        <td class="px-6 py-8 text-right font-black text-3xl text-red-700 tracking-tighter leading-none">
-                                            {{ formatCurrency(orderTotal) }}
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                    </div>
+                   <div class="table-responsive table-shadow-lg border rounded-[2rem] overflow-hidden shadow-sm bg-white animate-fade-in">
+    <table class="min-width-full divide-y divide-red-200 responsive-table">
+        <thead class="bg-black text-white hidden md:table-header-group">
+            <tr>
+                <th class="px-6 py-5 text-left text-[9px] font-black uppercase tracking-widest">Libro</th>
+                <th class="px-6 py-5 text-center w-24 text-[9px] font-black uppercase tracking-widest">Tipo</th>
+                <th class="px-6 py-5 text-center w-32 text-[9px] font-black uppercase tracking-widest">Formato</th>
+                <th class="px-6 py-5 text-center w-20 text-[9px] font-black uppercase tracking-widest">Cantidad</th>
+                <th class="px-6 py-5 text-right w-28 text-[9px] font-black uppercase tracking-widest">Precio Unitario</th>
+                <th class="px-6 py-5 text-right w-32 text-[9px] font-black uppercase tracking-widest">Subtotal</th>
+                <th class="px-6 py-5 w-20"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-red-50 block md:table-row-group">
+            <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" 
+                class="hover:bg-red-50/50 transition-colors group block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                
+                <td class="table-cell block md:table-cell" data-label="LIBRO">
+                    <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
+                </td>
+
+                <td class="table-cell text-left md:text-center block md:table-cell" data-label="TIPO">
+                    <span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">
+                        {{ item.tipo_material.toUpperCase() }}
+                    </span>
+                </td>
+
+                <td class="table-cell text-left md:text-center block md:table-cell" data-label="FORMATO">
+                    <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 text-[9px] font-black uppercase tracking-tighter">
+                        {{ item.sub_type }}
+                    </span>
+                </td>
+
+                <td class="table-cell text-left md:text-center font-black text-slate-700 text-lg block md:table-cell" data-label="CANTIDAD">
+                    {{ item.quantity }}
+                </td>
+
+                <td class="table-cell text-left md:text-right font-bold text-slate-500 text-xs block md:table-cell" data-label="PRECIO UNITARIO">
+                    {{ formatCurrency(item.price) }}
+                </td>
+
+                <td class="table-cell text-left md:text-right font-black text-red-700 text-sm block md:table-cell" data-label="SUBTOTAL">
+                    {{ formatCurrency(item.totalCost) }}
+                </td>
+
+                <td class="table-cell text-right block md:table-cell">
+                    <button type="button" @click="orderForm.orderItems.splice(index, 1)" class="btn-delete-item hover:text-red-600 transition-colors flex items-center justify-end gap-1 w-full font-black text-[10px] uppercase">
+                        <i class="fas fa-trash-alt mr-1"></i> Borrar
+                    </button>
+                </td>
+            </tr>
+            <tr v-if="!orderForm.orderItems.length" class="block md:table-row">
+                <td colspan="7" class="px-6 py-20 text-center italic text-slate-300 font-black text-[10px] uppercase tracking-widest block md:table-cell">
+                    Sin materiales en la orden
+                </td>
+            </tr>
+        </tbody>
+        <tfoot v-if="orderForm.orderItems.length" class="bg-red-50/30 border-t-2 border-red-100 block md:table-footer-group">
+            <tr class="flex flex-col md:table-row p-6 md:p-0">
+                <td colspan="3" class="hidden md:table-cell px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">
+                    Resumen de Orden:
+                </td>
+                <td class="table-cell block md:table-cell text-center md:px-4 md:py-8 font-black text-red-700 text-2xl border-x border-red-100/50">
+                    <span class="md:hidden block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Total Unidades</span>
+                    {{ totalUnits }}
+                </td>
+                <td class="hidden md:table-cell"></td>
+                <td class="table-cell block md:table-cell text-center md:text-right md:px-6 md:py-8 font-black text-3xl text-red-700 tracking-tighter leading-none">
+                    <span class="md:hidden block text-[9px] font-black text-slate-400 uppercase mb-2 tracking-widest">Inversión Total</span>
+                    {{ formatCurrency(orderTotal) }}
+                </td>
+                <td class="hidden md:table-cell"></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
                 </div>
 
                 <!-- 4. NOTAS ADICIONALES -->
