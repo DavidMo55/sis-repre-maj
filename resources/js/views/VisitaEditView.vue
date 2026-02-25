@@ -229,7 +229,7 @@
                                                     <!-- REGLA: Si es digital, forzar y deshabilitar -->
                                                     <select v-model="item.tipo" class="select-table" :disabled="item.original_type === 'digital'">
                                                         <option value="fisico">FÍSICO</option>
-                                                        <option value="digital">DIGITAL</option>
+                                                        <option value="digital">POR REVISAR</option>
                                                         <option value="paquete">PAQUETE</option>
                                                     </select>
                                                 </td>
