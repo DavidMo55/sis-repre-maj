@@ -319,6 +319,7 @@
                                         <th class="px-6 py-5 text-center w-32">Formato</th>
                                         <th class="px-6 py-5 text-center w-20">Cantidad</th>
                                         <th class="px-6 py-5 text-right w-28">Precio Unitario</th>
+                                        <th class="px-6 py-5 text-right w-32">Subtotal</th>
                                         <th class="px-6 py-5 w-20"></th>
                                     </tr>
                                 </thead>
@@ -344,6 +345,9 @@
                                         <td class="table-cell text-right font-bold text-slate-500 text-xs">
                                             {{ formatCurrency(item.price) }}
                                         </td>
+                                        <td class="table-cell text-right font-black text-red-700 text-sm">
+                                            {{ formatCurrency(item.totalCost) }}
+                                        </td>
                                         <td class="table-cell text-center">
                                             <button type="button" @click="orderForm.orderItems.splice(index, 1)" class="btn-delete-item hover:text-red-600 transition-colors">
                                                 <i class="fas fa-trash-alt mr-1"></i> Borrar
@@ -358,6 +362,7 @@
                                     <tr>
                                         <td colspan="3" class="px-8 py-8 text-right font-black text-[10px] uppercase text-red-800 tracking-[0.2em]">Resumen de Orden:</td>
                                         <td class="px-4 py-8 text-center font-black text-red-700 text-2xl border-x border-red-100/50">{{ totalUnits }}</td>
+                                        <td></td>
                                         <td class="px-6 py-8 text-right font-black text-3xl text-red-700 tracking-tighter leading-none">
                                             {{ formatCurrency(orderTotal) }}
                                         </td>

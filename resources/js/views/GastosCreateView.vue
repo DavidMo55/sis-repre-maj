@@ -100,10 +100,11 @@
                         <table class="min-width-full divide-y divide-gray-200">
                             <thead class="bg-slate-900 text-white hidden md:table-header-group">
                                 <tr>
+                                    <th class="table-header-dark text-left">N</th>
                                     <th class="table-header-dark text-left">Concepto / Descripción</th>
                                     <th class="table-header-dark text-center">Comprobante</th>
-                                    <th class="table-header-dark text-center">Facturado</th>
                                     <th class="table-header-dark text-right">Monto</th>
+                                    <th class="table-header-dark text-center">Facturado</th>
                                     <th class="table-header-dark text-center"></th>
                                 </tr>
                             </thead>
@@ -111,12 +112,14 @@
                             <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
                                 <tr v-for="(item, index) in subExpenses" :key="index" 
                                     class="hover:bg-slate-50/50 transition-colors group block md:table-row relative p-5 md:p-0 border-b md:border-none">
-                                    
                                     <td class="table-cell block md:table-cell">
-                                        <div class="flex items-center gap-3">
-                                            <div class="hidden md:flex w-8 h-8 bg-slate-100 text-slate-500 rounded-lg items-center justify-center font-black text-[10px]">
+                                         <div class="hidden md:flex w-8 h-8 bg-slate-100 text-slate-500 rounded-lg items-center justify-center font-black text-[10px]">
                                                 {{ index + 1 }}
                                             </div>
+                                    </td>
+                                    <td class="table-cell block md:table-cell">
+                                        <div class="flex items-center gap-3">
+                                           
                                             <div class="min-w-0">
                                                 <p class="font-black text-slate-800 text-sm uppercase leading-tight break-words">
                                                     {{ item.concepto === 'Otros' ? item.descripcion_otros : item.concepto }}
@@ -134,16 +137,16 @@
                                             </span>
                                         </div>
                                     </td>
-
+                                    <td class="table-cell block md:table-cell text-left md:text-right font-black text-red-700 text-lg md:text-base">
+                                        ${{ item.monto.toFixed(2) }}
+                                    </td>
+                                    
                                     <td class="table-cell block md:table-cell text-left md:text-center">
-                                        <span class="md:hidden block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Estatus</span>
                                         <span v-if="item.es_facturado" class="status-badge-sm badge-tax-success">Facturado</span>
                                         <span v-else class="status-badge-sm badge-tax-none">Sin Factura</span>
                                     </td>
 
-                                    <td class="table-cell block md:table-cell text-left md:text-right font-black text-red-700 text-lg md:text-base">
-                                        ${{ item.monto.toFixed(2) }}
-                                    </td>
+                                    
                                          <td class="table-cell block md:table-cell text-center absolute top-5 right-5 md:static">
                                         <button type="button" @click="removeSubExpense(index)" 
                                             class="btn-delete-action">

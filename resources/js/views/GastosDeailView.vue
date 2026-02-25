@@ -86,7 +86,7 @@
                                 <table class="min-width-full divide-y divide-gray-200">
                                     <thead class="bg-gray-100">
                                         <tr>
-                                            <th class="table-header text-center w-16">#</th>
+                                            <th class="table-header text-center w-16">N</th>
                                             <th class="table-header">CONCEPTO / DESCRIPCIÓN</th>
                                             <th class="table-header text-center">COMPROBANTE</th>
                                             <th class="table-header text-right w-40">MONTO</th>
@@ -118,7 +118,7 @@
                                                        rel="noopener noreferrer"
                                                        class="btn-note !bg-white hover:!border-red-600 hover:!text-red-600 flex items-center gap-2">
                                                         <i class="fas text-[10px]" :class="getFileIcon(gasto.comprobantes[idx].extension)"></i>
-                                                        EXPEDIENTE
+                                                        Comprobante
                                                     </a>
                                                 </div>
                                                 <span v-else class="text-[10px] font-black text-slate-300 uppercase italic">Faltante</span>
@@ -173,11 +173,8 @@
                             <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg">
                                 <i class="fas fa-history"></i>
                             </div>
-                            <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">Bitácora de Ajustes Técnicos</h2>
+                            <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">4. Bitácora de Ajustes Técnicos</h2>
                         </div>
-                        <span class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">
-                            {{ gasto.logs.length }} MODIFICACIONES
-                        </span>
                     </div>
 
                     <div class="table-container mt-4 p-8 pt-0">
@@ -185,7 +182,7 @@
                             <table class="min-width-full divide-y divide-gray-200">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="table-header text-center w-24">ID</th>
+                                        <th class="table-header text-center w-24">N</th>
                                         <th class="table-header">Motivo de la Modificación</th>
                                         <th class="table-header w-56">Responsable</th>
                                         <th class="table-header text-right w-48">Sincronización</th>
@@ -209,9 +206,7 @@
                                         </td>
                                         <td class="table-cell">
                                             <div class="flex items-center gap-2">
-                                                <div class="w-6 h-6 bg-slate-800 text-white rounded-lg flex items-center justify-center text-[8px] font-black uppercase">
-                                                    {{ log.user?.name?.charAt(0) || 'S' }}
-                                                </div>
+                                                
                                                 <span class="text-[11px] font-black text-slate-800 uppercase tracking-tight">
                                                     {{ log.user?.name || 'Sistema' }}
                                                 </span>
@@ -330,7 +325,7 @@ onMounted(fetchGastoDetail);
     line-height: 1.2;
 }
 
-.label-large { display: block; font-size: 1rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
+.label-large { display: block; font-size: 0.79rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 .label-lb { display: block; font-size: 0.70rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 
 .table-responsive { width: 100%; overflow-x: auto; background: white; }

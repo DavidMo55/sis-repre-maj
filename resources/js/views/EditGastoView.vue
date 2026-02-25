@@ -41,9 +41,9 @@
                         <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100">
                             <div class="section-title flex flex-wrap gap-2 items-center">
                                 <i class="fas fa-map-marked-alt text-red-700"></i> 
-                                <span class="flex-1">1. Información del Viaje</span>
-                                <span v-if="form.status === 'BORRADOR'" class="text-[8px] md:text-[9px] bg-slate-100 text-slate-500 px-2 py-1 rounded-lg uppercase font-black">BLOQUEADA EN BORRADOR</span>
-                            </div>
+                                <span class="flex-1 section-title ">1. Información del Viaje</span>
+                             </div>
+                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-4">
                                 <div class="form-group">
                                     <label class="label-style">Fecha de Viaje</label>
@@ -123,6 +123,7 @@
                                         <table class="w-full text-sm border-collapse">
                                             <thead class="bg-slate-900 text-white">
                                                 <tr class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">
+                                                    <th class="px-4 md:px-6 py-5 text-left">N</th>
                                                     <th class="px-4 md:px-6 py-5 text-left">Concepto/Descripción</th>
                                                     <th class="px-4 md:px-6 py-5 text-center w-40">Comprobante</th>
                                                     <th class="px-4 md:px-6 py-5 text-right w-32">Monto</th>
@@ -134,12 +135,14 @@
                                             <tbody class="bg-white divide-y divide-gray-100">
                                                 <tr v-for="(item, index) in subExpenses" :key="item.localId" 
                                                     class="hover:bg-slate-50/50 transition-colors group animate-fade-in">
-                                                    
                                                     <td class="table-cell">
-                                                        <div class="flex items-center gap-3">
-                                                            <div class="hidden md:flex w-7 h-7 bg-slate-100 text-slate-500 rounded-lg items-center justify-center font-black text-[9px] shrink-0">
+                                                         <div class="hidden md:flex w-7 h-7 bg-slate-100 text-slate-500 rounded-lg items-center justify-center font-black text-[9px] shrink-0">
                                                                 {{ index + 1 }}
                                                             </div>
+                                                    </td>
+                                                    <td class="table-cell">
+                                                        <div class="flex items-center gap-3">
+                                                           
                                                             <div class="min-w-0 flex-1 space-y-1.5">
                                                                 <select v-model="item.concepto" class="status-select-mini form-input !text-[10px] !py-1.5 w-full uppercase border-none focus:ring-0">
                                                                     <option value="Gasolina">Gasolina</option>
@@ -238,7 +241,7 @@
                     <div class="lg:col-span-1 min-w-0">
                         <div class="form-section shadow-premium lg:sticky lg:top-28 bg-slate-900 text-white border-none p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem]">
                             <div class="section-title !text-white !border-white/20">
-                                <i class="fas fa-save"></i> Guardar Cambios
+                                <i class="fas fa-save"></i> 3. Guardar Cambios
                             </div>
                             
                             <div class="space-y-6 mt-6">
@@ -601,7 +604,7 @@ const handleSubmit = async (targetStatus) => {
 .label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block; }
 .shadow-premium { box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05); }
 .form-section { background: white; border: 1px solid #f1f5f9; }
-.section-title { font-weight: 900; color: #a93339; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; }
+.section-title { font-weight: 900; color: #030303; margin-bottom: 20px; border-bottom: 2px solid #f8fafc; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px; }
 
 .form-input { width: 100%; padding: 10px 10px; border-radius: 16px; border: 2px solid #f1f5f9; font-weight: 700; color: #334155; background: #fafbfc; transition: all 0.2s; font-size: 0.85rem; }
 .form-input:focus { border-color: #a93339; background: white; outline: none; }

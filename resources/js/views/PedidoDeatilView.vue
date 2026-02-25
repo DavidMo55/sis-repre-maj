@@ -242,8 +242,8 @@
                     </div>
                     
                     <div class="relative z-10">
-                        <span class="inline-flex label-mini label-large items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                            <i class="fas fa-comment-dots"></i> 5. Comentarios generales del pedido
+                        <span class="inline-flex  wh">
+                            <i class="fas fa-comment-dots "></i> 5. Comentarios generales del pedido
                         </span>
                         <div class="bg-amber-50/50 p-6 rounded-[2rem] border border-dashed border-amber-200">
                             <p class="text-slate-800 text-base md:text-lg font-bold italic leading-relaxed whitespace-pre-wrap">
@@ -444,7 +444,7 @@ onMounted(() => {
 .section-title { font-weight: 900; color: #000000; margin-bottom: 25px; border-bottom: 2px solid #fee2e2; padding-bottom: 12px; display: flex; align-items: center; gap: 12px; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px; }
 .label-mini { @apply text-[9px] uppercase font-black text-slate-400 mb-1 block tracking-[0.1em]; }
 .status-badge { padding: 4px 14px; border-radius: 20px; font-size: 0.65rem; font-weight: 900; display: inline-block; text-transform: uppercase; }
-
+.wh { display: block; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; color: #000000; margin-bottom: 6px; letter-spacing: 0.12em; opacity: 0.8; }
 .shadow-premium { box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05); }
 
 .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }

@@ -21,7 +21,7 @@
                 </div>
                 <div class="filter-grid mt-4">
                     <div class="form-group col-span-2">
-                        <label for="search">Buscar Paquete:</label>
+                        <label for="search">Paquete de Gastos:</label>
                         <div class="relative">
                             <i class="fas fa-search search-icon text-slate-400"></i>
                             <input 
