@@ -323,7 +323,7 @@ class PedidoController extends Controller
     /**
      * Actualización de pedido con Validación de Integridad Completa.
      */
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
         $pedido = Pedido::with('detalles.libro')->findOrFail($id);
 
@@ -331,24 +331,15 @@ class PedidoController extends Controller
             return response()->json(['message' => "No se puede modificar un pedido en estado {$pedido->status}"], 403);
         }
 
-        // FIX: Agregamos validación para los campos del receptor para evitar Undefined Array Key
         $validatedData = $request->validate([
             'clientId' => 'required|exists:clientes,id',
             'prioridad' => 'required|in:baja,media,alta',
             'receiverType' => 'required|in:cliente,nuevo,existente',
             'receptor_id'  => 'nullable|required_if:receiverType,existente|exists:pedido_receptores,id',
-            'receiver.persona_recibe' => 'required_if:receiverType,nuevo|string|max:255',
-            'receiver.rfc' => 'required_if:receiverType,nuevo|string|min:12|max:13',
-            'receiver.regimen_fiscal' => 'nullable|string|required_if:receiverType,nuevo', 
-            'receiver.telefono' => 'required_if:receiverType,nuevo|string',
-            'receiver.correo' => 'required_if:receiverType,nuevo|email',
-            'receiver.cp' => 'required_if:receiverType,nuevo|string|size:5',
-            'receiver.estado' => 'required_if:receiverType,nuevo|string', 
-            'receiver.municipio' => 'required_if:receiverType,nuevo|string',
-            'receiver.colonia' => 'required_if:receiverType,nuevo|string',
-            'receiver.calle_num' => 'required_if:receiverType,nuevo|string',
             'items' => 'required|array|min:1',
-            'motivo_cambio' => 'required|string|min:10'
+            'motivo_cambio' => 'required|string|min:10',
+            'comments' => 'nullable|string', 
+            'logistics.comentarios_logistica' => 'nullable|string' 
         ]);
 
         try {
@@ -356,29 +347,7 @@ class PedidoController extends Controller
                 $user = Auth::user();
                 $ownerId = method_exists($user, 'getEffectiveId') ? $user->getEffectiveId() : $user->id;
 
-                // VALIDACIÓN DE INTEGRIDAD GLOBAL
-                if ($validatedData['receiverType'] === 'nuevo') {
-                    $r = $request->input('receiver');
-                    $rfcNorm      = strtoupper(trim($r['rfc']));
-                    $nombreNorm   = strtoupper(trim($r['persona_recibe']));
-                    $correoNorm   = strtolower(trim($r['correo']));
-                    $telefonoNorm = trim($r['telefono']);
-
-                    $duplicado = PedidoReceptor::where(function($q) use ($rfcNorm, $nombreNorm, $correoNorm, $telefonoNorm) {
-                            $q->where('rfc', $rfcNorm)
-                              ->orWhere('nombre', $nombreNorm)
-                              ->orWhere('correo', $correoNorm)
-                              ->orWhere('telefono', $telefonoNorm);
-                        })
-                        ->where('id', '!=', $pedido->receptor_id)
-                        ->first();
-
-                    if ($duplicado) {
-                        throw new \Exception("INTEGRIDAD: Uno de los datos ingresados ya pertenece a otro registro en el sistema.");
-                    }
-                }
-
-                // Log de Auditoría
+                // Log de Auditoría (Antes del cambio)
                 PedidoLog::create([
                     'pedido_id' => $pedido->id,
                     'user_id' => $user->id,
@@ -389,21 +358,25 @@ class PedidoController extends Controller
                     'motivo_cambio' => strtoupper($request->motivo_cambio)
                 ]);
 
-                $totalQuantity = collect($validatedData['items'])->sum('quantity');
-                $totalAmount = collect($validatedData['items'])->sum(function($i){ return $i['quantity'] * ($i['price'] ?? 0); });
-
+                // VARIABLES DE IDENTIDAD Y ENVÍO (Mapeadas al esquema real)
                 $receptorId = $request->receptor_id;
                 $direccionFormateada = $pedido->delivery_address;
                 $regimenFull = $pedido->receiver_regimen_fiscal;
 
                 if ($validatedData['receiverType'] === 'nuevo') {
                     $r = $request->input('receiver');
-                    $regimenFull = $r['regimen_fiscal'] ?? $pedido->receiver_regimen_fiscal;
+                    $rfcNorm = strtoupper(trim($r['rfc']));
+                    
+                    // Validar duplicado excluyendo el actual asignado
+                    $duplicado = PedidoReceptor::where('rfc', $rfcNorm)->where('id', '!=', $pedido->receptor_id)->first();
+                    if ($duplicado) throw new \Exception("INTEGRIDAD: El RFC ingresado ya existe en otro registro.");
+
                     $direccionFormateada = "{$r['calle_num']}, COL. {$r['colonia']}, {$r['municipio']}, {$r['estado']}, CP {$r['cp']}";
+                    $regimenFull = $r['regimen_fiscal'] ?? $pedido->receiver_regimen_fiscal;
+                    
                     $receptor = PedidoReceptor::updateOrCreate(
-                        ['rfc' => strtoupper($r['rfc'])],
+                        ['rfc' => $rfcNorm, 'user_id' => $ownerId],
                         [
-                            'user_id' => $ownerId,
                             'cliente_id' => $validatedData['clientId'],
                             'nombre' => strtoupper($r['persona_recibe']),
                             'receiver_regimen_fiscal' => strtoupper($regimenFull),
@@ -413,6 +386,7 @@ class PedidoController extends Controller
                         ]
                     );
                     $receptorId = $receptor->id;
+
                 } elseif ($validatedData['receiverType'] === 'existente') {
                     $receptor = PedidoReceptor::findOrFail($receptorId);
                     $direccionFormateada = $receptor->direccion;
@@ -423,57 +397,27 @@ class PedidoController extends Controller
                     $regimenFull = $cliente->regimen_fiscal;
                 }
 
+                $totalQuantity = collect($validatedData['items'])->sum('quantity');
+                $totalAmount = collect($validatedData['items'])->sum(fn($i) => $i['quantity'] * ($i['price'] ?? 0));
+
+                // ACTUALIZACIÓN MAESTRA (Solo columnas existentes en el esquema proporcionado)
                 $pedido->update([
                     'cliente_id'              => $validatedData['clientId'],
                     'prioridad'               => $validatedData['prioridad'],
                     'receptor_id'             => $receptorId,
-                    'receiver_regimen_fiscal' => $regimenFull ? strtoupper($regimenFull) : null,
+                    'receiver_type'           => $validatedData['receiverType'] === 'existente' ? 'nuevo' : $validatedData['receiverType'],
+                    'receiver_regimen_fiscal' => $regimenFull ? strtoupper($regimenFull) : $pedido->receiver_regimen_fiscal,
                     'delivery_address'        => strtoupper($direccionFormateada),
                     'delivery_option'         => $request->input('logistics.deliveryOption') === 'entrega' ? 'none' : $request->input('logistics.deliveryOption'),
                     'paqueteria_nombre'       => strtoupper($request->input('logistics.paqueteria_nombre') ?? ''),
+                    'commentary_delivery_option' => strtoupper($request->input('logistics.comentarios_logistica') ?? ''),
+                    'comments'                => strtoupper($request->input('comments', $pedido->comments)),
                     'total_quantity'          => $totalQuantity,
                     'total'                   => $totalAmount,
                     'actualizado_por'         => strtoupper($user->name),
                 ]);
 
-                // Sync Inventario
-                try {
-                    $dbInv = DB::connection('mysql_inventario');
-                    $pedidoExterno = $dbInv->table('pedidos')
-                        ->where('cliente_id', $pedido->cliente_id)
-                        ->where('estado', 'proceso')
-                        ->orderBy('id', 'desc')
-                        ->first();
-
-                    if ($pedidoExterno) {
-                        $dbInv->table('pedidos')->where('id', $pedidoExterno->id)->update([
-                            'total' => $totalAmount,
-                            'total_quantity' => $totalQuantity,
-                            'updated_at' => now()
-                        ]);
-
-                        $dbInv->table('peticiones')->where('pedido_id', $pedidoExterno->id)->delete();
-
-                        foreach ($request->items as $item) {
-                            $tipoPeticion = ($item['tipo_material'] === 'promocion') 
-                                ? (str_contains(strtolower($item['sub_type']), 'demo') ? 'demo' : 'profesor') 
-                                : 'alumno';
-
-                            $dbInv->table('peticiones')->insert([
-                                'pedido_id'  => $pedidoExterno->id,
-                                'pack_id'    => null,
-                                'libro_id'   => $item['bookId'],
-                                'tipo'       => $tipoPeticion,
-                                'quantity'   => $item['quantity'],
-                                'price'      => $item['price'] ?? 0,
-                                'total'      => $item['quantity'] * ($item['price'] ?? 0),
-                                'created_at' => now(),
-                                'updated_at' => now()
-                            ]);
-                        }
-                    }
-                } catch (\Exception $eInv) { Log::warning("Fallo Sync Inventario: " . $eInv->getMessage()); }
-
+                // Actualizar detalles de materiales
                 $pedido->detalles()->delete();
                 foreach ($request->items as $item) {
                     PedidoDetalle::create([
@@ -490,6 +434,7 @@ class PedidoController extends Controller
                 return response()->json(['message' => 'Expediente actualizado correctamente.'], 200);
             });
         } catch (\Exception $e) {
+            Log::error("Error en update pedido: " . $e->getMessage());
             return response()->json(['message' => 'Fallo al procesar: ' . $e->getMessage()], 422);
         }
     }

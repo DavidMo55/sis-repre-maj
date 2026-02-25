@@ -386,7 +386,7 @@
                 <!-- 5. MOTIVO DE MODIFICACIÓN -->
                 <div class="form-section shadow-premium border-t-4 border-t-red-700 bg-white p-8 rounded-[2.5rem] border border-slate-100">
                     <div class="section-title text-black">
-                        <i class="fas fa-history text-red-700"></i> 5. Motivo de Modificación
+                        <i class="fas fa-history text-red-700"></i> 5. Motivo de la Modificación
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="form-group">

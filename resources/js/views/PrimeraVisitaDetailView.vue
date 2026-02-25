@@ -289,7 +289,7 @@
                 <div v-if="ultimoResultado === 'seguimiento'" class="info-card border-none bg-slate-100 p-10 rounded-[3rem] border border-slate-200 shadow-sm mt-8 text-center animate-fade-in">
                     <div class="flex flex-col items-center gap-6">
                         <div class="section-title text-black !border-black/5 !mb-0">
-                            <i class="fas fa-calendar-alt text-black"></i> 3. Próximo Compromiso y Acción
+                            <i class="fas fa-calendar-alt text-black"></i> 3. Próximo Compromiso 
                         </div>
                         
                         <div v-if="proximoCompromisoFinal" class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 w-full max-w-lg mx-auto">
@@ -306,7 +306,7 @@
                         <button v-if="visita.cliente?.tipo !== 'CLIENTE'" 
                             @click="router.push({ name: 'SeguimientoID', params: { id: visita.id } })" 
                             class="w-full max-w-md btn-primary-action shadow-2xl transition-all active:scale-95 mx-auto">
-                            <i class="fas fa-plus-circle mr-2 "></i> Registrar Nuevo Seguimiento
+                            <i class="fas fa-plus-circle mr-2 "></i> Registrar Seguimiento
                         </button>
                     </div>
                 </div>
