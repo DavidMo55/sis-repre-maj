@@ -64,7 +64,7 @@
                         <!-- 2. AGREGAR CONCEPTOS -->
                         <div class="form-section shadow-premium bg-slate-50/50 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100">
                             <div class="section-title">
-                                <i class="fas fa-plus-circle"></i> 2. Detalle de Conceptos
+                                <i class="fas fa-plus-circle"></i> 2. DETALLE DE CONCEPTOS Y COMPROBANTES
                             </div>
                             
                             <div class="bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2rem] border border-slate-100 shadow-sm space-y-6 mt-4">
@@ -237,21 +237,25 @@
                         </div>
                     </div>
 
+                    <div class="form-section shadow-premium lg:sticky lg:top-28 bg-slate-900 text-white border-none p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem]">
+                         
+                        <!-- REGLA: El campo de motivo siempre aparece si el paquete ya está FINALIZADO -->
+                                <div v-if="form.status === 'FINALIZADO'" class="bg-white/5 p-5 rounded-3xl border border-white/5 animate-fade-in">
+                                    <div class="section-title !text-white !border-white/20">
+                                <i class="fas fa-save"></i> 3. MOTIVO DE LA MODIFICACIÓN
+                            </div>
+                                    <textarea v-model="form.motivo_cambio" class="form-input !bg-slate-800 !border-slate-700 !text-white text-xs" rows="3" placeholder="EXPLIQUE POR QUÉ SE MODIFICA EL PAQUETE..."></textarea>
+                                </div>
+                    </div>
+
                     <!-- COLUMNA DERECHA: ACCIÓN -->
                     <div class="lg:col-span-1 min-w-0">
                         <div class="form-section shadow-premium lg:sticky lg:top-28 bg-slate-900 text-white border-none p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem]">
                             <div class="section-title !text-white !border-white/20">
-                                <i class="fas fa-save"></i> 3. Guardar Cambios
+                                <i class="fas fa-save"></i> 4. Guardar Paquete de Gastos
                             </div>
                             
                             <div class="space-y-6 mt-6">
-                                
-
-                                <!-- REGLA: El campo de motivo siempre aparece si el paquete ya está FINALIZADO -->
-                                <div v-if="form.status === 'FINALIZADO'" class="bg-white/5 p-5 rounded-3xl border border-white/5 animate-fade-in">
-                                    <label class="label-style !text-red-400 mb-2 uppercase text-[9px]">Motivo de Modifiación*</label>
-                                    <textarea v-model="form.motivo_cambio" class="form-input !bg-slate-800 !border-slate-700 !text-white text-xs" rows="3" placeholder="EXPLIQUE POR QUÉ SE MODIFICA EL PAQUETE..."></textarea>
-                                </div>
 
                                 <!-- ALERTA DE COMPROBANTES FALTANTES -->
                                 <div v-if="!allFilesPresent && subExpenses.length > 0" class="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl animate-pulse">

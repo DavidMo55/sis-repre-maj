@@ -296,7 +296,7 @@
                                 </select>
                             </div>
                             <div class="form-group mb-6">
-                                <label class="label-style">Comentarios Generales *</label>
+                                <label class="label-style">COMENTARIOS Y ACUERDOS DE LA SESIÓN*</label>
                                 <textarea v-model="form.visita.comentarios" class="form-input font-medium uppercase text-xs lbb" rows="4" required minlength="20"></textarea>
                             </div>
                         </div>
@@ -311,7 +311,7 @@
                                         <input v-model="form.visita.proxima_visita" type="date" class="form-input border-orange-200 font-bold lbb" required :disabled="loading">
                                     </div>
                                     <div>
-                                        <label class="text-[8px] font-black text-orange-600 uppercase mb-1 block">Tipo de actividad</label>
+                                        <label class="text-[8px] font-black text-orange-600 uppercase mb-1 block">Objetivo</label>
                                         <select v-model="form.visita.proxima_accion" class="form-input border-orange-200 font-bold lbb" :disabled="loading">
                                             <option value="visita">Visita de Seguimiento</option>
                                             <option value="presentacion">Presentación Académica</option>

@@ -98,91 +98,99 @@
                                 <div class="overflow-x-auto">
                                     <div class="table-responsive table-shadow-lg mt-6 border rounded-xl overflow-hidden shadow-sm">
                         <table class="min-width-full divide-y divide-gray-200">
-                            <thead class="bg-slate-900 text-white hidden md:table-header-group">
-                                <tr>
-                                    <th class="table-header-dark text-left">N</th>
-                                    <th class="table-header-dark text-left">Concepto / Descripción</th>
-                                    <th class="table-header-dark text-center">Comprobante</th>
-                                    <th class="table-header-dark text-right">Monto</th>
-                                    <th class="table-header-dark text-center">Facturado</th>
-                                    <th class="table-header-dark text-center"></th>
-                                </tr>
-                            </thead>
+                                            <thead class="bg-slate-900 text-white hidden md:table-header-group">
+                                                <tr>
+                                                    <th class="table-header-dark text-center w-16">N</th>
+                                                    <th class="table-header-dark text-left">Concepto / Descripción</th>
+                                                    <th class="table-header-dark text-center">Comprobante</th>
+                                                    <th class="table-header-dark text-right">Monto</th>
+                                                    <th class="table-header-dark text-center">Facturado</th>
+                                                    <th class="table-header-dark text-center w-20"></th>
+                                                </tr>
+                                            </thead>
 
-                            <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
-                                <tr v-for="(item, index) in subExpenses" :key="index" 
-                                    class="hover:bg-slate-50/50 transition-colors group block md:table-row relative p-5 md:p-0 border-b md:border-none">
-                                    <td class="table-cell block md:table-cell">
-                                         <div class="hidden md:flex w-8 h-8 bg-slate-100 text-slate-500 rounded-lg items-center justify-center font-black text-[10px]">
-                                                {{ index + 1 }}
-                                            </div>
-                                    </td>
-                                    <td class="table-cell block md:table-cell">
-                                        <div class="flex items-center gap-3">
-                                           
-                                            <div class="min-w-0">
-                                                <p class="font-black text-slate-800 text-sm uppercase leading-tight break-words">
-                                                    {{ item.concepto === 'Otros' ? item.descripcion_otros : item.concepto }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </td>
+                                            <tbody class="bg-white divide-y divide-gray-100 block md:table-row-group">
+                                                <tr v-for="(item, index) in subExpenses" :key="index" 
+                                                    class="hover:bg-slate-50/50 transition-colors group block md:table-row relative p-5 md:p-0 border-b md:border-none">
+                                                    
+                                                    <td class="table-cell block md:table-cell text-center">
+                                                        <div class="hidden md:flex w-8 h-8 bg-slate-100 text-slate-500 rounded-lg items-center justify-center mx-auto font-black text-[10px]">
+                                                            {{ index + 1 }}
+                                                        </div>
+                                                    </td>
 
-                                    <td class="table-cell block md:table-cell text-left md:text-center">
-                                        <span class="md:hidden block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Documento Adjunto</span>
-                                        <div class="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl max-w-full">
-                                            <i class="fas" :class="item.file.type.includes('pdf') ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500'"></i>
-                                            <span class="text-[10px] font-bold text-slate-600 truncate max-w-[150px] uppercase tracking-tighter">
-                                                {{ item.file.name }}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="table-cell block md:table-cell text-left md:text-right font-black text-red-700 text-lg md:text-base">
-                                        ${{ item.monto.toFixed(2) }}
-                                    </td>
-                                    
-                                    <td class="table-cell block md:table-cell text-left md:text-center">
-                                        <span v-if="item.es_facturado" class="status-badge-sm badge-tax-success">Facturado</span>
-                                        <span v-else class="status-badge-sm badge-tax-none">Sin Factura</span>
-                                    </td>
+                                                    <td class="table-cell block md:table-cell">
+                                                        <div class="flex items-center gap-3">
+                                                            <div class="min-w-0">
+                                                                <!-- CONCEPTO PRINCIPAL -->
+                                                                <p class="font-black text-slate-800 text-sm uppercase leading-tight break-words">
+                                                                    {{ item.concepto }}
+                                                                </p>
+                                                                <!-- DESCRIPCIÓN SECUNDARIA -->
+                                                                <div class="mt-1 flex items-start gap-1">
+                                                                    <i class="fas fa-caret-right text-red-600 text-[8px] mt-1"></i>
+                                                                    <p class="text-[10px] text-slate-400 font-bold uppercase leading-tight tracking-tighter">
+                                                                        {{ item.descripcion_otros }}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
 
-                                    
-                                         <td class="table-cell block md:table-cell text-center absolute top-5 right-5 md:static">
-                                        <button type="button" @click="removeSubExpense(index)" 
-                                            class="btn-delete-action">
-                                            <i class="fas fa-trash-alt"></i> <span class="hidden md:inline ml-1">Borrar</span>
-                                        </button>
-                                    </td>
-                                    
-                                </tr>
+                                                    <td class="table-cell block md:table-cell text-left md:text-center">
+                                                        <span class="md:hidden block text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Documento Adjunto</span>
+                                                        <div class="inline-flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl max-w-full">
+                                                            <i class="fas" :class="item.file.type.includes('pdf') ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500'"></i>
+                                                            <span class="text-[10px] font-bold text-slate-600 truncate max-w-[150px] uppercase tracking-tighter">
+                                                                {{ item.file.name }}
+                                                            </span>
+                                                        </div>
+                                                    </td>
 
-                                <tr v-if="subExpenses.length === 0">
-                                    <td colspan="5" class="px-6 py-16 text-center">
-                                        <div class="flex flex-col items-center">
-                                            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-dashed border-slate-300">
-                                                <i class="fas fa-receipt text-2xl text-slate-200"></i>
-                                            </div>
-                                            <p class="italic font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">No hay conceptos agregados</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
+                                                    <td class="table-cell block md:table-cell text-left md:text-right font-black text-red-700 text-lg md:text-base">
+                                                        ${{ item.monto.toFixed(2) }}
+                                                    </td>
 
-                            <tfoot v-if="subExpenses.length > 0" class="bg-slate-900 text-white block md:table-footer-group">
-                                <tr class="flex flex-col md:table-row p-6 md:p-0">
-                                    <td colspan="3" class="hidden md:table-cell px-8 py-6 text-right uppercase font-black text-slate-500 text-[10px] tracking-[0.2em]">
-                                        Inversión Total del Paquete:
-                                    </td>
-                                    <td class="md:px-8 md:py-8 block md:table-cell text-center md:text-right">
-                                        <span class="md:hidden block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Total Acumulado</span>
-                                        <div class="text-3xl md:text-2xl font-black text-red-400">
-                                            <span class="text-sm md:text-lg opacity-60">$</span>{{ totalMonto.toFixed(2) }}
-                                        </div>
-                                    </td>
-                                    <td class="hidden md:table-cell px-6 py-6"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                                                    <td class="table-cell block md:table-cell text-left md:text-center">
+                                                        <span v-if="item.es_facturado" class="status-badge-sm badge-tax-success">Facturado</span>
+                                                        <span v-else class="status-badge-sm badge-tax-none">Sin Factura</span>
+                                                    </td>
+
+                                                    <td class="table-cell block md:table-cell text-center absolute top-5 right-5 md:static">
+                                                        <button type="button" @click="removeSubExpense(index)" 
+                                                            class="btn-delete-action">
+                                                            <i class="fas fa-trash-alt"></i> <span class="hidden md:inline ml-1">Borrar</span>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+
+                                                <tr v-if="subExpenses.length === 0">
+                                                    <td colspan="6" class="px-6 py-16 text-center">
+                                                        <div class="flex flex-col items-center">
+                                                            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-dashed border-slate-300">
+                                                                <i class="fas fa-receipt text-2xl text-slate-200"></i>
+                                                            </div>
+                                                            <p class="italic font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">No hay conceptos agregados</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+
+                                            <tfoot v-if="subExpenses.length > 0" class="bg-slate-900 text-white block md:table-footer-group">
+                                                <tr class="flex flex-col md:table-row p-6 md:p-0">
+                                                    <td colspan="3" class="hidden md:table-cell px-8 py-6 text-right uppercase font-black text-slate-500 text-[10px] tracking-[0.2em]">
+                                                       <span class="md:hidden block text-[10px] font-black text-slate-500 uppercase mb-2 tracking-widest">Total</span>
+                                                    </td>
+                                                    <td class="md:px-8 md:py-8 block md:table-cell text-center md:text-right">
+                                                        
+                                                        <div class="text-3xl md:text-2xl font-black text-red-400">
+                                                            <span class="text-sm md:text-lg opacity-60">$</span>{{ totalMonto.toFixed(2) }}
+                                                        </div>
+                                                    </td>
+                                                    <td colspan="2" class="hidden md:table-cell px-6 py-6"></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
                     </div>
                                 </div>
                             </div>

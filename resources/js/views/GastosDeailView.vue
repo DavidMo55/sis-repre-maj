@@ -77,75 +77,107 @@
                         <div class="w-10 h-10 bg-red-50 text-red-600 rounded-xl flex items-center justify-center shadow-sm">
                             <i class="fas fa-receipt text-lg"></i>
                         </div>
-                        <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">2. Desglose de Conceptos</h2>
+                        <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">2. DETALLE DE CONCEPTOS Y COMPROBANTES</h2>
                     </div>
 
                     <div class="overflow-x-auto p-4 md:p-8">
                         <div class="table-container mt-4 animate-fade-in">
                             <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden shadow-sm bg-white">
                                 <table class="min-width-full divide-y divide-gray-200">
-                                    <thead class="bg-gray-100">
-                                        <tr>
-                                            <th class="table-header text-center w-16">N</th>
-                                            <th class="table-header">CONCEPTO / DESCRIPCIÓN</th>
-                                            <th class="table-header text-center">COMPROBANTE</th>
-                                            <th class="table-header text-right w-40">MONTO</th>
-                                            <th class="table-header text-center w-32">FACTURA</th>
-                                            
-                                        </tr>
-                                    </thead>
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="table-header text-center w-16">N</th>
+                                        <th class="table-header">CONCEPTO / DESCRIPCIÓN</th>
+                                        <th class="table-header text-center">COMPROBANTE</th>
+                                        <th class="table-header text-right w-40">MONTO</th>
+                                        <th class="table-header text-center w-32">FACTURA</th>
+                                    </tr>
+                                </thead>
 
-                                    <tbody class="bg-white bk divide-y divide-gray-100">
-                                        <tr v-for="(sub, idx) in gasto.detalles" :key="idx" class="hover:bg-gray-50 transition-colors">
-                                            <td class="table-cell text-center font-black text-slate-300">
-                                                {{ idx + 1 }}
-                                            </td>
-                                            <td class="table-cell">
-                                                <p class="font-black text-slate-800 text-sm uppercase leading-tight">
-                                                    {{ sub.concepto || 'Sin rubro' }}
+                                <tbody class="bg-white bk divide-y divide-gray-100">
+                                    <tr v-for="(sub, idx) in gasto.detalles" :key="idx" class="hover:bg-gray-50 transition-colors">
+                                        <td class="table-cell text-center font-black text-slate-300">
+                                            {{ idx + 1 }}
+                                        </td>
+                                        <td class="table-cell">
+                                            <p class="font-black text-slate-800 text-sm uppercase leading-tight">
+                                                {{ sub.concepto || 'Sin rubro' }}
+                                            </p>
+                                            <div class="mt-1.5 flex items-start gap-2">
+                                                <i class="fas fa-caret-right text-red-600 mt-0.5"></i>
+                                                <p class="text-[10px] text-slate-400 font-bold uppercase leading-relaxed tracking-tighter">
+                                                    {{ sub.descripcion }}
                                                 </p>
-                                                <div v-if="sub.descripcion" class="mt-1.5 flex items-start gap-2">
-                                                    <i class="fas fa-caret-right text-red-600 mt-0.5"></i>
-                                                    <p class="text-[10px] text-slate-400 font-bold uppercase leading-relaxed tracking-tighter">
-                                                        {{ sub.descripcion }}
-                                                    </p>
-                                                </div>
-                                            </td>
-                                            <td class="table-cell text-center">
-                                                <div v-if="gasto.comprobantes && gasto.comprobantes[idx]" class="inline-flex items-center">
-                                                    <a :href="getViewableUrl(gasto.comprobantes[idx].public_url)" 
-                                                       target="_blank"
-                                                       rel="noopener noreferrer"
-                                                       class="btn-note !bg-white hover:!border-red-600 hover:!text-red-600 flex items-center gap-2">
-                                                        <i class="fas text-[10px]" :class="getFileIcon(gasto.comprobantes[idx].extension)"></i>
-                                                        Comprobante
-                                                    </a>
-                                                </div>
-                                                <span v-else class="text-[10px] font-black text-slate-300 uppercase italic">Faltante</span>
-                                            </td>
-                                            <td class="table-cell text-right font-black text-red-800 text-base tracking-tighter">
-                                                {{ formatCurrency(sub.monto) }}
-                                            </td>
-                                            <td class="table-cell text-center">
-                                                <span class="status-badge" :class="sub.es_facturado ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500 border border-slate-200'">
-                                                    {{ sub.es_facturado ? 'FACTURA' : 'S/F' }}
-                                                </span>
-                                            </td>
-                                            
-                                        </tr>
-                                    </tbody>
+                                            </div>
+                                        </td>
+                                        <td class="table-cell text-center">
+                                            <div v-if="gasto.comprobantes && gasto.comprobantes[idx]" class="inline-flex items-center">
+                                                <a :href="getViewableUrl(gasto.comprobantes[idx].public_url)" 
+                                                   target="_blank"
+                                                   rel="noopener noreferrer"
+                                                   class="btn-note !bg-white hover:!border-red-600 hover:!text-red-600 flex items-center gap-2">
+                                                    <i class="fas text-[10px]" :class="getFileIcon(gasto.comprobantes[idx].extension)"></i>
+                                                    Comprobante
+                                                </a>
+                                            </div>
+                                            <span v-else class="text-[10px] font-black text-slate-300 uppercase italic">Faltante</span>
+                                        </td>
+                                        <td class="table-cell text-right font-black text-red-800 text-base tracking-tighter">
+                                            {{ formatCurrency(sub.monto) }}
+                                        </td>
+                                        <td class="table-cell text-center">
+                                            <span class="status-badge" :class="sub.es_facturado ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500 border border-slate-200'">
+                                                {{ sub.es_facturado ? 'FACTURA' : 'S/F' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tbody>
 
-                                    <tfoot class="bg-slate-50 border-t-2 border-slate-100">
-                                        <tr>
-                                            <td colspan="4" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
-                                                Suma Total del Paquete:
-                                            </td>
-                                            <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none tracking-tighter">
-                                                {{ formatCurrency(gasto.monto) }}
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
+                                <tfoot class="bg-slate-50 border-t-2 border-slate-100">
+                                    <tr>
+                                        <!-- CORRECCIÓN: colspan="3" para alinear el label antes del Monto -->
+                                        <td colspan="3" class="px-8 py-6 text-right font-black uppercase text-[10px] tracking-[0.2em] text-slate-400">
+                                            Total del Paquete:
+                                        </td>
+                                        <!-- CORRECCIÓN: El monto aparece bajo la columna 4 (Monto) -->
+                                        <td class="px-6 py-6 text-right font-black text-2xl text-red-700 leading-none tracking-tighter border-x border-slate-200/50">
+                                            {{ formatCurrency(gasto.monto) }}
+                                        </td>
+                                        <!-- Celda vacía para la columna Factura -->
+                                        <td class="bg-slate-50"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial de Ajustes -->
+                <div v-if="gasto.logs && gasto.logs.length > 0" class="info-card shadow-premium border-t-8 border-t-slate-800 bg-white p-0 rounded-[2.5rem] border border-slate-100 overflow-hidden mt-16 animate-fade-in">
+                    <div class="p-8 border-b border-slate-50 flex items-center justify-between">
+                        <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">Bitácora de Ajustes Técnicos</h2>
+                        <span class="text-[9px] font-black bg-red-600 text-white px-3 py-1 rounded-full uppercase tracking-widest">{{ gasto.logs.length }} MODIFICACIONES</span>
+                    </div>
+                    <div class="p-8 pt-0">
+                        <div class="table-responsive table-shadow-lg border rounded-xl overflow-hidden bg-white">
+                            <table class="min-width-full divide-y divide-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="table-header text-center w-24">ID</th>
+                                        <th class="table-header">Motivo</th>
+                                        <th class="table-header w-56">Responsable</th>
+                                        <th class="table-header text-right w-48">Sincronización</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <tr v-for="(log, index) in gasto.logs" :key="log.id">
+                                        <td class="table-cell text-center font-black text-slate-300">{{ gasto.logs.length - index }}</td>
+                                        <td class="table-cell text-[11px] font-bold text-slate-700 italic uppercase">"{{ log.motivo_cambio }}"</td>
+                                        <td class="table-cell text-[11px] font-black uppercase">{{ log.user?.name }}</td>
+                                        <td class="table-cell text-right font-black text-[11px] uppercase">{{ formatDateOnly(log.created_at) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                             </div>
                         </div>
                     </div>
@@ -173,7 +205,7 @@
                             <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg">
                                 <i class="fas fa-history"></i>
                             </div>
-                            <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">4. Bitácora de Ajustes Técnicos</h2>
+                            <h2 class="text-xl label-large font-black text-slate-800 uppercase tracking-tight">4. Modificaciones</h2>
                         </div>
                     </div>
 
