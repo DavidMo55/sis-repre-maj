@@ -327,8 +327,7 @@
                                     <tr v-for="(item, index) in orderForm.orderItems" :key="item.id" class="hover:bg-red-50/50 transition-colors group">
                                         <td class="table-cell">
                                             <div class="font-black text-black text-[13px] uppercase leading-tight">{{ item.bookName }}</div>
-                                            <div class="text-[8px] text-slate-400 uppercase font-bold mt-1 italic">ID: {{ item.bookId }}</div>
-                                        </td>
+                                         </td>
                                         <td class="table-cell text-center">
                                             <span :class="item.tipo_material === 'promocion' ? 'badge-material-promo' : 'badge-material-sale'">
                                                 {{ item.tipo_material.toUpperCase() }}
